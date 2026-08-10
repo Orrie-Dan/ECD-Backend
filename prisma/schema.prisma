@@ -1,0 +1,976 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////
+
+enum EcdCenterStatus {
+  active
+  inactive
+
+  @@map("ecd_center_status")
+}
+
+enum UserRole {
+  caregiver
+  district_focal_person
+  ncda_admin
+
+  @@map("user_role")
+}
+
+enum UserAccountStatus {
+  active
+  inactive
+
+  @@map("user_account_status")
+}
+
+enum ChildGender {
+  male
+  female
+
+  @@map("child_gender")
+}
+
+enum ChildStatus {
+  active
+  transferred
+  archived
+
+  @@map("child_status")
+}
+
+enum AttendanceStatus {
+  present
+  absent
+
+  @@map("attendance_status")
+}
+
+enum AbsentReason {
+  sick
+  family
+  transport
+  weather
+  unknown
+  other
+
+  @@map("absent_reason")
+}
+
+enum NutritionStatus {
+  normal
+  at_risk
+  moderate
+  severe
+
+  @@map("nutrition_status")
+}
+
+enum TransferStatus {
+  pending
+  accepted
+  cancelled
+
+  @@map("transfer_status")
+}
+
+enum StedAgeBand {
+  band_1_3
+  band_4_6
+
+  @@map("sted_age_band")
+}
+
+enum ReferralSourceType {
+  nutrition
+  sted
+
+  @@map("referral_source_type")
+}
+
+enum ReferralStatus {
+  pending
+  completed
+  cancelled
+
+  @@map("referral_status")
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+
+  @@map("audit_action")
+}
+
+enum AssessmentType {
+  self_assessment
+  supportive_supervision
+  external_audit
+
+  @@map("assessment_type")
+}
+
+enum AssessmentStatus {
+  draft
+  submitted
+  verified
+  rejected
+
+  @@map("assessment_status")
+}
+
+enum ComplianceClassification {
+  compliant
+  partially_compliant
+  non_compliant
+
+  @@map("compliance_classification")
+}
+
+enum ItemResponse {
+  met
+  partially_met
+  not_met
+  not_applicable
+
+  @@map("item_response")
+}
+
+enum GapSeverity {
+  low
+  medium
+  high
+
+  @@map("gap_severity")
+}
+
+enum GapStatus {
+  open
+  in_progress
+  resolved
+
+  @@map("gap_status")
+}
+
+enum StandardDomain {
+  wash
+  safety
+  nutrition
+  learning_environment
+
+  @@map("standard_domain")
+}
+
+enum RecordSyncStatus {
+  synced
+  pending
+  conflict
+
+  @@map("record_sync_status")
+}
+
+enum DeviceStatus {
+  active
+  inactive
+
+  @@map("device_status")
+}
+
+enum SyncOperationStatus {
+  pending
+  applied
+  conflict
+  failed
+
+  @@map("sync_operation_status")
+}
+
+enum SyncSessionStatus {
+  started
+  completed
+  failed
+
+  @@map("sync_session_status")
+}
+
+enum AdministrativeLevel {
+  province
+  sector
+  cell
+  village
+
+  @@map("administrative_level")
+}
+
+//////////////////////////////////////////////
+// GIS / ADMINISTRATIVE HIERARCHY
+//////////////////////////////////////////////
+
+model AdministrativeUnit {
+  id         String              @id @default(uuid())
+  level      AdministrativeLevel
+  parentId   String?             @map("parent_id")
+  districtId String?             @map("district_id")
+  name       String
+  code       String
+  latitude   Decimal?
+  longitude  Decimal?
+  createdAt  DateTime            @default(now()) @map("created_at")
+
+  parent   AdministrativeUnit?  @relation("AdministrativeUnitHierarchy", fields: [parentId], references: [id])
+  children AdministrativeUnit[] @relation("AdministrativeUnitHierarchy")
+  district District?            @relation("AdministrativeUnitDistrict", fields: [districtId], references: [id])
+
+  provincesAsDistrict District[]  @relation("DistrictProvince")
+  villageCenters      EcdCenter[] @relation("EcdCenterVillage")
+  homeVillageChildren Child[]     @relation("ChildHomeVillage")
+
+  @@unique([level, code])
+  @@index([parentId])
+  @@index([districtId])
+  @@map("administrative_unit")
+}
+
+model District {
+  id         String   @id @default(uuid())
+  provinceId String   @map("province_id")
+  code       String   @unique
+  name       String
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
+
+  province            AdministrativeUnit   @relation("DistrictProvince", fields: [provinceId], references: [id])
+  administrativeUnits AdministrativeUnit[] @relation("AdministrativeUnitDistrict")
+  ecdCenters          EcdCenter[]
+  userAccounts        UserAccount[]
+  appSettings         AppSetting[]
+
+  @@index([code])
+  @@map("district")
+}
+
+//////////////////////////////////////////////
+// CORE ORGANISATION
+//////////////////////////////////////////////
+
+model EcdCenter {
+  id                          String                    @id @default(uuid())
+  districtId                  String                    @map("district_id")
+  villageId                   String                    @map("village_id")
+  code                        String                    @unique
+  name                        String
+  phone                       String?
+  capacity                    Int?
+  latitude                    Decimal?
+  longitude                   Decimal?
+  status                      EcdCenterStatus           @default(active)
+  currentComplianceLevel      ComplianceClassification? @map("current_compliance_level")
+  currentComplianceAssessedAt DateTime?                 @map("current_compliance_assessed_at") @db.Date
+  createdAt                   DateTime                  @default(now()) @map("created_at")
+  createdById                 String?                   @map("created_by")
+  updatedAt                   DateTime                  @default(now()) @map("updated_at")
+  updatedById                 String?                   @map("updated_by")
+  deletedAt                   DateTime?                 @map("deleted_at")
+  version                     Int                       @default(1)
+  syncStatus                  RecordSyncStatus          @default(synced) @map("sync_status")
+  lastModifiedByDeviceId      String?                   @map("last_modified_by_device_id")
+  lastModifiedAt              DateTime                  @default(now()) @map("last_modified_at")
+
+  district              District               @relation(fields: [districtId], references: [id])
+  village               AdministrativeUnit     @relation("EcdCenterVillage", fields: [villageId], references: [id])
+  createdBy             UserAccount?           @relation("EcdCenterCreatedBy", fields: [createdById], references: [id])
+  updatedBy             UserAccount?           @relation("EcdCenterUpdatedBy", fields: [updatedById], references: [id])
+  lastModifiedByDevice  Device?                @relation("EcdCenterLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+  userAccounts          UserAccount[]
+  children              Child[]
+  transfersFrom         ChildTransfer[]        @relation("ChildTransferFromCenter")
+  transfersTo           ChildTransfer[]        @relation("ChildTransferToCenter")
+  attendanceRecords     AttendanceRecord[]
+  complianceAssessments ComplianceAssessment[]
+  washIndicators        WashIndicator[]
+  feedingDays           CenterFeedingDay[]
+  feedingMonthSummaries CenterFeedingMonthSummary[]
+  stedAssessments       StedAssessment[]
+  referrals             Referral[]
+
+  @@index([districtId])
+  @@index([status])
+  @@index([villageId])
+  @@index([currentComplianceLevel])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("ecd_center")
+}
+
+//////////////////////////////////////////////
+// AUTH & ACCESS
+//////////////////////////////////////////////
+
+model UserAccount {
+  id                  String            @id @default(uuid())
+  username            String            @unique
+  passwordHash        String            @map("password_hash")
+  fullName            String            @map("full_name")
+  phone               String?
+  email               String?
+  role                UserRole
+  districtId          String?           @map("district_id")
+  centerId            String?           @map("center_id")
+  status              UserAccountStatus @default(active)
+  lastLoginAt         DateTime?         @map("last_login_at")
+  failedLoginAttempts Int               @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?         @map("locked_until")
+  passwordChangedAt   DateTime?         @map("password_changed_at")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  createdById         String?           @map("created_by")
+  updatedAt           DateTime          @default(now()) @map("updated_at")
+  updatedById         String?           @map("updated_by")
+
+  district District?  @relation(fields: [districtId], references: [id])
+  center   EcdCenter? @relation(fields: [centerId], references: [id])
+
+  createdBy    UserAccount?  @relation("UserAccountCreatedBy", fields: [createdById], references: [id])
+  createdUsers UserAccount[] @relation("UserAccountCreatedBy")
+  updatedBy    UserAccount?  @relation("UserAccountUpdatedBy", fields: [updatedById], references: [id])
+  updatedUsers UserAccount[] @relation("UserAccountUpdatedBy")
+
+  passwordResetTokens PasswordResetToken[]
+  devices             Device[]
+
+  createdCenters                 EcdCenter[]               @relation("EcdCenterCreatedBy")
+  updatedCenters                 EcdCenter[]               @relation("EcdCenterUpdatedBy")
+  createdChildren                Child[]                   @relation("ChildCreatedBy")
+  updatedChildren                Child[]                   @relation("ChildUpdatedBy")
+  initiatedTransfers             ChildTransfer[]           @relation("ChildTransferInitiatedBy")
+  acceptedTransfers              ChildTransfer[]           @relation("ChildTransferAcceptedBy")
+  recordedAttendanceRecords      AttendanceRecord[]        @relation("AttendanceRecordRecordedBy")
+  updatedAttendanceRecords       AttendanceRecord[]        @relation("AttendanceRecordUpdatedBy")
+  recordedNutritionScreenings    ChildNutritionScreening[] @relation("ChildNutritionScreeningRecordedBy")
+  recordedCenterFeedingDays      CenterFeedingDay[]        @relation("CenterFeedingDayRecordedBy")
+  updatedFeedingMonthSummaries   CenterFeedingMonthSummary[] @relation("CenterFeedingMonthSummaryUpdatedBy")
+  assessedStedAssessments        StedAssessment[]          @relation("StedAssessmentAssessedBy")
+  recordedReferrals              Referral[]                @relation("ReferralRecordedBy")
+  submittedComplianceAssessments ComplianceAssessment[]    @relation("ComplianceAssessmentSubmittedBy")
+  verifiedComplianceAssessments  ComplianceAssessment[]    @relation("ComplianceAssessmentVerifiedBy")
+  recordedWashIndicators         WashIndicator[]           @relation("WashIndicatorRecordedBy")
+  updatedAppSettings             AppSetting[]              @relation("AppSettingUpdatedBy")
+  auditLogs                      AuditLog[]                @relation("AuditLogChangedBy")
+
+  @@index([username])
+  @@index([role])
+  @@index([status])
+  @@map("user_account")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user UserAccount @relation(fields: [userId], references: [id])
+
+  @@map("password_reset_token")
+}
+
+//////////////////////////////////////////////
+// DEVICES & OFFLINE SYNC
+//////////////////////////////////////////////
+
+model Device {
+  id           String       @id @default(uuid())
+  userId       String       @map("user_id")
+  deviceUuid   String       @unique @map("device_uuid")
+  platform     String?
+  appVersion   String?      @map("app_version")
+  status       DeviceStatus @default(active)
+  lastSyncAt   DateTime?    @map("last_sync_at")
+  registeredAt DateTime     @default(now()) @map("registered_at")
+
+  user           UserAccount     @relation(fields: [userId], references: [id])
+  syncOperations SyncOperation[]
+  syncSessions   SyncSession[]
+
+  lastModifiedCenters                   EcdCenter[]                @relation("EcdCenterLastModifiedByDevice")
+  lastModifiedChildren                  Child[]                    @relation("ChildLastModifiedByDevice")
+  lastModifiedChildTransfers            ChildTransfer[]            @relation("ChildTransferLastModifiedByDevice")
+  lastModifiedAttendanceRecords         AttendanceRecord[]         @relation("AttendanceRecordLastModifiedByDevice")
+  lastModifiedNutritionScreenings       ChildNutritionScreening[]  @relation("ChildNutritionScreeningLastModifiedByDevice")
+  lastModifiedCenterFeedingDays         CenterFeedingDay[]         @relation("CenterFeedingDayLastModifiedByDevice")
+  lastModifiedFeedingMonthSummaries     CenterFeedingMonthSummary[] @relation("CenterFeedingMonthSummaryLastModifiedByDevice")
+  lastModifiedStedAssessments           StedAssessment[]           @relation("StedAssessmentLastModifiedByDevice")
+  lastModifiedReferrals                 Referral[]                 @relation("ReferralLastModifiedByDevice")
+  lastModifiedComplianceAssessments     ComplianceAssessment[]     @relation("ComplianceAssessmentLastModifiedByDevice")
+  lastModifiedComplianceAssessmentItems ComplianceAssessmentItem[] @relation("ComplianceAssessmentItemLastModifiedByDevice")
+  lastModifiedWashIndicators            WashIndicator[]            @relation("WashIndicatorLastModifiedByDevice")
+
+  @@index([userId])
+  @@index([deviceUuid])
+  @@map("device")
+}
+
+model SyncSession {
+  id                   String            @id @default(uuid())
+  deviceId             String            @map("device_id")
+  startedAt            DateTime          @default(now()) @map("started_at")
+  completedAt          DateTime?         @map("completed_at")
+  totalOperations      Int               @default(0) @map("total_operations")
+  successfulOperations Int               @default(0) @map("successful_operations")
+  failedOperations     Int               @default(0) @map("failed_operations")
+  status               SyncSessionStatus @default(started)
+  /// Recovery requeue attempts for stuck pending sessions.
+  retryCount           Int               @default(0) @map("retry_count")
+  lastRetryAt          DateTime?         @map("last_retry_at")
+
+  device     Device          @relation(fields: [deviceId], references: [id])
+  operations SyncOperation[]
+
+  @@index([deviceId])
+  @@index([status])
+  @@index([status, startedAt])
+  @@map("sync_session")
+}
+
+model SyncOperation {
+  id                String              @id @default(uuid())
+  deviceId          String              @map("device_id")
+  sessionId         String?             @map("session_id")
+  /// Stable client-generated id for push idempotency. Null for server-originated rows.
+  clientOperationId String?             @map("client_operation_id")
+  entityType        String              @map("entity_type")
+  entityId          String              @map("entity_id")
+  localId           String?             @map("local_id")
+  operation         AuditAction
+  payload           Json?
+  status            SyncOperationStatus @default(pending)
+  conflictReason    String?             @map("conflict_reason")
+  clientTimestamp   DateTime            @map("client_timestamp")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  processedAt       DateTime?           @map("processed_at")
+
+  device  Device       @relation(fields: [deviceId], references: [id])
+  session SyncSession? @relation(fields: [sessionId], references: [id])
+
+  @@unique([deviceId, clientOperationId])
+  @@index([deviceId])
+  @@index([sessionId])
+  @@index([entityType, entityId])
+  @@index([status])
+  @@map("sync_operation")
+}
+
+//////////////////////////////////////////////
+// CHILD CORE
+//////////////////////////////////////////////
+
+model Child {
+  id                     String           @id @default(uuid())
+  registrationNumber     String           @unique @map("registration_number")
+  firstName              String           @map("first_name")
+  middleName             String?          @map("middle_name")
+  lastName               String?          @map("last_name")
+  centerId               String           @map("center_id")
+  dateOfBirth            DateTime         @map("date_of_birth") @db.Date
+  gender                 ChildGender
+  status                 ChildStatus      @default(active)
+  specialNeeds           String?          @map("special_needs") @db.Text
+  disabilityNotes        String?          @map("disability_notes") @db.Text
+  guardianName           String           @map("guardian_name")
+  guardianPhone          String           @map("guardian_phone")
+  guardianRelation       String           @map("guardian_relation")
+  guardian2Name          String?          @map("guardian2_name")
+  guardian2Phone         String?          @map("guardian2_phone")
+  guardian2Relation      String?          @map("guardian2_relation")
+  homeVillageId          String           @map("home_village_id")
+  registeredAt           DateTime         @map("registered_at") @db.Date
+  archiveReason          String?          @map("archive_reason")
+  archivedAt             DateTime?        @map("archived_at") @db.Date
+  createdAt              DateTime         @default(now()) @map("created_at")
+  createdById            String?          @map("created_by")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  updatedById            String?          @map("updated_by")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  center               EcdCenter                 @relation(fields: [centerId], references: [id])
+  homeVillage          AdministrativeUnit        @relation("ChildHomeVillage", fields: [homeVillageId], references: [id])
+  createdBy            UserAccount?              @relation("ChildCreatedBy", fields: [createdById], references: [id])
+  updatedBy            UserAccount?              @relation("ChildUpdatedBy", fields: [updatedById], references: [id])
+  lastModifiedByDevice Device?                   @relation("ChildLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+  transfers            ChildTransfer[]
+  attendanceRecords    AttendanceRecord[]
+  nutritionScreenings  ChildNutritionScreening[]
+  stedAssessments      StedAssessment[]
+  referrals            Referral[]
+
+  @@index([centerId])
+  @@index([status])
+  @@index([firstName])
+  @@index([lastName])
+  @@index([registrationNumber])
+  @@index([homeVillageId])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("child")
+}
+
+model ChildTransfer {
+  id                     String           @id @default(uuid())
+  childId                String           @map("child_id")
+  fromCenterId           String           @map("from_center_id")
+  toCenterId             String           @map("to_center_id")
+  transferDate           DateTime         @map("transfer_date") @db.Date
+  reason                 String
+  notes                  String?          @db.Text
+  status                 TransferStatus   @default(pending)
+  initiatedById          String           @map("initiated_by")
+  acceptedAt             DateTime?        @map("accepted_at")
+  acceptedById           String?          @map("accepted_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  child                Child        @relation(fields: [childId], references: [id])
+  fromCenter           EcdCenter    @relation("ChildTransferFromCenter", fields: [fromCenterId], references: [id])
+  toCenter             EcdCenter    @relation("ChildTransferToCenter", fields: [toCenterId], references: [id])
+  initiatedBy          UserAccount  @relation("ChildTransferInitiatedBy", fields: [initiatedById], references: [id])
+  acceptedBy           UserAccount? @relation("ChildTransferAcceptedBy", fields: [acceptedById], references: [id])
+  lastModifiedByDevice Device?      @relation("ChildTransferLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([childId])
+  @@index([fromCenterId])
+  @@index([toCenterId])
+  @@index([transferDate])
+  @@index([status])
+  @@index([initiatedById])
+  @@index([acceptedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("child_transfer")
+}
+
+model AttendanceRecord {
+  id                     String           @id @default(uuid())
+  childId                String           @map("child_id")
+  centerId               String           @map("center_id")
+  attendanceDate         DateTime         @map("attendance_date") @db.Date
+  status                 AttendanceStatus
+  broughtBy              String?          @map("brought_by")
+  broughtByOther         String?          @map("brought_by_other")
+  arrivedAt              DateTime?        @map("arrived_at")
+  absentReason           AbsentReason?    @map("absent_reason")
+  notes                  String?          @db.Text
+  recordedById           String           @map("recorded_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  updatedById            String?          @map("updated_by")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  child                Child        @relation(fields: [childId], references: [id])
+  center               EcdCenter    @relation(fields: [centerId], references: [id])
+  recordedBy           UserAccount  @relation("AttendanceRecordRecordedBy", fields: [recordedById], references: [id])
+  updatedBy            UserAccount? @relation("AttendanceRecordUpdatedBy", fields: [updatedById], references: [id])
+  lastModifiedByDevice Device?      @relation("AttendanceRecordLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@unique([childId, attendanceDate])
+  @@index([centerId, attendanceDate])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("attendance_record")
+}
+
+//////////////////////////////////////////////
+// CHILD WELLBEING — NUTRITION SCREENING
+//////////////////////////////////////////////
+
+model ChildNutritionScreening {
+  id                     String           @id @default(uuid())
+  childId                String           @map("child_id")
+  screeningDate          DateTime         @map("screening_date") @db.Date
+  weightKg               Decimal          @map("weight_kg")
+  muacCm                 Decimal          @map("muac_cm")
+  heightCm               Decimal?         @map("height_cm")
+  headCircumferenceCm    Decimal?         @map("head_circumference_cm")
+  nutritionStatus        NutritionStatus  @map("nutrition_status")
+  requiresReferral       Boolean          @default(false) @map("requires_referral")
+  mealQuality            String?          @map("meal_quality")
+  feedingConcern         Boolean          @default(false) @map("feeding_concern")
+  dietNotes              String?          @map("diet_notes") @db.Text
+  recordedById           String           @map("recorded_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  child                Child       @relation(fields: [childId], references: [id])
+  recordedBy           UserAccount @relation("ChildNutritionScreeningRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?     @relation("ChildNutritionScreeningLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([childId, screeningDate])
+  @@index([nutritionStatus])
+  @@index([requiresReferral])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("child_nutrition_screening")
+}
+
+//////////////////////////////////////////////
+// FEEDING — IMIRIRE (Form VI)
+//////////////////////////////////////////////
+
+model CenterFeedingDay {
+  id                     String           @id @default(uuid())
+  centerId               String           @map("center_id")
+  recordedDate           DateTime         @map("recorded_date") @db.Date
+  milkServed             Boolean          @default(false) @map("milk_served")
+  porridgeServed         Boolean          @default(false) @map("porridge_served")
+  balancedMealServed     Boolean          @default(false) @map("balanced_meal_served")
+  cerealsOrTubers        Boolean          @default(false) @map("cereals_or_tubers")
+  legumes                Boolean          @default(false)
+  dairy                  Boolean          @default(false)
+  animalProducts         Boolean          @default(false) @map("animal_products")
+  fruitsVegetables       Boolean          @default(false) @map("fruits_vegetables")
+  addedFat               Boolean          @default(false) @map("added_fat")
+  recordedById           String           @map("recorded_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  center               EcdCenter   @relation(fields: [centerId], references: [id])
+  recordedBy           UserAccount @relation("CenterFeedingDayRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?     @relation("CenterFeedingDayLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@unique([centerId, recordedDate])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("center_feeding_day")
+}
+
+model CenterFeedingMonthSummary {
+  id                     String           @id @default(uuid())
+  centerId               String           @map("center_id")
+  yearMonth              String           @map("year_month")
+  milkLiters             Decimal          @default(0) @map("milk_liters")
+  flourKg                Decimal          @default(0) @map("flour_kg")
+  foodSource             String           @map("food_source")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  updatedById            String?          @map("updated_by")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  center               EcdCenter    @relation(fields: [centerId], references: [id])
+  updatedBy            UserAccount? @relation("CenterFeedingMonthSummaryUpdatedBy", fields: [updatedById], references: [id])
+  lastModifiedByDevice Device?      @relation("CenterFeedingMonthSummaryLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@unique([centerId, yearMonth])
+  @@index([updatedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("center_feeding_month_summary")
+}
+
+//////////////////////////////////////////////
+// STED — DEVELOPMENTAL / DISABILITY SCREENING
+//////////////////////////////////////////////
+
+model StedAssessment {
+  id                     String           @id @default(uuid())
+  childId                String           @map("child_id")
+  centerId               String           @map("center_id")
+  assessmentDate         DateTime         @map("assessment_date") @db.Date
+  ageBand                StedAgeBand      @map("age_band")
+  consentObtained        Boolean          @default(false) @map("consent_obtained")
+  physicalAssessment     Json             @map("physical_assessment")
+  milestoneResults       Json             @map("milestone_results")
+  outcome                Json
+  followUpIn6Months      Boolean          @default(false) @map("follow_up_in_6_months")
+  followUpDueDate        DateTime?        @map("follow_up_due_date") @db.Date
+  notes                  String?          @db.Text
+  assessedById           String           @map("assessed_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  child                Child       @relation(fields: [childId], references: [id])
+  center               EcdCenter   @relation(fields: [centerId], references: [id])
+  assessedBy           UserAccount @relation("StedAssessmentAssessedBy", fields: [assessedById], references: [id])
+  lastModifiedByDevice Device?     @relation("StedAssessmentLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([childId, assessmentDate])
+  @@index([centerId])
+  @@index([ageBand])
+  @@index([assessedById])
+  @@index([followUpDueDate])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("sted_assessment")
+}
+
+//////////////////////////////////////////////
+// REFERRALS
+//////////////////////////////////////////////
+
+model Referral {
+  id                     String             @id @default(uuid())
+  childId                String             @map("child_id")
+  centerId               String             @map("center_id")
+  sourceType             ReferralSourceType @map("source_type")
+  sourceId               String             @map("source_id")
+  referralDate           DateTime           @map("referral_date") @db.Date
+  reason                 String
+  destination            String
+  status                 ReferralStatus     @default(pending)
+  implementedAt          DateTime?          @map("implemented_at") @db.Date
+  notes                  String?            @db.Text
+  recordedById           String             @map("recorded_by")
+  createdAt              DateTime           @default(now()) @map("created_at")
+  updatedAt              DateTime           @default(now()) @map("updated_at")
+  deletedAt              DateTime?          @map("deleted_at")
+  version                Int                @default(1)
+  syncStatus             RecordSyncStatus   @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?            @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime           @default(now()) @map("last_modified_at")
+
+  child                Child       @relation(fields: [childId], references: [id])
+  center               EcdCenter   @relation(fields: [centerId], references: [id])
+  recordedBy           UserAccount @relation("ReferralRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?     @relation("ReferralLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([childId])
+  @@index([centerId])
+  @@index([sourceType, sourceId])
+  @@index([referralDate])
+  @@index([status])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("referral")
+}
+
+//////////////////////////////////////////////
+// ECD STANDARDS & COMPLIANCE MONITORING
+//////////////////////////////////////////////
+
+model EcdStandard {
+  id          String         @id @default(uuid())
+  domain      StandardDomain
+  code        String         @unique
+  title       String
+  description String?        @db.Text
+  weight      Decimal?
+  version     String
+  isActive    Boolean        @default(true) @map("is_active")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @default(now()) @map("updated_at")
+
+  assessmentItems ComplianceAssessmentItem[]
+
+  @@index([domain])
+  @@index([version])
+  @@map("ecd_standard")
+}
+
+model ComplianceAssessment {
+  id                     String                    @id @default(uuid())
+  centerId               String                    @map("center_id")
+  standardsVersion       String                    @map("standards_version")
+  assessmentType         AssessmentType            @map("assessment_type")
+  assessmentDate         DateTime                  @map("assessment_date") @db.Date
+  status                 AssessmentStatus          @default(draft)
+  submittedById          String?                   @map("submitted_by")
+  submittedAt            DateTime?                 @map("submitted_at")
+  verifiedById           String?                   @map("verified_by")
+  verifiedAt             DateTime?                 @map("verified_at")
+  overallClassification  ComplianceClassification? @map("overall_classification")
+  createdAt              DateTime                  @default(now()) @map("created_at")
+  updatedAt              DateTime                  @default(now()) @map("updated_at")
+  deletedAt              DateTime?                 @map("deleted_at")
+  version                Int                       @default(1)
+  syncStatus             RecordSyncStatus          @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?                   @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime                  @default(now()) @map("last_modified_at")
+
+  center               EcdCenter                  @relation(fields: [centerId], references: [id])
+  submittedBy          UserAccount?               @relation("ComplianceAssessmentSubmittedBy", fields: [submittedById], references: [id])
+  verifiedBy           UserAccount?               @relation("ComplianceAssessmentVerifiedBy", fields: [verifiedById], references: [id])
+  lastModifiedByDevice Device?                    @relation("ComplianceAssessmentLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+  items                ComplianceAssessmentItem[]
+
+  @@index([centerId, assessmentDate])
+  @@index([status])
+  @@index([submittedById])
+  @@index([verifiedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("compliance_assessment")
+}
+
+model ComplianceAssessmentItem {
+  id                     String           @id @default(uuid())
+  assessmentId           String           @map("assessment_id")
+  standardId             String           @map("standard_id")
+  response               ItemResponse
+  score                  Decimal?
+  evidenceNotes          String?          @map("evidence_notes") @db.Text
+  gapSeverity            GapSeverity?     @map("gap_severity")
+  gapImprovementAction   String?          @map("gap_improvement_action") @db.Text
+  gapTargetDate          DateTime?        @map("gap_target_date") @db.Date
+  gapStatus              GapStatus?       @map("gap_status")
+  gapResolvedAt          DateTime?        @map("gap_resolved_at") @db.Date
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  assessment           ComplianceAssessment @relation(fields: [assessmentId], references: [id])
+  standard             EcdStandard          @relation(fields: [standardId], references: [id])
+  lastModifiedByDevice Device?              @relation("ComplianceAssessmentItemLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@unique([assessmentId, standardId])
+  @@index([standardId])
+  @@index([gapStatus])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("compliance_assessment_item")
+}
+
+//////////////////////////////////////////////
+// WASH INDICATORS
+//////////////////////////////////////////////
+
+model WashIndicator {
+  id                           String           @id @default(uuid())
+  centerId                     String           @map("center_id")
+  recordedDate                 DateTime         @map("recorded_date") @db.Date
+  waterSourceAvailable         Boolean          @default(false) @map("water_source_available")
+  waterSourceType              String?          @map("water_source_type")
+  sanitationFacilityAvailable  Boolean          @default(false) @map("sanitation_facility_available")
+  latrineCount                 Int?             @map("latrine_count")
+  handwashingFacilityAvailable Boolean          @default(false) @map("handwashing_facility_available")
+  wasteManagementAvailable     Boolean          @default(false) @map("waste_management_available")
+  notes                        String?          @db.Text
+  recordedById                 String           @map("recorded_by")
+  createdAt                    DateTime         @default(now()) @map("created_at")
+  deletedAt                    DateTime?        @map("deleted_at")
+  version                      Int              @default(1)
+  syncStatus                   RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId       String?          @map("last_modified_by_device_id")
+  lastModifiedAt               DateTime         @default(now()) @map("last_modified_at")
+
+  center               EcdCenter   @relation(fields: [centerId], references: [id])
+  recordedBy           UserAccount @relation("WashIndicatorRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?     @relation("WashIndicatorLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([centerId, recordedDate])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("wash_indicator")
+}
+
+//////////////////////////////////////////////
+// CONFIG & AUDIT
+//////////////////////////////////////////////
+
+model AppSetting {
+  id          String   @id @default(uuid())
+  districtId  String   @map("district_id")
+  key         String
+  value       String
+  updatedAt   DateTime @default(now()) @map("updated_at")
+  updatedById String?  @map("updated_by")
+
+  district  District     @relation(fields: [districtId], references: [id])
+  updatedBy UserAccount? @relation("AppSettingUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([districtId, key])
+  @@map("app_setting")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  entityType  String      @map("entity_type")
+  entityId    String      @map("entity_id")
+  action      AuditAction
+  changedById String?     @map("changed_by")
+  changedAt   DateTime    @default(now()) @map("changed_at")
+  oldValues   Json?       @map("old_values")
+  newValues   Json?       @map("new_values")
+  /// Attribution + domain action: { domainAction, actorType, deviceId?, operationId?, ... }
+  metadata    Json?
+
+  changedBy UserAccount? @relation("AuditLogChangedBy", fields: [changedById], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([changedAt])
+  @@map("audit_log")
+}

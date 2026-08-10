@@ -1,0 +1,1043 @@
+// ECD Mapping System Enhancement — Database Schema
+// Scoped to CRS/NCDA ToR: ECD book digitization, National ECD Standards
+// compliance monitoring, WASH indicators, roles, interoperability readiness.
+// Offline-first: field-collected tables carry sync metadata (deleted_at,
+// version, sync_status, last_modified_by_device_id) to support the
+// device/sync_operation push-pull model described below.
+// Docs: https://dbml.dbdiagram.io/docs
+//
+// Domain model update: feeding (Imirire), STED, referrals; MUAC nutrition
+// statuses; two-step child transfer; weather absent reason.
+
+//////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////
+
+enum ecd_center_status {
+  active
+  inactive
+}
+
+enum user_role {
+  caregiver
+  district_focal_person
+  ncda_admin
+}
+
+enum user_account_status {
+  active
+  inactive
+}
+
+enum child_gender {
+  male
+  female
+}
+
+enum child_status {
+  active
+  transferred
+  archived
+}
+
+enum attendance_status {
+  present
+  absent
+}
+
+enum absent_reason {
+  sick
+  family
+  transport
+  weather
+  unknown
+  other
+}
+
+// MUAC-based operational classification (Form VII), not WHO z-scores.
+enum nutrition_status {
+  normal
+  at_risk
+  moderate
+  severe
+}
+
+enum transfer_status {
+  pending
+  accepted
+  cancelled
+}
+
+enum sted_age_band {
+  band_1_3
+  band_4_6
+}
+
+enum referral_source_type {
+  nutrition
+  sted
+}
+
+enum referral_status {
+  pending
+  completed
+  cancelled
+}
+
+enum audit_action {
+  create
+  update
+  delete
+}
+
+enum assessment_type {
+  self_assessment
+  supportive_supervision
+  external_audit
+}
+
+enum assessment_status {
+  draft
+  submitted
+  verified
+  rejected
+}
+
+enum compliance_classification {
+  compliant
+  partially_compliant
+  non_compliant
+}
+
+enum item_response {
+  met
+  partially_met
+  not_met
+  not_applicable
+}
+
+enum gap_severity {
+  low
+  medium
+  high
+}
+
+enum gap_status {
+  open
+  in_progress
+  resolved
+}
+
+enum standard_domain {
+  wash
+  safety
+  nutrition
+  learning_environment
+}
+
+enum record_sync_status {
+  synced
+  pending
+  conflict
+}
+
+enum device_status {
+  active
+  inactive
+}
+
+enum sync_operation_status {
+  pending
+  applied
+  conflict
+  failed
+}
+
+enum sync_session_status {
+  started
+  completed
+  failed
+}
+
+//////////////////////////////////////////////
+// GIS / ADMINISTRATIVE HIERARCHY
+// province > district > sector > cell > village
+// Mirrors the existing ArcGIS-based mapping system's location structure.
+// Modeled as one self-referencing table rather than four, since province/
+// sector/cell/village are structurally identical (name + code + parent) and
+// this level of the hierarchy has no organisation-specific behavior attached
+// to it. district stays a dedicated table below because it IS an
+// organisational scoping entity, referenced directly by user_account,
+// ecd_center, and app_setting.
+// Reference data only — pushed to devices, never edited offline, so it
+// carries no sync metadata.
+//////////////////////////////////////////////
+
+enum administrative_level {
+  province
+  sector
+  cell
+  village
+}
+
+Table administrative_unit {
+  id uuid [primary key]
+  level administrative_level [not null]
+
+  // Self-reference for cell -> sector and village -> cell. Null at province
+  // level and at sector level (sectors link to their district via district_id
+  // instead, since district is a separate table, not part of this hierarchy).
+  parent_id uuid
+
+  // Only set when level = sector: bridges this hierarchy into the district
+  // table, which owns the province -> district step and all organisational
+  // scoping elsewhere in the schema.
+  district_id uuid
+
+  name varchar [not null]
+  code varchar [not null]
+  latitude decimal
+  longitude decimal
+  created_at timestamp [not null, default: `now()`]
+
+  indexes {
+    parent_id
+    district_id
+    (level, code) [unique]
+  }
+
+  Note: 'Generic hierarchy node for province/sector/cell/village. district (below) is the one level pulled out as its own table.'
+}
+
+Table district {
+  id uuid [primary key]
+  province_id uuid [not null] // references administrative_unit where level = province
+  code varchar [unique, not null]
+  name varchar [not null]
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    code
+    province_id
+  }
+}
+
+//////////////////////////////////////////////
+// CORE ORGANISATION
+//////////////////////////////////////////////
+
+Table ecd_center {
+  id uuid [primary key]
+  district_id uuid [not null]
+  village_id uuid [not null]
+  code varchar [unique, not null]
+  name varchar [not null]
+  phone varchar
+
+  capacity integer
+  latitude decimal
+  longitude decimal
+  status ecd_center_status [not null, default: 'active']
+
+  // Denormalized snapshot of the latest compliance_assessment outcome, kept in sync
+  // by application logic, so dashboards can filter/classify centers without joining
+  // the full compliance history on every query.
+  current_compliance_level compliance_classification
+  current_compliance_assessed_at date
+
+  created_at timestamp [not null, default: `now()`]
+  created_by uuid
+  updated_at timestamp [not null, default: `now()`]
+  updated_by uuid
+
+  // Offline sync metadata — center details can be edited by district focal
+  // persons in the field (capacity, phone, status).
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`] // sync engine's source of truth for conflict comparison, distinct from updated_at
+
+  indexes {
+    district_id
+    status
+    village_id
+    current_compliance_level
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+}
+
+//////////////////////////////////////////////
+// AUTH & ACCESS
+// ToR 4.4/5: "support appropriate user roles and permissions" / "role-based
+// access and workflow management." Simplified to a fixed role enum — the
+// system doesn't need admin-configurable roles/permissions, just three
+// well-defined access levels. Login/account management requires connectivity,
+// so no sync metadata here.
+//////////////////////////////////////////////
+
+Table user_account {
+  id uuid [primary key]
+  username varchar [unique, not null]
+  password_hash varchar [not null]
+  full_name varchar [not null]
+  phone varchar
+  email varchar
+  role user_role [not null]
+
+  // Scope: caregivers require center_id, District ECD Focal Persons require
+  // district_id, NCDA admins require no organisation scope.
+  district_id uuid
+  center_id uuid
+
+  status user_account_status [not null, default: 'active']
+  last_login_at timestamp
+  failed_login_attempts integer [not null, default: 0]
+  locked_until timestamp
+  password_changed_at timestamp
+
+  created_at timestamp [not null, default: `now()`]
+  created_by uuid
+  updated_at timestamp [not null, default: `now()`]
+  updated_by uuid
+
+  indexes {
+    username
+    role
+    status
+    district_id
+    center_id
+  }
+}
+
+Table password_reset_token {
+  id uuid [primary key]
+  user_id uuid [not null]
+  token_hash varchar [unique, not null]
+  expires_at timestamp [not null]
+  used_at timestamp
+  created_at timestamp [not null, default: `now()`]
+
+  indexes {
+    user_id
+  }
+}
+
+//////////////////////////////////////////////
+// DEVICES & OFFLINE SYNC
+// Backend architecture: caregivers collect data offline on registered
+// devices; changes are queued locally and pushed/pulled through these two
+// tables when connectivity returns.
+//////////////////////////////////////////////
+
+Table device {
+  id uuid [primary key]
+  user_id uuid [not null]
+  device_uuid varchar [unique, not null]
+  platform varchar // e.g. android, ios, web
+  app_version varchar
+  status device_status [not null, default: 'active']
+  last_sync_at timestamp
+  registered_at timestamp [not null, default: `now()`]
+
+  indexes {
+    user_id
+    device_uuid
+  }
+
+  Note: 'One row per physical device a user has registered for offline data collection.'
+}
+
+Table sync_session {
+  id uuid [primary key]
+  device_id uuid [not null]
+
+  started_at timestamp [not null, default: `now()`]
+  completed_at timestamp
+
+  total_operations integer [not null, default: 0]
+  successful_operations integer [not null, default: 0]
+  failed_operations integer [not null, default: 0]
+
+  status sync_session_status [not null, default: 'started']
+
+  indexes {
+    device_id
+    status
+  }
+
+  Note: 'One row per sync run (e.g. a caregiver reconnecting after days offline). Groups the sync_operation rows pushed in that batch for support/debugging traceability.'
+}
+
+Table sync_operation {
+  id uuid [primary key]
+  device_id uuid [not null]
+  session_id uuid // groups this operation into a sync_session batch
+
+  entity_type varchar [not null] // e.g. child, attendance_record, child_nutrition_screening
+  entity_id uuid [not null] // server-side id once resolved
+  local_id varchar // client-generated id used before the server assigns entity_id
+
+  operation audit_action [not null] // create / update / delete
+  payload varchar // JSON, stored as text for portability
+
+  status sync_operation_status [not null, default: 'pending']
+  conflict_reason varchar
+
+  client_timestamp timestamp [not null] // when the change was made on-device, offline
+  created_at timestamp [not null, default: `now()`] // when the server received it
+  processed_at timestamp
+
+  indexes {
+    device_id
+    session_id
+    (entity_type, entity_id)
+    status
+  }
+
+  Note: 'Queue of offline changes pushed from a device. entity records use last-write-wins via version/last_modified_at comparison for simple fields; append-only tables (e.g. child_nutrition_screening) never overwrite, so conflicts there just mean two rows instead of one.'
+}
+
+//////////////////////////////////////////////
+// CHILD CORE (digitized ECD book)
+// ToR 4.2: capture info on children, parents/guardians, attendance,
+// development monitoring, child wellbeing, and other operational records.
+// Primary offline-entry table — carries full sync metadata.
+//////////////////////////////////////////////
+
+Table child {
+  id uuid [primary key]
+
+  registration_number varchar [unique, not null]
+  first_name varchar [not null]
+  middle_name varchar
+  last_name varchar
+
+  center_id uuid [not null]
+  date_of_birth date [not null]
+  gender child_gender [not null]
+  status child_status [not null, default: 'active']
+
+  special_needs text
+  disability_notes text
+
+  // Guardian info captured directly on the child record — descriptive data for
+  // the ECD book, not an authenticated actor, so no separate guardian table.
+  guardian_name varchar [not null]
+  guardian_phone varchar [not null]
+  guardian_relation varchar [not null]
+  guardian2_name varchar
+  guardian2_phone varchar
+  guardian2_relation varchar
+
+  home_village_id uuid [not null]
+
+  registered_at date [not null]
+  archive_reason varchar
+  archived_at date
+
+  created_at timestamp [not null, default: `now()`]
+  created_by uuid
+  updated_at timestamp [not null, default: `now()`]
+  updated_by uuid
+
+  // Offline sync metadata
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`] // sync engine's source of truth for conflict comparison, distinct from updated_at
+
+  indexes {
+    center_id
+    status
+    first_name
+    last_name
+    registration_number
+    home_village_id
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+}
+
+// Two-step transfer: initiate (pending) keeps child at source with
+// child.status = transferred; accept moves center_id and sets child active;
+// cancel returns child to active at source.
+Table child_transfer {
+  id uuid [primary key]
+  child_id uuid [not null]
+  from_center_id uuid [not null]
+  to_center_id uuid [not null]
+  transfer_date date [not null]
+  reason varchar [not null]
+  notes text
+  status transfer_status [not null, default: 'pending']
+  initiated_by uuid [not null]
+  accepted_at timestamp
+  accepted_by uuid
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  // Offline sync metadata — create is append-prefer; accept/cancel are updates
+  // with version CAS on this row (and on child).
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`] // sync engine's source of truth for conflict comparison, distinct from updated_at
+
+  indexes {
+    child_id
+    from_center_id
+    to_center_id
+    transfer_date
+    status
+    initiated_by
+    accepted_by
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+}
+
+Table attendance_record {
+  id uuid [primary key]
+  child_id uuid [not null]
+  center_id uuid [not null]
+
+  attendance_date date [not null]
+  status attendance_status [not null]
+
+  brought_by varchar
+  brought_by_other varchar
+  arrived_at timestamp
+
+  absent_reason absent_reason
+
+  notes text
+
+  recorded_by uuid [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  updated_by uuid
+
+  // Offline sync metadata — the table caregivers touch most often offline.
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`] // sync engine's source of truth for conflict comparison, distinct from updated_at
+
+  indexes {
+    (center_id, attendance_date)
+    (child_id, attendance_date) [unique]
+    recorded_by
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+}
+
+//////////////////////////////////////////////
+// CHILD WELLBEING — NUTRITION SCREENING
+// ToR 4.2 / Form VII: weight + MUAC screening visit. Append-only preferred;
+// soft-delete corrects mis-entry. height/head circumference optional.
+//////////////////////////////////////////////
+
+Table child_nutrition_screening {
+  id uuid [primary key]
+  child_id uuid [not null]
+  screening_date date [not null]
+
+  weight_kg decimal [not null]
+  muac_cm decimal [not null] // Mid-Upper Arm Circumference — key malnutrition screening indicator
+  height_cm decimal
+  head_circumference_cm decimal
+  nutrition_status nutrition_status [not null]
+  requires_referral boolean [not null, default: false]
+
+  meal_quality varchar
+  feeding_concern boolean [not null, default: false]
+  diet_notes text
+
+  recorded_by uuid [not null]
+  created_at timestamp [not null, default: `now()`]
+
+  // Offline sync metadata. deleted_at covers correcting a mis-entered
+  // screening; version/sync_status guard against duplicate offline submits.
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`] // sync engine's source of truth for conflict comparison, distinct from updated_at
+
+  indexes {
+    (child_id, screening_date)
+    nutrition_status
+    requires_referral
+    recorded_by
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+}
+
+//////////////////////////////////////////////
+// FEEDING — IMIRIRE (Form VI)
+// Center-level daily feeding log and monthly quantity summary.
+// Recorded by caregivers, often offline.
+//////////////////////////////////////////////
+
+Table center_feeding_day {
+  id uuid [primary key]
+  center_id uuid [not null]
+  recorded_date date [not null]
+
+  milk_served boolean [not null, default: false]
+  porridge_served boolean [not null, default: false]
+  balanced_meal_served boolean [not null, default: false]
+
+  // Six food groups for Indyo yuzuye (Icyitonderwa) when balanced meal served.
+  cereals_or_tubers boolean [not null, default: false]
+  legumes boolean [not null, default: false]
+  dairy boolean [not null, default: false]
+  animal_products boolean [not null, default: false]
+  fruits_vegetables boolean [not null, default: false]
+  added_fat boolean [not null, default: false]
+
+  recorded_by uuid [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  // Offline sync metadata
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (center_id, recorded_date) [unique]
+    recorded_by
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+
+  Note: 'One feeding log row per center per calendar day.'
+}
+
+Table center_feeding_month_summary {
+  id uuid [primary key]
+  center_id uuid [not null]
+  year_month varchar [not null] // YYYY-MM
+
+  milk_liters decimal [not null, default: 0]
+  flour_kg decimal [not null, default: 0]
+  food_source varchar [not null]
+
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  updated_by uuid
+
+  // Offline sync metadata
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (center_id, year_month) [unique]
+    updated_by
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+
+  Note: 'Monthly milk/flour quantities and food source for a center.'
+}
+
+//////////////////////////////////////////////
+// STED — DEVELOPMENTAL / DISABILITY SCREENING
+// Age-banded physical + milestone assessment. Append-only preferred.
+//////////////////////////////////////////////
+
+Table sted_assessment {
+  id uuid [primary key]
+  child_id uuid [not null]
+  center_id uuid [not null]
+  assessment_date date [not null]
+  age_band sted_age_band [not null]
+  consent_obtained boolean [not null, default: false]
+
+  // JSON: body-part map, e.g. { "headFace": "normal", "neck": "problem", ... }
+  physical_assessment varchar [not null] // JSON
+  // JSON: milestone code → yego|oya
+  milestone_results varchar [not null] // JSON
+  // JSON: outcome flags, e.g. { "normal": true, "referred": false, "counseling": false, "other": false, "otherText": null }
+  outcome varchar [not null] // JSON
+
+  follow_up_in_6_months boolean [not null, default: false]
+  follow_up_due_date date
+  notes text
+
+  assessed_by uuid [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  // Offline sync metadata
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (child_id, assessment_date)
+    center_id
+    age_band
+    assessed_by
+    follow_up_due_date
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+
+  Note: 'STED screening visit. physical_assessment, milestone_results, and outcome are JSON payloads.'
+}
+
+//////////////////////////////////////////////
+// REFERRALS
+// Follow-up referrals sourced from nutrition screening or STED.
+//////////////////////////////////////////////
+
+Table referral {
+  id uuid [primary key]
+  child_id uuid [not null]
+  center_id uuid [not null]
+  source_type referral_source_type [not null]
+  source_id uuid [not null] // child_nutrition_screening.id or sted_assessment.id
+  referral_date date [not null]
+  reason varchar [not null]
+  destination varchar [not null]
+  status referral_status [not null, default: 'pending']
+  implemented_at date
+  notes text
+
+  recorded_by uuid [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  // Offline sync metadata
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`]
+
+  indexes {
+    child_id
+    center_id
+    (source_type, source_id)
+    referral_date
+    status
+    recorded_by
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+
+  Note: 'source_id is polymorphic (nutrition screening or STED assessment); enforced in application logic.'
+}
+
+//////////////////////////////////////////////
+// ECD STANDARDS & COMPLIANCE MONITORING
+// ToR 4.3: digitize National ECD Standards into structured workflows for
+// self-assessment, verification, classification, and gap tracking.
+// ecd_standard is reference data (pushed to devices, not edited offline);
+// compliance_assessment/_item are filled out by caregivers/supervisors in
+// the field, so they carry sync metadata.
+//////////////////////////////////////////////
+
+Table ecd_standard {
+  id uuid [primary key]
+  domain standard_domain [not null]
+  code varchar [unique, not null]
+  title varchar [not null]
+  description text
+  weight decimal // relative weight toward overall classification, nullable if unweighted
+  version varchar [not null] // National ECD Standards are periodically revised
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    domain
+    version
+  }
+
+  Note: 'One row per individual standard/criterion within a given standards version.'
+}
+
+Table compliance_assessment {
+  id uuid [primary key]
+  center_id uuid [not null]
+  standards_version varchar [not null]
+  assessment_type assessment_type [not null]
+  assessment_date date [not null]
+  status assessment_status [not null, default: 'draft']
+
+  submitted_by uuid
+  submitted_at timestamp
+
+  verified_by uuid
+  verified_at timestamp
+
+  overall_classification compliance_classification
+
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  // Offline sync metadata — self-assessments are typically started offline
+  // at the center, then submitted/verified once connectivity is available.
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`] // sync engine's source of truth for conflict comparison, distinct from updated_at
+
+  indexes {
+    (center_id, assessment_date)
+    status
+    submitted_by
+    verified_by
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+
+  Note: 'One assessment cycle per center per period. assessment_type distinguishes caregiver self-assessment from district supportive-supervision visits and external audits.'
+}
+
+Table compliance_assessment_item {
+  id uuid [primary key]
+  assessment_id uuid [not null]
+  standard_id uuid [not null]
+  response item_response [not null]
+  score decimal
+  evidence_notes text
+
+  // Gap-tracking fields, folded in from the former compliance_gap table since
+  // a gap is always 1:1 with a not-met/partially-met item, never one-to-many.
+  gap_severity gap_severity
+  gap_improvement_action text
+  gap_target_date date
+  gap_status gap_status
+  gap_resolved_at date
+
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  // Offline sync metadata
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`] // sync engine's source of truth for conflict comparison, distinct from updated_at
+
+  indexes {
+    (assessment_id, standard_id) [unique]
+    standard_id
+    gap_status
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+
+  Note: 'Per-standard response within one assessment. Non-met/partially-met responses carry their gap details (severity, action, target date, status) directly on this row.'
+}
+
+//////////////////////////////////////////////
+// WASH INDICATORS
+// ToR 1: named explicitly as data already tracked in the existing mapping system.
+// Recorded by caregivers at the center, often offline.
+//////////////////////////////////////////////
+
+Table wash_indicator {
+  id uuid [primary key]
+  center_id uuid [not null]
+  recorded_date date [not null]
+
+  water_source_available boolean [not null, default: false]
+  water_source_type varchar
+  sanitation_facility_available boolean [not null, default: false]
+  latrine_count integer
+  handwashing_facility_available boolean [not null, default: false]
+  waste_management_available boolean [not null, default: false]
+
+  notes text
+  recorded_by uuid [not null]
+  created_at timestamp [not null, default: `now()`]
+
+  // Offline sync metadata
+  deleted_at timestamp
+  version integer [not null, default: 1]
+  sync_status record_sync_status [not null, default: 'synced']
+  last_modified_by_device_id uuid
+  last_modified_at timestamp [not null, default: `now()`] // sync engine's source of truth for conflict comparison, distinct from updated_at
+
+  indexes {
+    (center_id, recorded_date)
+    recorded_by
+    deleted_at
+    sync_status
+    last_modified_at
+    last_modified_by_device_id
+  }
+}
+
+//////////////////////////////////////////////
+// CONFIG & AUDIT
+// ToR 5: "support secure data storage, audit trail, and backup arrangements."
+// Server-side only — not edited on devices, so no sync metadata needed.
+//////////////////////////////////////////////
+
+Table app_setting {
+  id uuid [primary key]
+  district_id uuid [not null]
+  key varchar [not null]
+  value varchar [not null]
+  updated_at timestamp [not null, default: `now()`]
+  updated_by uuid
+
+  indexes {
+    (district_id, key) [unique]
+  }
+}
+
+Table audit_log {
+  id uuid [primary key]
+  entity_type varchar [not null]
+  entity_id uuid [not null]
+  action audit_action [not null]
+  changed_by uuid
+  changed_at timestamp [not null, default: `now()`]
+  old_values varchar // JSON, stored as text for portability
+  new_values varchar // JSON, stored as text for portability
+
+  indexes {
+    (entity_type, entity_id)
+    changed_at
+    changed_by
+  }
+
+  Note: 'Generic change log powering the audit UI, separate from per-row created_by/updated_by columns which only show the latest editor.'
+}
+
+//////////////////////////////////////////////
+// RELATIONSHIPS
+//////////////////////////////////////////////
+
+// GIS hierarchy
+Ref: administrative_unit.parent_id > administrative_unit.id
+Ref: administrative_unit.district_id > district.id
+Ref: district.province_id > administrative_unit.id
+Ref: ecd_center.village_id > administrative_unit.id
+Ref: child.home_village_id > administrative_unit.id
+
+// Org
+Ref: ecd_center.district_id > district.id
+Ref: ecd_center.created_by > user_account.id
+Ref: ecd_center.updated_by > user_account.id
+Ref: ecd_center.last_modified_by_device_id > device.id
+
+// Auth
+Ref: user_account.district_id > district.id
+Ref: user_account.center_id > ecd_center.id
+Ref: user_account.created_by > user_account.id
+Ref: user_account.updated_by > user_account.id
+Ref: password_reset_token.user_id > user_account.id
+
+// Devices & sync
+Ref: device.user_id > user_account.id
+Ref: sync_operation.device_id > device.id
+Ref: sync_session.device_id > device.id
+Ref: sync_operation.session_id > sync_session.id
+
+// Child core
+Ref: child.center_id > ecd_center.id
+Ref: child.created_by > user_account.id
+Ref: child.updated_by > user_account.id
+Ref: child.last_modified_by_device_id > device.id
+Ref: child_transfer.child_id > child.id
+Ref: child_transfer.from_center_id > ecd_center.id
+Ref: child_transfer.to_center_id > ecd_center.id
+Ref: child_transfer.initiated_by > user_account.id
+Ref: child_transfer.accepted_by > user_account.id
+Ref: child_transfer.last_modified_by_device_id > device.id
+Ref: attendance_record.child_id > child.id
+Ref: attendance_record.center_id > ecd_center.id
+Ref: attendance_record.recorded_by > user_account.id
+Ref: attendance_record.updated_by > user_account.id
+Ref: attendance_record.last_modified_by_device_id > device.id
+
+// Nutrition screening
+Ref: child_nutrition_screening.child_id > child.id
+Ref: child_nutrition_screening.recorded_by > user_account.id
+Ref: child_nutrition_screening.last_modified_by_device_id > device.id
+
+// Feeding (Imirire)
+Ref: center_feeding_day.center_id > ecd_center.id
+Ref: center_feeding_day.recorded_by > user_account.id
+Ref: center_feeding_day.last_modified_by_device_id > device.id
+Ref: center_feeding_month_summary.center_id > ecd_center.id
+Ref: center_feeding_month_summary.updated_by > user_account.id
+Ref: center_feeding_month_summary.last_modified_by_device_id > device.id
+
+// STED
+Ref: sted_assessment.child_id > child.id
+Ref: sted_assessment.center_id > ecd_center.id
+Ref: sted_assessment.assessed_by > user_account.id
+Ref: sted_assessment.last_modified_by_device_id > device.id
+
+// Referrals
+Ref: referral.child_id > child.id
+Ref: referral.center_id > ecd_center.id
+Ref: referral.recorded_by > user_account.id
+Ref: referral.last_modified_by_device_id > device.id
+
+// ECD standards & compliance monitoring
+Ref: compliance_assessment.center_id > ecd_center.id
+Ref: compliance_assessment.submitted_by > user_account.id
+Ref: compliance_assessment.verified_by > user_account.id
+Ref: compliance_assessment.last_modified_by_device_id > device.id
+Ref: compliance_assessment_item.assessment_id > compliance_assessment.id
+Ref: compliance_assessment_item.standard_id > ecd_standard.id
+Ref: compliance_assessment_item.last_modified_by_device_id > device.id
+
+// WASH indicators
+Ref: wash_indicator.center_id > ecd_center.id
+Ref: wash_indicator.recorded_by > user_account.id
+Ref: wash_indicator.last_modified_by_device_id > device.id
+
+// Config & audit
+Ref: app_setting.district_id > district.id
+Ref: app_setting.updated_by > user_account.id
+Ref: audit_log.changed_by > user_account.id

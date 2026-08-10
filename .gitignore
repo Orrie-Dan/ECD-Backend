@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+.env
+.env.local
+*.log
+.DS_Store
+.idea
+.vscode
+openapi.generated.json
+openapi.generated.validation.json
+openapi.analysis.txt
