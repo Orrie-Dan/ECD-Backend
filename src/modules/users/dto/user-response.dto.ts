@@ -72,6 +72,50 @@ export class UserResponseDto {
   updatedAt: Date;
 }
 
+/**
+ * Create response — includes a one-time temporary password.
+ * The password is never returned again from GET/list/update.
+ */
+export class CreateUserResponseDto extends UserResponseDto {
+  @ApiProperty({
+    description:
+      'One-time temporary password for the new account. Share out-of-band with the user; it is not returned on subsequent reads.',
+    example: 'K7mN2pQx9R',
+  })
+  temporaryPassword: string;
+
+  @ApiProperty({
+    description:
+      'True when the user should change password on first login (passwordChangedAt is null).',
+    example: true,
+  })
+  mustChangePassword: boolean;
+}
+
+/**
+ * Admin password reset response.
+ * When the server generates a temporary password, it is returned once here.
+ */
+export class ResetUserPasswordResponseDto {
+  @ApiProperty({ example: true })
+  success: boolean;
+
+  @ApiProperty({
+    required: false,
+    description:
+      'Present only when the server generated a temporary password (no `newPassword` in the request). Share out-of-band; not returned again.',
+    example: 'K7mN2pQx9R',
+  })
+  temporaryPassword?: string;
+
+  @ApiProperty({
+    description:
+      'True when a temporary password was generated and the user should change it on next login.',
+    example: true,
+  })
+  mustChangePassword: boolean;
+}
+
 export class PaginatedUsersResponseDto {
   @ApiProperty({
     type: [UserResponseDto],

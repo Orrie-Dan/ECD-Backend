@@ -26,13 +26,18 @@ import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
+  CreateUserResponseDto,
   PaginatedUsersResponseDto,
+  ResetUserPasswordResponseDto,
   UserResponseDto,
 } from './dto/user-response.dto';
 import { UserWithRelations, userMapper } from './mappers/user.mapper';
 
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
-const TEMP_PASSWORD_BYTES = 18;
+/** Readable temp password length (unambiguous alphabet → ~59 bits at 10 chars). */
+const TEMP_PASSWORD_LENGTH = 10;
+const TEMP_PASSWORD_ALPHABET =
+  'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
 
 @Injectable()
 export class UsersService {
@@ -44,7 +49,10 @@ export class UsersService {
     private readonly config: ConfigService,
   ) {}
 
-  async create(actor: AuthUser, dto: CreateUserDto): Promise<UserResponseDto> {
+  async create(
+    actor: AuthUser,
+    dto: CreateUserDto,
+  ): Promise<CreateUserResponseDto> {
     this.assertCanManageUsers(actor);
     this.assertCanCreateRole(actor, dto.role);
 
@@ -100,7 +108,11 @@ export class UsersService {
 
     this.logProvisioningSecrets(created.id, rawResetToken);
 
-    return userMapper.toDto(created as UserWithRelations);
+    return {
+      ...userMapper.toDto(created as UserWithRelations),
+      temporaryPassword,
+      mustChangePassword: true,
+    };
   }
 
   async findAll(
@@ -172,13 +184,14 @@ export class UsersService {
     actor: AuthUser,
     id: string,
     dto: ResetUserPasswordDto,
-  ): Promise<{ success: true }> {
+  ): Promise<ResetUserPasswordResponseDto> {
     this.assertCanManageUsers(actor);
     const target = await this.requireVisibleUser(actor, id);
     this.assertCanResetPassword(actor, target);
 
-    const plain =
-      dto.newPassword?.trim() || this.generateTemporaryPassword();
+    const explicitPassword = dto.newPassword?.trim();
+    const generated = !explicitPassword;
+    const plain = explicitPassword || this.generateTemporaryPassword();
     const passwordHash = await this.authService.hashPassword(plain);
     const rawResetToken = randomBytes(32).toString('hex');
     const tokenHash = this.hashResetToken(rawResetToken);
@@ -189,7 +202,8 @@ export class UsersService {
         where: { id },
         data: {
           passwordHash,
-          passwordChangedAt: now,
+          // Generated temps require first-login change; explicit admin sets do not.
+          passwordChangedAt: generated ? null : now,
           failedLoginAttempts: 0,
           lockedUntil: null,
           updatedById: actor.id,
@@ -204,10 +218,17 @@ export class UsersService {
       }),
     ]);
 
-    // Never return password. Dev stub: log activation/reset token only.
     this.logProvisioningSecrets(id, rawResetToken);
 
-    return { success: true };
+    if (generated) {
+      return {
+        success: true,
+        temporaryPassword: plain,
+        mustChangePassword: true,
+      };
+    }
+
+    return { success: true, mustChangePassword: false };
   }
 
   /**
@@ -444,7 +465,13 @@ export class UsersService {
   }
 
   private generateTemporaryPassword(): string {
-    return randomBytes(TEMP_PASSWORD_BYTES).toString('base64url');
+    const bytes = randomBytes(TEMP_PASSWORD_LENGTH);
+    let password = '';
+    for (let i = 0; i < TEMP_PASSWORD_LENGTH; i += 1) {
+      password +=
+        TEMP_PASSWORD_ALPHABET[bytes[i]! % TEMP_PASSWORD_ALPHABET.length];
+    }
+    return password;
   }
 
   private hashResetToken(rawToken: string): string {

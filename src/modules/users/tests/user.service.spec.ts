@@ -160,8 +160,12 @@ async function run() {
     eq(result.role, UserRole.district_focal_person);
     eq(result.status, 'ACTIVE');
     eq('passwordHash' in result, false);
+    eq(typeof result.temporaryPassword, 'string');
+    eq(result.temporaryPassword.length, 10);
+    eq(result.mustChangePassword, true);
     eq(typeof creates[0].passwordHash, 'string');
     eq(String(creates[0].passwordHash).startsWith('hashed:'), true);
+    eq(creates[0].passwordHash, `hashed:${result.temporaryPassword}`);
   });
 
   await assert('NCDA creates caregiver (district derived from center)', async () => {
@@ -405,8 +409,68 @@ async function run() {
       newPassword: 'NewPass123!',
     });
     eq(result.success, true);
+    eq(result.mustChangePassword, false);
+    eq(result.temporaryPassword, undefined);
     eq(updates.length, 1);
     eq(tokens.length, 1);
+    const updateArgs = updates[0] as {
+      data: { passwordChangedAt: Date | null; passwordHash: string };
+    };
+    eq(updateArgs.data.passwordHash, 'hashed:NewPass123!');
+    eq(updateArgs.data.passwordChangedAt instanceof Date, true);
+  });
+
+  await assert('NCDA password reset without newPassword returns temporaryPassword', async () => {
+    const updates: unknown[] = [];
+    const target = {
+      id: 'cg-1',
+      username: 'cg',
+      passwordHash: 'old',
+      fullName: 'Care',
+      phone: null,
+      email: null,
+      role: UserRole.caregiver,
+      districtId: 'd1',
+      centerId: 'c1',
+      status: UserAccountStatus.active,
+      lastLoginAt: null,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+      passwordChangedAt: new Date(),
+      createdAt: new Date(),
+      createdById: null,
+      updatedAt: new Date(),
+      updatedById: null,
+      district: { id: 'd1', name: 'D' },
+      center: { id: 'c1', code: 'C1', name: 'Center' },
+      createdBy: null,
+    };
+
+    const prisma = {
+      userAccount: {
+        findUnique: async () => target,
+        update: async (args: unknown) => {
+          updates.push(args);
+          return target;
+        },
+      },
+      passwordResetToken: {
+        create: async () => ({}),
+      },
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+    };
+
+    const svc = createService(prisma);
+    const result = await svc.resetPassword(ncda, 'cg-1', {});
+    eq(result.success, true);
+    eq(result.mustChangePassword, true);
+    eq(typeof result.temporaryPassword, 'string');
+    eq(result.temporaryPassword!.length, 10);
+    const updateArgs = updates[0] as {
+      data: { passwordChangedAt: Date | null; passwordHash: string };
+    };
+    eq(updateArgs.data.passwordChangedAt, null);
+    eq(updateArgs.data.passwordHash, `hashed:${result.temporaryPassword}`);
   });
 
   await assert('missing center for caregiver create fails', async () => {

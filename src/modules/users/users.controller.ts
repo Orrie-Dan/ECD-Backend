@@ -29,7 +29,9 @@ import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
+  CreateUserResponseDto,
   PaginatedUsersResponseDto,
+  ResetUserPasswordResponseDto,
   UserResponseDto,
 } from './dto/user-response.dto';
 import { UsersService } from './users.service';
@@ -46,9 +48,10 @@ export class UsersController {
     summary: 'Create a user',
     description:
       'Provisions a new user account within the caller management scope. ' +
-      'Temporary credentials are not returned in the response.',
+      'Returns a one-time `temporaryPassword` that must be shared out-of-band; ' +
+      'it is never included on subsequent GET/list/update responses.',
   })
-  @ApiCreatedResponse({ type: UserResponseDto })
+  @ApiCreatedResponse({ type: CreateUserResponseDto })
   @ApiStandardClientErrors()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateUserDto) {
     return this.usersService.create(user, dto);
@@ -105,20 +108,12 @@ export class UsersController {
   @ApiOperation({
     summary: 'Reset user password',
     description:
-      'Resets the target user password. Never returns the password in the response; ' +
-      'returns `{ success: true }` on success.',
+      'Resets the target user password. When `newPassword` is omitted, a temporary ' +
+      'password is generated and returned once as `temporaryPassword`. When an ' +
+      'explicit password is provided, it is not echoed in the response.',
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'User account UUID' })
-  @ApiOkResponse({
-    description: 'Password reset accepted',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-      },
-      required: ['success'],
-    },
-  })
+  @ApiOkResponse({ type: ResetUserPasswordResponseDto })
   @ApiStandardClientErrors()
   @ApiNotFoundError('User')
   resetPassword(
