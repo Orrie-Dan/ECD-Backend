@@ -19,7 +19,15 @@ async function bootstrap() {
     }),
   );
 
-  const swaggerConfig = new DocumentBuilder()
+  // Prefer explicit public URL; Render injects RENDER_EXTERNAL_URL on hosted services.
+  // Relative "/" makes Swagger "Try it out" use the same host that serves /docs.
+  const publicApiUrl = (
+    config.get<string>('PUBLIC_API_URL') ||
+    config.get<string>('RENDER_EXTERNAL_URL') ||
+    ''
+  ).replace(/\/$/, '');
+
+  const swaggerBuilder = new DocumentBuilder()
     .setTitle('ECD Backend API')
     .setDescription(
       'Early Childhood Development management system API. ' +
@@ -29,7 +37,6 @@ async function bootstrap() {
         'sync pull uses cursor pagination.',
     )
     .setVersion('1.0')
-    .addServer('http://localhost:3000', 'Local development')
     .addBearerAuth(
       {
         type: 'http',
@@ -39,10 +46,15 @@ async function bootstrap() {
           'Access token from POST /api/v1/auth/login (`Authorization: Bearer <accessToken>`).',
       },
       'bearer',
-    )
-    .build();
+    );
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  if (publicApiUrl) {
+    swaggerBuilder.addServer(publicApiUrl, 'API');
+  } else {
+    swaggerBuilder.addServer('/', 'Current host');
+  }
+
+  const document = SwaggerModule.createDocument(app, swaggerBuilder.build());
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(port);

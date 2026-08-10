@@ -208,6 +208,12 @@ async function main() {
   const app = await NestFactory.create(AppModule, { logger: false });
   app.setGlobalPrefix('api/v1');
 
+  const publicApiUrl = (
+    process.env.PUBLIC_API_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    'http://localhost:3000'
+  ).replace(/\/$/, '');
+
   const config = new DocumentBuilder()
     .setTitle('ECD Backend API')
     .setDescription(
@@ -218,7 +224,7 @@ async function main() {
         'sync pull uses cursor pagination.',
     )
     .setVersion('1.0')
-    .addServer('http://localhost:3000', 'Local development')
+    .addServer(publicApiUrl, 'API')
     .addBearerAuth(
       {
         type: 'http',
