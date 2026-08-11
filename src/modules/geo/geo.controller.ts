@@ -18,6 +18,7 @@ import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { GeoService } from './geo.service';
 import {
   AdminUnitResponseDto,
+  DistrictResponseDto,
   PaginatedCentersInDistrictResponseDto,
   PaginatedDistrictsResponseDto,
 } from './dto/geo-response.dto';
@@ -61,6 +62,24 @@ export class GeoController {
     @Query() query: ListDistrictsQueryDto,
   ) {
     return this.geoService.listDistricts(user, query);
+  }
+
+  @Get('districts/:id')
+  @Roles(UserRole.caregiver, UserRole.district_focal_person, UserRole.ncda_admin)
+  @ApiOperation({
+    summary: 'Get district by id',
+    description:
+      'Returns a single district. Caregivers and district focal persons are limited to their own district.',
+  })
+  @ApiParam({ name: 'id', format: 'uuid', description: 'District UUID' })
+  @ApiOkResponse({ type: DistrictResponseDto })
+  @ApiStandardClientErrors()
+  @ApiNotFoundError('District')
+  getDistrict(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) districtId: string,
+  ) {
+    return this.geoService.getDistrict(user, districtId);
   }
 
   @Get('districts/:id/centers')

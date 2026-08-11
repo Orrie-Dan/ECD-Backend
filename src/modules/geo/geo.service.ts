@@ -82,6 +82,10 @@ export class GeoService {
       ];
     }
 
+    if (typeof query.isActive === 'boolean') {
+      where.isActive = query.isActive;
+    }
+
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.district.findMany({
         where,
@@ -99,6 +103,31 @@ export class GeoService {
       pageSize,
       totalPages: Math.ceil(total / pageSize) || 1,
     };
+  }
+
+  async getDistrict(
+    user: AuthUser,
+    districtId: string,
+  ): Promise<DistrictResponseDto> {
+    if (
+      user.role === UserRole.district_focal_person ||
+      user.role === UserRole.caregiver
+    ) {
+      if (!user.districtId) {
+        throw new ForbiddenException('District scope is required');
+      }
+      assertDistrictAccess(user, districtId);
+    }
+
+    const row = await this.prisma.district.findUnique({
+      where: { id: districtId },
+    });
+
+    if (!row) {
+      throw new NotFoundException('District not found');
+    }
+
+    return this.toDistrictDto(row);
   }
 
   async listCentersByDistrict(

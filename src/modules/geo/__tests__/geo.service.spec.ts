@@ -121,6 +121,67 @@ async function main() {
     eq(captured.where!.id, 'district-1');
   });
 
+  await assert('listDistricts: applies isActive filter when provided', async () => {
+    const captured: { where?: Record<string, unknown> } = {};
+    const prisma = {
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+      district: {
+        findMany: async (args: { where: Record<string, unknown> }) => {
+          captured.where = args.where;
+          return [];
+        },
+        count: async () => 0,
+      },
+    };
+    const service = new GeoService(prisma as never);
+
+    await service.listDistricts(user({ role: UserRole.ncda_admin }), {
+      isActive: true,
+    });
+
+    eq(captured.where!.isActive, true);
+  });
+
+  await assert('getDistrict: ncda can load any district', async () => {
+    const prisma = {
+      district: {
+        findUnique: async () => ({
+          id: 'district-1',
+          provinceId: 'province-1',
+          code: 'D1',
+          name: 'District One',
+          isActive: true,
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-02T00:00:00.000Z'),
+        }),
+      },
+    };
+    const service = new GeoService(prisma as never);
+    const result = await service.getDistrict(
+      user({ role: UserRole.ncda_admin }),
+      'district-1',
+    );
+    eq(result.id, 'district-1');
+    eq(result.code, 'D1');
+  });
+
+  await assert('getDistrict: district focal denied other district', async () => {
+    const prisma = {
+      district: { findUnique: async () => ({ id: 'other-district' }) },
+    };
+    const service = new GeoService(prisma as never);
+    let threw = false;
+    try {
+      await service.getDistrict(
+        user({ role: UserRole.district_focal_person, districtId: 'district-1' }),
+        'other-district',
+      );
+    } catch (e) {
+      threw = e instanceof ForbiddenException;
+    }
+    eq(threw, true);
+  });
+
   await assert('listCentersByDistrict: caregiver denied', async () => {
     const prisma = {
       district: { findUnique: async () => ({ id: 'district-1' }) },
