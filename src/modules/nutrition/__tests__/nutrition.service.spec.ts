@@ -1,10 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
-import {
-  ChildStatus,
-  NutritionStatus,
-  Prisma,
-  UserRole,
-} from '@prisma/client';
+import { ChildStatus, NutritionStatus, Prisma, UserRole } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from '../../sync/sync-access.service';
 import { CreateNutritionScreeningDto } from '../dto/create-nutrition-screening.dto';
@@ -70,9 +65,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -206,11 +199,7 @@ async function run() {
         }),
       },
       childNutritionScreening: {
-        findMany: async ({
-          orderBy,
-        }: {
-          orderBy: Array<{ screeningDate: string }>;
-        }) => {
+        findMany: async ({ orderBy }: { orderBy: Array<{ screeningDate: string }> }) => {
           eq(orderBy[0].screeningDate, 'desc');
           return [
             {
@@ -406,10 +395,7 @@ async function run() {
       },
     };
 
-    const alerts = await createService(prisma).getAlerts(
-      user({ role: UserRole.ncda_admin }),
-      {},
-    );
+    const alerts = await createService(prisma).getAlerts(user({ role: UserRole.ncda_admin }), {});
 
     eq(
       alerts.items.some((a) => a.type === 'severe_nutrition'),
@@ -423,6 +409,123 @@ async function run() {
       alerts.items.some((a) => a.type === 'overdue_screening'),
       true,
     );
+  });
+
+  await assert('listScreenings paginates and scopes by center via child', async () => {
+    let capturedWhere: Record<string, unknown> | null = null;
+    let capturedSkip: number | null = null;
+    let capturedTake: number | null = null;
+
+    const prisma = {
+      ecdCenter: {
+        findFirst: async () => ({ id: 'center-a', districtId: 'd1' }),
+      },
+      childNutritionScreening: {
+        findMany: async ({
+          where,
+          skip,
+          take,
+        }: {
+          where: Record<string, unknown>;
+          skip: number;
+          take: number;
+        }) => {
+          capturedWhere = where;
+          capturedSkip = skip;
+          capturedTake = take;
+          return [
+            {
+              id: 'scr-1',
+              childId: 'child-1',
+              screeningDate: new Date('2026-08-01T00:00:00.000Z'),
+              weightKg: new Prisma.Decimal(10.5),
+              muacCm: new Prisma.Decimal(13.1),
+              heightCm: new Prisma.Decimal(72),
+              headCircumferenceCm: null,
+              nutritionStatus: NutritionStatus.at_risk,
+              requiresReferral: false,
+              recordedById: 'u1',
+              version: 1,
+              createdAt: new Date('2026-08-01T10:00:00.000Z'),
+              child: {
+                firstName: 'Jean',
+                middleName: null,
+                lastName: 'Uwimana',
+                dateOfBirth: new Date('2022-01-15T00:00:00.000Z'),
+                gender: 'male',
+                centerId: 'center-a',
+                center: { id: 'center-a', name: 'Center A' },
+              },
+            },
+          ];
+        },
+        count: async () => 1,
+      },
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+    };
+
+    const result = await createService(prisma).listScreenings(
+      user({
+        role: UserRole.district_focal_person,
+        districtId: 'd1',
+      }),
+      {
+        centerId: 'center-a',
+        from: '2026-08-01',
+        to: '2026-08-31',
+        page: 2,
+        pageSize: 25,
+      },
+    );
+
+    eq(result.total, 1);
+    eq(result.page, 2);
+    eq(result.pageSize, 25);
+    eq(result.items[0].childFullName, 'Jean Uwimana');
+    eq(result.items[0].centerName, 'Center A');
+    eq(result.items[0].muacCm, 13.1);
+    eq(capturedSkip, 25);
+    eq(capturedTake, 25);
+    const childFilter = capturedWhere
+      ? (capturedWhere['child'] as { centerId?: string })
+      : undefined;
+    eq(childFilter?.centerId, 'center-a');
+  });
+
+  await assert('listScreenings rejects invalid date range', async () => {
+    const prisma = {
+      ecdCenter: { findFirst: async () => null },
+      childNutritionScreening: {},
+      $transaction: async () => [],
+    };
+    let threw = false;
+    try {
+      await createService(prisma).listScreenings(user({ role: UserRole.ncda_admin }), {
+        from: '2026-08-31',
+        to: '2026-08-01',
+      });
+    } catch (err) {
+      threw = err instanceof ForbiddenException === false && Boolean(err);
+      eq((err as Error).message.includes('from must be on or before to'), true);
+    }
+    eq(threw, true);
+  });
+
+  await assert('listScreenings empty result', async () => {
+    const prisma = {
+      childNutritionScreening: {
+        findMany: async () => [],
+        count: async () => 0,
+      },
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+    };
+    const result = await createService(prisma).listScreenings(user({ role: UserRole.ncda_admin }), {
+      page: 1,
+      pageSize: 50,
+    });
+    eq(result.total, 0);
+    eq(result.items.length, 0);
+    eq(result.totalPages, 1);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

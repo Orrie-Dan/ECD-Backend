@@ -3,6 +3,7 @@ import {
   AttendanceStatus,
   ChildStatus,
   NutritionStatus,
+  Prisma,
   ReferralStatus,
 } from '@prisma/client';
 import {
@@ -35,7 +36,7 @@ export class MonitoringService {
     const cWhere = centerIdWhere(scope);
     const childWhere = childCenterWhere(scope);
 
-    const [enrolled, present, absent, centers] = await Promise.all([
+    const [enrolled, present, absent, centers, attByCenter, enrolledByCenter] = await Promise.all([
       this.prisma.child.count({
         where: {
           deletedAt: null,
@@ -60,54 +61,55 @@ export class MonitoringService {
         },
       }),
       this.loadCenters(scope),
+      this.prisma.attendanceRecord.groupBy({
+        by: ['centerId', 'status'],
+        where: {
+          deletedAt: null,
+          attendanceDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+        _count: { _all: true },
+      }),
+      this.prisma.child.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          status: ChildStatus.active,
+          ...childWhere,
+        },
+        _count: { _all: true },
+      }),
     ]);
 
     const totalRecords = present + absent;
-    const rate =
-      totalRecords > 0
-        ? Math.round((present / totalRecords) * 1000) / 10
-        : null;
+    const rate = totalRecords > 0 ? Math.round((present / totalRecords) * 1000) / 10 : null;
 
     const trend = await this.attendanceTrend(scope, from, to);
 
-    const centerSummaries = await Promise.all(
-      centers.map(async (c) => {
-        const [p, a, enrolledAtCenter] = await Promise.all([
-          this.prisma.attendanceRecord.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              status: AttendanceStatus.present,
-              attendanceDate: { gte: from, lte: to },
-            },
-          }),
-          this.prisma.attendanceRecord.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              status: AttendanceStatus.absent,
-              attendanceDate: { gte: from, lte: to },
-            },
-          }),
-          this.prisma.child.count({
-            where: {
-              deletedAt: null,
-              status: ChildStatus.active,
-              centerId: c.id,
-            },
-          }),
-        ]);
-        const t = p + a;
-        return {
-          centerId: c.id,
-          centerName: c.name,
-          enrolledChildren: enrolledAtCenter,
-          present: p,
-          absent: a,
-          rate: t > 0 ? Math.round((p / t) * 1000) / 10 : null,
-        };
-      }),
-    );
+    const presentByCenter = new Map<string, number>();
+    const absentByCenter = new Map<string, number>();
+    for (const row of attByCenter) {
+      if (row.status === AttendanceStatus.present) {
+        presentByCenter.set(row.centerId, row._count._all);
+      } else if (row.status === AttendanceStatus.absent) {
+        absentByCenter.set(row.centerId, row._count._all);
+      }
+    }
+    const enrolledMap = new Map(enrolledByCenter.map((r) => [r.centerId, r._count._all]));
+
+    const centerSummaries = centers.map((c) => {
+      const p = presentByCenter.get(c.id) ?? 0;
+      const a = absentByCenter.get(c.id) ?? 0;
+      const t = p + a;
+      return {
+        centerId: c.id,
+        centerName: c.name,
+        enrolledChildren: enrolledMap.get(c.id) ?? 0,
+        present: p,
+        absent: a,
+        rate: t > 0 ? Math.round((p / t) * 1000) / 10 : null,
+      };
+    });
 
     centerSummaries.sort(
       (a, b) => (b.rate ?? -1) - (a.rate ?? -1) || a.centerName.localeCompare(b.centerName),
@@ -177,7 +179,7 @@ export class MonitoringService {
       screenings += g._count._all;
     }
 
-    const [requiresReferral, overdue, neverScreened] = await Promise.all([
+    const [requiresReferral, overdue, neverScreened, centers, byCenterStatus] = await Promise.all([
       this.prisma.childNutritionScreening.count({
         where: {
           deletedAt: null,
@@ -188,42 +190,36 @@ export class MonitoringService {
       }),
       this.countOverdueScreenings(scope),
       this.countNeverScreened(scope),
+      this.loadCenters(scope),
+      this.nutritionStatusByCenter(scope, from, to),
     ]);
 
-    const centers = await this.loadCenters(scope);
-    const centerItems = await Promise.all(
-      centers.map(async (c) => {
-        const g = await this.prisma.childNutritionScreening.groupBy({
-          by: ['nutritionStatus'],
-          where: {
-            deletedAt: null,
-            screeningDate: { gte: from, lte: to },
-            child: { deletedAt: null, centerId: c.id },
-          },
-          _count: { _all: true },
-        });
-        const local: Record<string, number> = {
-          normal: 0,
-          at_risk: 0,
-          moderate: 0,
-          severe: 0,
-        };
-        let total = 0;
-        for (const row of g) {
-          local[row.nutritionStatus] = row._count._all;
-          total += row._count._all;
-        }
-        return {
-          centerId: c.id,
-          centerName: c.name,
-          screenings: total,
-          severe: local.severe,
-          moderate: local.moderate,
-          atRisk: local.at_risk,
-          normal: local.normal,
-        };
-      }),
-    );
+    const statusByCenter = new Map<string, Record<string, number> & { total: number }>();
+    for (const row of byCenterStatus) {
+      const cur = statusByCenter.get(row.centerId) ?? {
+        normal: 0,
+        at_risk: 0,
+        moderate: 0,
+        severe: 0,
+        total: 0,
+      };
+      cur[row.nutritionStatus] = row.cnt;
+      cur.total += row.cnt;
+      statusByCenter.set(row.centerId, cur);
+    }
+
+    const centerItems = centers.map((c) => {
+      const local = statusByCenter.get(c.id);
+      return {
+        centerId: c.id,
+        centerName: c.name,
+        screenings: local?.total ?? 0,
+        severe: local?.severe ?? 0,
+        moderate: local?.moderate ?? 0,
+        atRisk: local?.at_risk ?? 0,
+        normal: local?.normal ?? 0,
+      };
+    });
 
     centerItems.sort((a, b) => b.severe - a.severe);
     const total = centerItems.length;
@@ -245,9 +241,7 @@ export class MonitoringService {
         neverScreened,
         screeningCoverage:
           activeChildren > 0
-            ? Math.round(
-                ((activeChildren - neverScreened) / activeChildren) * 1000,
-              ) / 10
+            ? Math.round(((activeChildren - neverScreened) / activeChildren) * 1000) / 10
             : null,
       },
       items: centerItems.slice(skip, skip + pageSize),
@@ -271,7 +265,7 @@ export class MonitoringService {
     const centers = await this.loadCenters(scope);
     const dayCount = daysInclusive(from, to);
 
-    const [daysRecorded, milk, porridge, balanced] = await Promise.all([
+    const [daysRecorded, milk, porridge, balanced, feedingByCenter] = await Promise.all([
       this.prisma.centerFeedingDay.count({
         where: {
           deletedAt: null,
@@ -303,31 +297,30 @@ export class MonitoringService {
           ...cWhere,
         },
       }),
+      this.prisma.centerFeedingDay.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          recordedDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+        _count: { _all: true },
+      }),
     ]);
 
     const expected = centers.length * dayCount;
-    const items = await Promise.all(
-      centers.map(async (c) => {
-        const recorded = await this.prisma.centerFeedingDay.count({
-          where: {
-            deletedAt: null,
-            centerId: c.id,
-            recordedDate: { gte: from, lte: to },
-          },
-        });
-        return {
-          centerId: c.id,
-          centerName: c.name,
-          daysRecorded: recorded,
-          expectedDays: dayCount,
-          missingDays: Math.max(0, dayCount - recorded),
-          coverage:
-            dayCount > 0
-              ? Math.round((recorded / dayCount) * 1000) / 10
-              : null,
-        };
-      }),
-    );
+    const recordedMap = new Map(feedingByCenter.map((r) => [r.centerId, r._count._all]));
+    const items = centers.map((c) => {
+      const recorded = recordedMap.get(c.id) ?? 0;
+      return {
+        centerId: c.id,
+        centerName: c.name,
+        daysRecorded: recorded,
+        expectedDays: dayCount,
+        missingDays: Math.max(0, dayCount - recorded),
+        coverage: dayCount > 0 ? Math.round((recorded / dayCount) * 1000) / 10 : null,
+      };
+    });
 
     items.sort((a, b) => (a.coverage ?? 0) - (b.coverage ?? 0));
     const missingReports = items.filter((i) => i.missingDays > 0).length;
@@ -345,10 +338,7 @@ export class MonitoringService {
         reportingCenters: items.filter((i) => i.daysRecorded > 0).length,
         centersInScope: centers.length,
         expectedDayRecords: expected,
-        feedingCoverage:
-          expected > 0
-            ? Math.round((daysRecorded / expected) * 1000) / 10
-            : null,
+        feedingCoverage: expected > 0 ? Math.round((daysRecorded / expected) * 1000) / 10 : null,
         centersMissingReports: missingReports,
       },
       items: items.slice(skip, skip + pageSize),
@@ -407,9 +397,7 @@ export class MonitoringService {
       .filter((n): n is number => n != null);
     const averageScore =
       scores.length > 0
-        ? Math.round(
-            (scores.reduce((s, n) => s + n, 0) / scores.length) * 10,
-          ) / 10
+        ? Math.round((scores.reduce((s, n) => s + n, 0) / scores.length) * 10) / 10
         : null;
 
     const byBand: Record<string, number> = {};
@@ -425,22 +413,30 @@ export class MonitoringService {
     }
 
     const centers = await this.loadCenters(scope);
+    const byCenter = new Map<string, { count: number; scoreSum: number; scoreN: number }>();
+    for (const a of assessments) {
+      const cur = byCenter.get(a.centerId) ?? {
+        count: 0,
+        scoreSum: 0,
+        scoreN: 0,
+      };
+      cur.count += 1;
+      const score = extractStedScore(a.outcome);
+      if (score != null) {
+        cur.scoreSum += score;
+        cur.scoreN += 1;
+      }
+      byCenter.set(a.centerId, cur);
+    }
+
     const items = centers.map((c) => {
-      const rows = assessments.filter((a) => a.centerId === c.id);
-      const localScores = rows
-        .map((a) => extractStedScore(a.outcome))
-        .filter((n): n is number => n != null);
+      const row = byCenter.get(c.id);
       return {
         centerId: c.id,
         centerName: c.name,
-        assessmentsCompleted: rows.length,
+        assessmentsCompleted: row?.count ?? 0,
         averageScore:
-          localScores.length > 0
-            ? Math.round(
-                (localScores.reduce((s, n) => s + n, 0) / localScores.length) *
-                  10,
-              ) / 10
-            : null,
+          row && row.scoreN > 0 ? Math.round((row.scoreSum / row.scoreN) * 10) / 10 : null,
       };
     });
     items.sort((a, b) => b.assessmentsCompleted - a.assessmentsCompleted);
@@ -454,9 +450,7 @@ export class MonitoringService {
         assessmentsCompleted: assessments.length,
         activeChildren,
         coverage:
-          activeChildren > 0
-            ? Math.round((assessments.length / activeChildren) * 1000) / 10
-            : null,
+          activeChildren > 0 ? Math.round((assessments.length / activeChildren) * 1000) / 10 : null,
         averageScore,
         pendingFollowUps: followUpDue,
         ageBandDistribution: byBand,
@@ -482,47 +476,46 @@ export class MonitoringService {
       return emptyReferrals(from, to, scope, page, pageSize);
     }
 
-    const [created, pending, completed, cancelled, overdue] =
-      await Promise.all([
-        this.prisma.referral.count({
-          where: {
-            deletedAt: null,
-            referralDate: { gte: from, lte: to },
-            ...cWhere,
-          },
-        }),
-        this.prisma.referral.count({
-          where: {
-            deletedAt: null,
-            status: ReferralStatus.pending,
-            ...cWhere,
-          },
-        }),
-        this.prisma.referral.count({
-          where: {
-            deletedAt: null,
-            status: ReferralStatus.completed,
-            referralDate: { gte: from, lte: to },
-            ...cWhere,
-          },
-        }),
-        this.prisma.referral.count({
-          where: {
-            deletedAt: null,
-            status: ReferralStatus.cancelled,
-            referralDate: { gte: from, lte: to },
-            ...cWhere,
-          },
-        }),
-        this.prisma.referral.count({
-          where: {
-            deletedAt: null,
-            status: ReferralStatus.pending,
-            referralDate: { lte: staleCutoff },
-            ...cWhere,
-          },
-        }),
-      ]);
+    const [created, pending, completed, cancelled, overdue] = await Promise.all([
+      this.prisma.referral.count({
+        where: {
+          deletedAt: null,
+          referralDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+      }),
+      this.prisma.referral.count({
+        where: {
+          deletedAt: null,
+          status: ReferralStatus.pending,
+          ...cWhere,
+        },
+      }),
+      this.prisma.referral.count({
+        where: {
+          deletedAt: null,
+          status: ReferralStatus.completed,
+          referralDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+      }),
+      this.prisma.referral.count({
+        where: {
+          deletedAt: null,
+          status: ReferralStatus.cancelled,
+          referralDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+      }),
+      this.prisma.referral.count({
+        where: {
+          deletedAt: null,
+          status: ReferralStatus.pending,
+          referralDate: { lte: staleCutoff },
+          ...cWhere,
+        },
+      }),
+    ]);
 
     const completedRows = await this.prisma.referral.findMany({
       where: {
@@ -538,52 +531,56 @@ export class MonitoringService {
     let averageCompletionDays: number | null = null;
     if (completedRows.length > 0) {
       const sum = completedRows.reduce((acc, r) => {
-        const days =
-          (r.updatedAt.getTime() - r.referralDate.getTime()) /
-          (24 * 60 * 60 * 1000);
+        const days = (r.updatedAt.getTime() - r.referralDate.getTime()) / (24 * 60 * 60 * 1000);
         return acc + Math.max(0, days);
       }, 0);
-      averageCompletionDays =
-        Math.round((sum / completedRows.length) * 10) / 10;
+      averageCompletionDays = Math.round((sum / completedRows.length) * 10) / 10;
     }
 
-    const centers = await this.loadCenters(scope);
-    const items = await Promise.all(
-      centers.map(async (c) => {
-        const [p, done, overdueAt] = await Promise.all([
-          this.prisma.referral.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              status: ReferralStatus.pending,
-            },
-          }),
-          this.prisma.referral.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              status: ReferralStatus.completed,
-              referralDate: { gte: from, lte: to },
-            },
-          }),
-          this.prisma.referral.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              status: ReferralStatus.pending,
-              referralDate: { lte: staleCutoff },
-            },
-          }),
-        ]);
-        return {
-          centerId: c.id,
-          centerName: c.name,
-          pending: p,
-          completed: done,
-          overdue: overdueAt,
-        };
+    const [centers, pendingByCenter, completedByCenter, overdueByCenter] = await Promise.all([
+      this.loadCenters(scope),
+      this.prisma.referral.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          status: ReferralStatus.pending,
+          ...cWhere,
+        },
+        _count: { _all: true },
       }),
-    );
+      this.prisma.referral.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          status: ReferralStatus.completed,
+          referralDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+        _count: { _all: true },
+      }),
+      this.prisma.referral.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          status: ReferralStatus.pending,
+          referralDate: { lte: staleCutoff },
+          ...cWhere,
+        },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const pendingMap = new Map(pendingByCenter.map((r) => [r.centerId, r._count._all]));
+    const completedMap = new Map(completedByCenter.map((r) => [r.centerId, r._count._all]));
+    const overdueMap = new Map(overdueByCenter.map((r) => [r.centerId, r._count._all]));
+
+    const items = centers.map((c) => ({
+      centerId: c.id,
+      centerName: c.name,
+      pending: pendingMap.get(c.id) ?? 0,
+      completed: completedMap.get(c.id) ?? 0,
+      overdue: overdueMap.get(c.id) ?? 0,
+    }));
     items.sort((a, b) => b.overdue - a.overdue || b.pending - a.pending);
 
     return {
@@ -607,10 +604,7 @@ export class MonitoringService {
     };
   }
 
-  private async loadCenters(scope: {
-    centerIds: string[] | 'all';
-    districtId: string | null;
-  }) {
+  private async loadCenters(scope: { centerIds: string[] | 'all'; districtId: string | null }) {
     return this.prisma.ecdCenter.findMany({
       where: {
         deletedAt: null,
@@ -625,11 +619,47 @@ export class MonitoringService {
     });
   }
 
-  private async attendanceTrend(
-    scope: { centerIds: string[] | 'all' },
+  /**
+   * Single SQL aggregation for nutrition-by-center (screenings have no centerId).
+   * Replaces per-center groupBy fan-out under large NCDA scopes.
+   */
+  private async nutritionStatusByCenter(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
     from: Date,
     to: Date,
-  ) {
+  ): Promise<Array<{ centerId: string; nutritionStatus: string; cnt: number }>> {
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`s.deleted_at IS NULL`,
+      Prisma.sql`ch.deleted_at IS NULL`,
+      Prisma.sql`s.screening_date >= ${from}`,
+      Prisma.sql`s.screening_date <= ${to}`,
+    ];
+
+    if (scope.centerIds !== 'all') {
+      if (scope.centerIds.length === 0) return [];
+      conditions.push(Prisma.sql`ch.center_id IN (${Prisma.join(scope.centerIds)})`);
+    } else if (scope.districtId) {
+      conditions.push(
+        Prisma.sql`ch.center_id IN (
+          SELECT id FROM ecd_center
+          WHERE district_id = ${scope.districtId} AND deleted_at IS NULL
+        )`,
+      );
+    }
+
+    return this.prisma.$queryRaw`
+      SELECT
+        ch.center_id AS "centerId",
+        s.nutrition_status::text AS "nutritionStatus",
+        COUNT(*)::int AS cnt
+      FROM child_nutrition_screening s
+      INNER JOIN child ch ON ch.id = s.child_id
+      WHERE ${Prisma.join(conditions, ' AND ')}
+      GROUP BY ch.center_id, s.nutrition_status
+    `;
+  }
+
+  private async attendanceTrend(scope: { centerIds: string[] | 'all' }, from: Date, to: Date) {
     const cWhere = centerIdWhere(scope as never);
     const rows = await this.prisma.attendanceRecord.groupBy({
       by: ['attendanceDate', 'status'],
@@ -660,8 +690,7 @@ export class MonitoringService {
         date,
         present: v.present,
         absent: v.absent,
-        rate:
-          total > 0 ? Math.round((v.present / total) * 1000) / 10 : null,
+        rate: total > 0 ? Math.round((v.present / total) * 1000) / 10 : null,
       };
     });
   }

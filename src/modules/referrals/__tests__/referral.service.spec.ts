@@ -23,9 +23,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
   };
 }
 
-function baseDto(
-  overrides: Partial<CreateReferralDto> = {},
-): CreateReferralDto {
+function baseDto(overrides: Partial<CreateReferralDto> = {}): CreateReferralDto {
   return {
     childId: 'child-1',
     centerId: 'center-a',
@@ -38,9 +36,7 @@ function baseDto(
   };
 }
 
-function referralRow(
-  overrides: Record<string, unknown> = {},
-): Record<string, unknown> {
+function referralRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   const now = new Date();
   return {
     id: 'ref-1',
@@ -84,9 +80,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -139,11 +133,14 @@ async function run() {
       },
       referral: referralApi,
       device: { findUnique: async () => null },
-      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
-        fn({ referral: referralApi }),
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({ referral: referralApi }),
     };
 
-    const result = await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).create(caregiver, baseDto());
+    const result = await new ReferralsService(
+      prisma as never,
+      syncAccess as never,
+      { log: async () => {} } as never,
+    ).create(caregiver, baseDto());
 
     eq(creates.length, 1);
     eq(creates[0].sourceType, ReferralSourceType.nutrition);
@@ -173,10 +170,11 @@ async function run() {
 
     let caught: unknown;
     try {
-      await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).create(
-        caregiver,
-        baseDto({ sourceId: 'missing' }),
-      );
+      await new ReferralsService(
+        prisma as never,
+        syncAccess as never,
+        { log: async () => {} } as never,
+      ).create(caregiver, baseDto({ sourceId: 'missing' }));
     } catch (err) {
       caught = err;
     }
@@ -194,11 +192,7 @@ async function run() {
         }),
       },
       referral: {
-        findMany: async ({
-          orderBy,
-        }: {
-          orderBy: Array<Record<string, string>>;
-        }) => {
+        findMany: async ({ orderBy }: { orderBy: Array<Record<string, string>> }) => {
           eq(orderBy[0].referralDate, 'desc');
           return [
             referralRow({ id: 'ref-2', referralDate: new Date('2026-08-10') }),
@@ -208,7 +202,11 @@ async function run() {
       },
     };
 
-    const history = await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).getChildHistory(caregiver, 'child-1');
+    const history = await new ReferralsService(
+      prisma as never,
+      syncAccess as never,
+      { log: async () => {} } as never,
+    ).getChildHistory(caregiver, 'child-1');
 
     eq(history.items[0].id, 'ref-2');
     eq(history.items[1].id, 'ref-1');
@@ -222,11 +220,7 @@ async function run() {
           ...referralRow(),
           center: { id: 'center-a', districtId: 'd1' },
         }),
-        updateMany: async ({
-          where,
-        }: {
-          where: { version: number; status: string };
-        }) => {
+        updateMany: async ({ where }: { where: { version: number; status: string } }) => {
           eq(where.version, 1);
           eq(where.status, ReferralStatus.pending);
           return { count: 1 };
@@ -243,11 +237,7 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
         const tx = {
           referral: {
-            updateMany: async ({
-              where,
-            }: {
-              where: { version: number; status: string };
-            }) => {
+            updateMany: async ({ where }: { where: { version: number; status: string } }) => {
               eq(where.version, 1);
               eq(where.status, ReferralStatus.pending);
               return { count: 1 };
@@ -265,7 +255,11 @@ async function run() {
       },
     };
 
-    const result = await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).updateStatus(caregiver, 'ref-1', { status: 'completed', version: 1 });
+    const result = await new ReferralsService(
+      prisma as never,
+      syncAccess as never,
+      { log: async () => {} } as never,
+    ).updateStatus(caregiver, 'ref-1', { status: 'completed', version: 1 });
 
     eq(result.status, 'completed');
   });
@@ -290,15 +284,18 @@ async function run() {
         }),
     };
 
-    const result = await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).updateStatus(caregiver, 'ref-1', { status: 'cancelled', version: 1 });
+    const result = await new ReferralsService(
+      prisma as never,
+      syncAccess as never,
+      { log: async () => {} } as never,
+    ).updateStatus(caregiver, 'ref-1', { status: 'cancelled', version: 1 });
 
     eq(result.status, 'cancelled');
   });
 
   await assert('Stale status update conflicts', async () => {
-    const { OptimisticLockConflictException } = await import(
-      '../../../common/concurrency/optimistic-lock.exception'
-    );
+    const { OptimisticLockConflictException } =
+      await import('../../../common/concurrency/optimistic-lock.exception');
     const prisma = {
       referral: {
         findFirst: async () => ({
@@ -318,11 +315,11 @@ async function run() {
 
     let caught: unknown;
     try {
-      await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).updateStatus(
-        caregiver,
-        'ref-1',
-        { status: 'completed', version: 5 },
-      );
+      await new ReferralsService(
+        prisma as never,
+        syncAccess as never,
+        { log: async () => {} } as never,
+      ).updateStatus(caregiver, 'ref-1', { status: 'completed', version: 5 });
     } catch (err) {
       caught = err;
     }
@@ -342,7 +339,11 @@ async function run() {
 
     let caught: unknown;
     try {
-      await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).updateStatus(caregiver, 'ref-1', { status: 'cancelled', version: 1 });
+      await new ReferralsService(
+        prisma as never,
+        syncAccess as never,
+        { log: async () => {} } as never,
+      ).updateStatus(caregiver, 'ref-1', { status: 'cancelled', version: 1 });
     } catch (err) {
       caught = err;
     }
@@ -363,10 +364,11 @@ async function run() {
     };
     let caught: unknown;
     try {
-      await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).create(
-        caregiver,
-        baseDto({ childId: 'child-x', centerId: 'center-b' }),
-      );
+      await new ReferralsService(
+        prisma as never,
+        syncAccess as never,
+        { log: async () => {} } as never,
+      ).create(caregiver, baseDto({ childId: 'child-x', centerId: 'center-b' }));
     } catch (err) {
       caught = err;
     }
@@ -387,10 +389,11 @@ async function run() {
     };
     let caught: unknown;
     try {
-      await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).create(
-        focal,
-        baseDto({ childId: 'child-z', centerId: 'center-z' }),
-      );
+      await new ReferralsService(
+        prisma as never,
+        syncAccess as never,
+        { log: async () => {} } as never,
+      ).create(focal, baseDto({ childId: 'child-z', centerId: 'center-z' }));
     } catch (err) {
       caught = err;
     }
@@ -420,11 +423,14 @@ async function run() {
       },
       referral: referralApi,
       device: { findUnique: async () => null },
-      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
-        fn({ referral: referralApi }),
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({ referral: referralApi }),
     };
 
-    await new ReferralsService(prisma as never, syncAccess as never, { log: async () => {} } as never).create(
+    await new ReferralsService(
+      prisma as never,
+      syncAccess as never,
+      { log: async () => {} } as never,
+    ).create(
       ncda,
       baseDto({
         childId: 'child-z',
@@ -434,6 +440,78 @@ async function run() {
       }),
     );
     eq(created, true);
+  });
+
+  await assert('findAll filters referralDate with inclusive from/to', async () => {
+    let capturedWhere: Record<string, unknown> | null = null;
+    const prisma = {
+      referral: {
+        findMany: async ({ where }: { where: Record<string, unknown> }) => {
+          capturedWhere = where;
+          return [referralRow()];
+        },
+        count: async () => 1,
+      },
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+    };
+
+    const result = await new ReferralsService(
+      prisma as never,
+      syncAccess as never,
+      { log: async () => {} } as never,
+    ).findAll(focal, {
+      from: '2026-08-01',
+      to: '2026-08-31',
+      page: 1,
+      pageSize: 50,
+    });
+
+    eq(result.total, 1);
+    const dateFilter = capturedWhere
+      ? (capturedWhere['referralDate'] as { gte?: Date; lte?: Date })
+      : undefined;
+    eq(dateFilter?.gte?.toISOString(), '2026-08-01T00:00:00.000Z');
+    eq(dateFilter?.lte?.toISOString(), '2026-08-31T00:00:00.000Z');
+  });
+
+  await assert('findAll without from/to preserves prior behavior (no date filter)', async () => {
+    let capturedWhere: Record<string, unknown> | null = null;
+    const prisma = {
+      referral: {
+        findMany: async ({ where }: { where: Record<string, unknown> }) => {
+          capturedWhere = where;
+          return [];
+        },
+        count: async () => 0,
+      },
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+    };
+
+    await new ReferralsService(
+      prisma as never,
+      syncAccess as never,
+      { log: async () => {} } as never,
+    ).findAll(focal, { page: 1, pageSize: 50 });
+
+    eq(capturedWhere != null && !('referralDate' in capturedWhere), true);
+  });
+
+  await assert('findAll rejects invalid from>to', async () => {
+    const prisma = {
+      referral: {},
+      $transaction: async () => [],
+    };
+    let message = '';
+    try {
+      await new ReferralsService(
+        prisma as never,
+        syncAccess as never,
+        { log: async () => {} } as never,
+      ).findAll(focal, { from: '2026-08-31', to: '2026-08-01' });
+    } catch (err) {
+      message = (err as Error).message;
+    }
+    eq(message.includes('from must be on or before to'), true);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

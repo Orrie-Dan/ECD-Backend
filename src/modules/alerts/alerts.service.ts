@@ -11,16 +11,10 @@ import {
   ReferralStatus,
   UserRole,
 } from '@prisma/client';
-import {
-  assertCenterAccess,
-  assertDistrictAccess,
-} from '../../common/auth/scope.util';
+import { assertCenterAccess, assertDistrictAccess } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
-import {
-  FollowUpAlertDto,
-  FollowUpAlertsResponseDto,
-} from './dto/follow-up-alert.dto';
+import { FollowUpAlertDto, FollowUpAlertsResponseDto } from './dto/follow-up-alert.dto';
 import { FollowUpAlertsQueryDto } from './dto/follow-up-alerts-query.dto';
 
 /** Active children with no screening within this window are overdue. */
@@ -90,9 +84,7 @@ export class AlertsService {
     };
   }
 
-  private async nutritionAlerts(
-    scope: Scope,
-  ): Promise<FollowUpAlertDto[]> {
+  private async nutritionAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
     const childWhere = this.childScopeWhere(scope);
     const cutoff = daysAgo(OVERDUE_SCREENING_DAYS);
     const activeChildren = await this.prisma.child.findMany({
@@ -255,9 +247,7 @@ export class AlertsService {
       _count: { _all: true },
     });
 
-    const risky = absences.filter(
-      (a) => a._count._all >= ATTENDANCE_ABSENT_THRESHOLD,
-    );
+    const risky = absences.filter((a) => a._count._all >= ATTENDANCE_ABSENT_THRESHOLD);
     if (risky.length === 0) return [];
 
     const childIds = risky.map((a) => a.childId);
@@ -306,8 +296,7 @@ export class AlertsService {
 
   private async referralAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
     const cutoff = daysAgo(STALE_REFERRAL_DAYS);
-    const centerFilter =
-      scope.centerIds === 'all' ? undefined : { in: scope.centerIds };
+    const centerFilter = scope.centerIds === 'all' ? undefined : { in: scope.centerIds };
 
     const pending = await this.prisma.referral.findMany({
       where: {
@@ -326,9 +315,7 @@ export class AlertsService {
 
     return pending.map((r) => {
       const childName = `${r.child.firstName} ${r.child.lastName}`.trim();
-      const ageDays = Math.floor(
-        (Date.now() - r.referralDate.getTime()) / (24 * 60 * 60 * 1000),
-      );
+      const ageDays = Math.floor((Date.now() - r.referralDate.getTime()) / (24 * 60 * 60 * 1000));
       return {
         id: `referral-stale-${r.id}`,
         category: 'referral' as const,
@@ -399,36 +386,35 @@ export class AlertsService {
       const tomorrow = new Date(today);
       tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
-      const centers = await this.prisma.ecdCenter.findMany({
-        where: {
-          deletedAt: null,
-          status: 'active',
-          ...(scope.centerIds === 'all'
-            ? {}
-            : { id: { in: scope.centerIds } }),
-          children: {
-            some: { deletedAt: null, status: ChildStatus.active },
-          },
-        },
-        select: {
-          id: true,
-          name: true,
-          _count: {
-            select: {
-              attendanceRecords: {
-                where: {
-                  deletedAt: null,
-                  attendanceDate: { gte: today, lt: tomorrow },
-                },
-              },
+      const centerWhere = scope.centerIds === 'all' ? {} : { id: { in: scope.centerIds } };
+
+      const [centersWithChildren, attendedCenterRows] = await Promise.all([
+        this.prisma.ecdCenter.findMany({
+          where: {
+            deletedAt: null,
+            status: 'active',
+            ...centerWhere,
+            children: {
+              some: { deletedAt: null, status: ChildStatus.active },
             },
           },
-        },
-        take: 500,
-      });
+          select: { id: true, name: true },
+          take: 500,
+        }),
+        this.prisma.attendanceRecord.groupBy({
+          by: ['centerId'],
+          where: {
+            deletedAt: null,
+            attendanceDate: { gte: today, lt: tomorrow },
+            ...(scope.centerIds === 'all' ? {} : { centerId: { in: scope.centerIds } }),
+          },
+          _count: { _all: true },
+        }),
+      ]);
 
-      for (const center of centers) {
-        if (center._count.attendanceRecords > 0) continue;
+      const attended = new Set(attendedCenterRows.map((r) => r.centerId));
+      for (const center of centersWithChildren) {
+        if (attended.has(center.id)) continue;
         alerts.push({
           id: `dq-no-attendance-${center.id}-${today.toISOString().slice(0, 10)}`,
           category: 'data_quality',
@@ -458,10 +444,7 @@ export class AlertsService {
     return { centerId: { in: scope.centerIds } };
   }
 
-  private async resolveScope(
-    user: AuthUser,
-    query: FollowUpAlertsQueryDto,
-  ): Promise<Scope> {
+  private async resolveScope(user: AuthUser, query: FollowUpAlertsQueryDto): Promise<Scope> {
     if (user.role === UserRole.caregiver) {
       if (!user.centerId) {
         throw new ForbiddenException('Center scope is required for caregivers');
@@ -514,9 +497,7 @@ export class AlertsService {
       });
       if (!center) throw new NotFoundException('Center not found');
       if (query.districtId && query.districtId !== center.districtId) {
-        throw new BadRequestException(
-          'centerId does not belong to the given districtId',
-        );
+        throw new BadRequestException('centerId does not belong to the given districtId');
       }
       return {
         centerIds: [center.id],
@@ -574,7 +555,5 @@ function daysAgo(days: number): Date {
 }
 
 function startOfUtcDay(d: Date): Date {
-  return new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
-  );
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }

@@ -12,11 +12,7 @@ import {
   ReferralStatus,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import {
-  AuditAction,
-  AuditService,
-  toAuditJson,
-} from '../../common/audit';
+import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -57,16 +53,11 @@ export class ReferralsService {
     private readonly audit: AuditService,
   ) {}
 
-  async create(
-    user: AuthUser,
-    dto: CreateReferralDto,
-  ): Promise<ReferralResponseDto> {
+  async create(user: AuthUser, dto: CreateReferralDto): Promise<ReferralResponseDto> {
     const child = await this.getAccessibleChild(user, dto.childId);
 
     if (child.centerId !== dto.centerId) {
-      throw new BadRequestException(
-        'centerId does not match the child current center',
-      );
+      throw new BadRequestException('centerId does not match the child current center');
     }
 
     assertCenterAccess(user, dto.centerId, child.center.districtId);
@@ -115,10 +106,7 @@ export class ReferralsService {
     return referralMapper.toDto(created);
   }
 
-  async getChildHistory(
-    user: AuthUser,
-    childId: string,
-  ): Promise<ReferralHistoryResponseDto> {
+  async getChildHistory(user: AuthUser, childId: string): Promise<ReferralHistoryResponseDto> {
     await this.getAccessibleChild(user, childId);
 
     const rows = await this.prisma.referral.findMany({
@@ -153,14 +141,26 @@ export class ReferralsService {
       assertCenterAccess(user, center.id, center.districtId);
     }
 
+    const fromDate = query.from ? this.toDateOnly(query.from) : undefined;
+    const toDate = query.to ? this.toDateOnly(query.to) : undefined;
+    if (fromDate && toDate && fromDate.getTime() > toDate.getTime()) {
+      throw new BadRequestException('from must be on or before to');
+    }
+
     const where: Prisma.ReferralWhereInput = {
       deletedAt: null,
       ...this.syncAccess.centerFilter(scope),
       ...(query.centerId ? { centerId: query.centerId } : {}),
       ...(query.childId ? { childId: query.childId } : {}),
       ...(query.status ? { status: toDbReferralStatus(query.status) } : {}),
-      ...(query.sourceType
-        ? { sourceType: toDbReferralSourceType(query.sourceType) }
+      ...(query.sourceType ? { sourceType: toDbReferralSourceType(query.sourceType) } : {}),
+      ...(fromDate || toDate
+        ? {
+            referralDate: {
+              ...(fromDate ? { gte: fromDate } : {}),
+              ...(toDate ? { lte: toDate } : {}),
+            },
+          }
         : {}),
     };
 
@@ -228,9 +228,7 @@ export class ReferralsService {
         data: {
           status: nextStatus,
           implementedAt,
-          ...(dto.notes !== undefined
-            ? { notes: dto.notes?.trim() || null }
-            : {}),
+          ...(dto.notes !== undefined ? { notes: dto.notes?.trim() || null } : {}),
           updatedAt: now,
           version: { increment: 1 },
           syncStatus: RecordSyncStatus.synced,
@@ -302,8 +300,7 @@ export class ReferralsService {
     sourceType: ReferralSourceType,
     input: CreateReferralFromSignalInput,
   ): Promise<ReferralResponseDto> {
-    const apiSource =
-      sourceType === ReferralSourceType.nutrition ? 'nutrition' : 'sted';
+    const apiSource = sourceType === ReferralSourceType.nutrition ? 'nutrition' : 'sted';
     await this.assertValidSource(apiSource, input.sourceId, input.childId);
 
     const now = new Date();
@@ -315,9 +312,7 @@ export class ReferralsService {
           centerId: input.centerId,
           sourceType,
           sourceId: input.sourceId,
-          referralDate: new Date(
-            `${input.referralDate.slice(0, 10)}T00:00:00.000Z`,
-          ),
+          referralDate: new Date(`${input.referralDate.slice(0, 10)}T00:00:00.000Z`),
           reason: input.reason.trim(),
           destination: input.destination.trim(),
           status: ReferralStatus.pending,
@@ -365,9 +360,7 @@ export class ReferralsService {
         );
       }
       if (screening.childId !== childId) {
-        throw new BadRequestException(
-          'nutrition sourceId does not belong to the specified child',
-        );
+        throw new BadRequestException('nutrition sourceId does not belong to the specified child');
       }
       return;
     }
@@ -377,14 +370,10 @@ export class ReferralsService {
       select: { id: true, childId: true },
     });
     if (!assessment) {
-      throw new BadRequestException(
-        'sourceId must reference an existing StedAssessment',
-      );
+      throw new BadRequestException('sourceId must reference an existing StedAssessment');
     }
     if (assessment.childId !== childId) {
-      throw new BadRequestException(
-        'sted sourceId does not belong to the specified child',
-      );
+      throw new BadRequestException('sted sourceId does not belong to the specified child');
     }
   }
 
@@ -407,10 +396,7 @@ export class ReferralsService {
     return child;
   }
 
-  private async resolveDeviceId(
-    user: AuthUser,
-    deviceId?: string,
-  ): Promise<string | null> {
+  private async resolveDeviceId(user: AuthUser, deviceId?: string): Promise<string | null> {
     if (!deviceId) {
       return null;
     }
@@ -420,9 +406,7 @@ export class ReferralsService {
     });
 
     if (!device || device.userId !== user.id) {
-      throw new ForbiddenException(
-        'Device does not belong to the authenticated user',
-      );
+      throw new ForbiddenException('Device does not belong to the authenticated user');
     }
 
     if (device.status !== DeviceStatus.active) {
@@ -430,5 +414,10 @@ export class ReferralsService {
     }
 
     return device.id;
+  }
+
+  /** Normalize YYYY-MM-DD (or datetime) to UTC date-only midnight for @db.Date filters. */
+  private toDateOnly(raw: string): Date {
+    return new Date(`${raw.slice(0, 10)}T00:00:00.000Z`);
   }
 }

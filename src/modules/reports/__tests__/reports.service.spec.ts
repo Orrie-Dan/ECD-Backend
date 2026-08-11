@@ -43,9 +43,7 @@ function stubPrisma() {
   let childCountCall = 0;
   return {
     ecdCenter: {
-      findMany: async () => [
-        { id: 'c1', name: 'C1', code: 'C1', status: 'active' },
-      ],
+      findMany: async () => [{ id: 'c1', name: 'C1', code: 'C1', status: 'active' }],
       findFirst: async () => ({ id: 'c1', districtId: 'd1', villageId: 'v1' }),
       count: async () => 1,
     },
@@ -56,6 +54,7 @@ function stubPrisma() {
         childCountCall += 1;
         return v;
       },
+      groupBy: async () => [{ centerId: 'c1', _count: { _all: 10 } }],
       findMany: async () => [
         {
           id: 'ch1',
@@ -72,15 +71,31 @@ function stubPrisma() {
     childTransfer: {
       count: async () => 2,
     },
-    attendanceRecord: { count: async () => 4 },
+    attendanceRecord: {
+      count: async () => 4,
+      groupBy: async () => [
+        { centerId: 'c1', status: 'present', _count: { _all: 3 } },
+        { centerId: 'c1', status: 'absent', _count: { _all: 1 } },
+      ],
+    },
     childNutritionScreening: { count: async () => 1 },
-    centerFeedingDay: { count: async () => 2 },
-    referral: { count: async () => 1 },
-    stedAssessment: { count: async () => 1 },
+    centerFeedingDay: {
+      count: async () => 2,
+      groupBy: async () => [{ centerId: 'c1', _count: { _all: 2 } }],
+    },
+    referral: {
+      count: async () => 1,
+      groupBy: async () => [{ centerId: 'c1', _count: { _all: 1 } }],
+    },
+    stedAssessment: {
+      count: async () => 1,
+      groupBy: async () => [{ centerId: 'c1', _count: { _all: 1 } }],
+    },
     administrativeUnit: {
       findUnique: async () => null,
       findMany: async () => [],
     },
+    $queryRaw: async () => [{ centerId: 'c1', cnt: 1 }],
   };
 }
 
@@ -91,33 +106,27 @@ async function main() {
   });
 
   await assert('enrollment report returns status breakdown', async () => {
-    const result = await new ReportsService(stubPrisma() as never).enrollment(
-      actor,
-      { from: new Date('2026-08-01'), to: new Date('2026-08-31') },
-    );
+    const result = await new ReportsService(stubPrisma() as never).enrollment(actor, {
+      from: new Date('2026-08-01'),
+      to: new Date('2026-08-31'),
+    });
     eq(result.summary.totalEnrolled, 100);
     eq(result.summary.active, 80);
     eq(Array.isArray(result.trend), true);
   });
 
   await assert('dropouts documents archived interpretation', async () => {
-    const result = await new ReportsService(stubPrisma() as never).dropouts(
-      actor,
-      { from: new Date('2026-08-01'), to: new Date('2026-08-31') },
-    );
-    eq(
-      result.interpretation.dropoutDefinition.includes('archived'),
-      true,
-    );
+    const result = await new ReportsService(stubPrisma() as never).dropouts(actor, {
+      from: new Date('2026-08-01'),
+      to: new Date('2026-08-31'),
+    });
+    eq(result.interpretation.dropoutDefinition.includes('archived'), true);
     eq(result.summary.dropouts >= 0, true);
     eq(result.summary.transfersOut, 2);
   });
 
   await assert('centers report includes performance blocks', async () => {
-    const result = await new ReportsService(stubPrisma() as never).centers(
-      actor,
-      {},
-    );
+    const result = await new ReportsService(stubPrisma() as never).centers(actor, {});
     eq(result.items.length, 1);
     eq('attendance' in result.items[0], true);
     eq('nutrition' in result.items[0], true);
@@ -125,10 +134,7 @@ async function main() {
   });
 
   await assert('district report returns KPIs', async () => {
-    const result = await new ReportsService(stubPrisma() as never).district(
-      actor,
-      {},
-    );
+    const result = await new ReportsService(stubPrisma() as never).district(actor, {});
     eq('activeChildren' in result.kpis, true);
     eq('attendanceRate' in result.kpis, true);
     eq(result.districtId, 'd1');

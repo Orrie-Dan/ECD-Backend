@@ -46,24 +46,16 @@ async function main() {
 
     const prisma = {
       ecdCenter: {
-        findMany: async (args?: { select?: { _count?: unknown } }) => {
-          if (args?.select?._count) {
-            return [
-              {
-                id: 'c1',
-                name: 'Center 1',
-                _count: { attendanceRecords: 0 },
-              },
-            ];
-          }
-          return [{ id: 'c1' }];
-        },
+        findMany: async () => [
+          {
+            id: 'c1',
+            name: 'Center 1',
+          },
+        ],
         findFirst: async () => ({ id: 'c1', districtId: 'd1' }),
       },
       child: {
-        findMany: async (args?: {
-          select?: Record<string, unknown>;
-        }) => {
+        findMany: async (args?: { select?: Record<string, unknown> }) => {
           childCalls += 1;
           const select = args?.select ?? {};
           if (select.nutritionScreenings) {

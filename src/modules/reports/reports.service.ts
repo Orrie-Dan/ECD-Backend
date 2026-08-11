@@ -3,6 +3,7 @@ import {
   AttendanceStatus,
   ChildStatus,
   NutritionStatus,
+  Prisma,
   ReferralStatus,
   TransferStatus,
 } from '@prisma/client';
@@ -130,8 +131,7 @@ export class ReportsService {
      * - transfers are NOT dropouts; listed separately as transfersOut
      */
     const interpretation = {
-      dropoutDefinition:
-        'Children with status=archived and archivedAt within the date range',
+      dropoutDefinition: 'Children with status=archived and archivedAt within the date range',
       excluded:
         'Transferred children (status=transferred) are reported as transfersOut, not dropouts',
       note: 'No dedicated dropout enum exists; archived is the existing lifecycle terminal used for leaving the program',
@@ -165,9 +165,7 @@ export class ReportsService {
           deletedAt: null,
           status: TransferStatus.accepted,
           acceptedAt: { gte: from, lte: endOfUtcDay(to) },
-          ...(scope.centerIds === 'all'
-            ? {}
-            : { fromCenterId: { in: scope.centerIds } }),
+          ...(scope.centerIds === 'all' ? {} : { fromCenterId: { in: scope.centerIds } }),
         },
       }),
       this.prisma.child.findMany({
@@ -217,106 +215,114 @@ export class ReportsService {
     const scope = await resolveDistrictQueryScope(this.prisma, user, query);
     const { from, to } = resolveInclusiveDateRange(query.from, query.to);
     const { page, pageSize, skip } = paginateParams(query.page, query.pageSize);
+    const cWhere = centerIdWhere(scope);
+    const childWhere = childCenterWhere(scope);
 
-    const centers = await this.prisma.ecdCenter.findMany({
-      where: {
-        deletedAt: null,
-        ...(scope.centerIds === 'all'
-          ? scope.districtId
-            ? { districtId: scope.districtId }
-            : {}
-          : { id: { in: scope.centerIds } }),
-      },
-      select: { id: true, name: true, code: true, status: true },
-      orderBy: { name: 'asc' },
-    });
+    const [
+      centers,
+      enrolledByCenter,
+      attByCenter,
+      severeByChildCenter,
+      feedingByCenter,
+      pendingByCenter,
+      stedByCenter,
+    ] = await Promise.all([
+      this.prisma.ecdCenter.findMany({
+        where: {
+          deletedAt: null,
+          ...(scope.centerIds === 'all'
+            ? scope.districtId
+              ? { districtId: scope.districtId }
+              : {}
+            : { id: { in: scope.centerIds } }),
+        },
+        select: { id: true, name: true, code: true, status: true },
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.child.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          status: ChildStatus.active,
+          ...childWhere,
+        },
+        _count: { _all: true },
+      }),
+      this.prisma.attendanceRecord.groupBy({
+        by: ['centerId', 'status'],
+        where: {
+          deletedAt: null,
+          attendanceDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+        _count: { _all: true },
+      }),
+      this.nutritionSevereByCenter(scope, from, to),
+      this.prisma.centerFeedingDay.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          recordedDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+        _count: { _all: true },
+      }),
+      this.prisma.referral.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          status: ReferralStatus.pending,
+          ...cWhere,
+        },
+        _count: { _all: true },
+      }),
+      this.prisma.stedAssessment.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          assessmentDate: { gte: from, lte: to },
+          ...cWhere,
+        },
+        _count: { _all: true },
+      }),
+    ]);
 
-    const items = await Promise.all(
-      centers.map(async (c) => {
-        const [
-          enrolled,
+    const enrolledMap = new Map(enrolledByCenter.map((r) => [r.centerId, r._count._all]));
+    const presentMap = new Map<string, number>();
+    const absentMap = new Map<string, number>();
+    for (const row of attByCenter) {
+      if (row.status === AttendanceStatus.present) {
+        presentMap.set(row.centerId, row._count._all);
+      } else if (row.status === AttendanceStatus.absent) {
+        absentMap.set(row.centerId, row._count._all);
+      }
+    }
+    const severeMap = new Map(severeByChildCenter.map((r) => [r.centerId, r.cnt]));
+    const feedingMap = new Map(feedingByCenter.map((r) => [r.centerId, r._count._all]));
+    const pendingMap = new Map(pendingByCenter.map((r) => [r.centerId, r._count._all]));
+    const stedMap = new Map(stedByCenter.map((r) => [r.centerId, r._count._all]));
+
+    const items = centers.map((c) => {
+      const present = presentMap.get(c.id) ?? 0;
+      const absent = absentMap.get(c.id) ?? 0;
+      const attTotal = present + absent;
+      return {
+        centerId: c.id,
+        centerCode: c.code,
+        centerName: c.name,
+        status: c.status,
+        enrolledChildren: enrolledMap.get(c.id) ?? 0,
+        attendance: {
           present,
           absent,
-          severe,
-          feedingDays,
-          pendingRefs,
-          stedCount,
-        ] = await Promise.all([
-          this.prisma.child.count({
-            where: {
-              deletedAt: null,
-              status: ChildStatus.active,
-              centerId: c.id,
-            },
-          }),
-          this.prisma.attendanceRecord.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              status: AttendanceStatus.present,
-              attendanceDate: { gte: from, lte: to },
-            },
-          }),
-          this.prisma.attendanceRecord.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              status: AttendanceStatus.absent,
-              attendanceDate: { gte: from, lte: to },
-            },
-          }),
-          this.prisma.childNutritionScreening.count({
-            where: {
-              deletedAt: null,
-              nutritionStatus: NutritionStatus.severe,
-              screeningDate: { gte: from, lte: to },
-              child: { centerId: c.id, deletedAt: null },
-            },
-          }),
-          this.prisma.centerFeedingDay.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              recordedDate: { gte: from, lte: to },
-            },
-          }),
-          this.prisma.referral.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              status: ReferralStatus.pending,
-            },
-          }),
-          this.prisma.stedAssessment.count({
-            where: {
-              deletedAt: null,
-              centerId: c.id,
-              assessmentDate: { gte: from, lte: to },
-            },
-          }),
-        ]);
-        const attTotal = present + absent;
-        return {
-          centerId: c.id,
-          centerCode: c.code,
-          centerName: c.name,
-          status: c.status,
-          enrolledChildren: enrolled,
-          attendance: {
-            present,
-            absent,
-            rate:
-              attTotal > 0
-                ? Math.round((present / attTotal) * 1000) / 10
-                : null,
-          },
-          nutrition: { severeScreenings: severe },
-          feeding: { daysRecorded: feedingDays },
-          referrals: { pending: pendingRefs },
-          sted: { assessmentsCompleted: stedCount },
-        };
-      }),
-    );
+          rate: attTotal > 0 ? Math.round((present / attTotal) * 1000) / 10 : null,
+        },
+        nutrition: { severeScreenings: severeMap.get(c.id) ?? 0 },
+        feeding: { daysRecorded: feedingMap.get(c.id) ?? 0 },
+        referrals: { pending: pendingMap.get(c.id) ?? 0 },
+        sted: { assessmentsCompleted: stedMap.get(c.id) ?? 0 },
+      };
+    });
 
     return {
       from: from.toISOString(),
@@ -445,10 +451,7 @@ export class ReportsService {
         activeChildren,
         newRegistrations: newRegs,
         dropouts,
-        attendanceRate:
-          attTotal > 0
-            ? Math.round((present / attTotal) * 1000) / 10
-            : null,
+        attendanceRate: attTotal > 0 ? Math.round((present / attTotal) * 1000) / 10 : null,
         nutritionScreenings: screenings,
         severeNutrition: severe,
         pendingReferrals: pendingRefs,
@@ -457,10 +460,42 @@ export class ReportsService {
       },
     };
   }
+
+  private async nutritionSevereByCenter(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+  ): Promise<Array<{ centerId: string; cnt: number }>> {
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`s.deleted_at IS NULL`,
+      Prisma.sql`ch.deleted_at IS NULL`,
+      Prisma.sql`s.nutrition_status = CAST(${'severe'} AS nutrition_status)`,
+      Prisma.sql`s.screening_date >= ${from}`,
+      Prisma.sql`s.screening_date <= ${to}`,
+    ];
+
+    if (scope.centerIds !== 'all') {
+      if (scope.centerIds.length === 0) return [];
+      conditions.push(Prisma.sql`ch.center_id IN (${Prisma.join(scope.centerIds)})`);
+    } else if (scope.districtId) {
+      conditions.push(
+        Prisma.sql`ch.center_id IN (
+          SELECT id FROM ecd_center
+          WHERE district_id = ${scope.districtId} AND deleted_at IS NULL
+        )`,
+      );
+    }
+
+    return this.prisma.$queryRaw`
+      SELECT ch.center_id AS "centerId", COUNT(*)::int AS cnt
+      FROM child_nutrition_screening s
+      INNER JOIN child ch ON ch.id = s.child_id
+      WHERE ${Prisma.join(conditions, ' AND ')}
+      GROUP BY ch.center_id
+    `;
+  }
 }
 
 function endOfUtcDay(d: Date): Date {
-  return new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999),
-  );
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
 }
