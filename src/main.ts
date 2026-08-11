@@ -19,6 +19,14 @@ async function bootstrap() {
     }),
   );
 
+  // Required for browser CORS preflight: browser sends OPTIONS before certain cross-origin requests.
+  // Without this, Express will respond 404 for OPTIONS and the browser will block the real POST.
+  app.enableCors({
+    origin: true, // Reflect the requesting Origin header
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id'],
+  });
+
   // Prefer explicit public URL; Render injects RENDER_EXTERNAL_URL on hosted services.
   // Relative "/" makes Swagger "Try it out" use the same host that serves /docs.
   const publicApiUrl = (
