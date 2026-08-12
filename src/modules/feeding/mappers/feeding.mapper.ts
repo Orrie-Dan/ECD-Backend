@@ -133,3 +133,67 @@ export class FeedingMapper
 }
 
 export const feedingMapper = new FeedingMapper();
+
+/**
+ * Resolve feeding-day date from sync CREATE/UPDATE payload.
+ * Accepts recordedDate (canonical) or date (attendance-style / harness alias).
+ * Validates before Prisma so Invalid Date never reaches the driver (that left
+ * ops stuck at pending with null conflictReason on LIVE).
+ */
+export function resolveFeedingRecordedDateFromPayload(
+  payload: Record<string, unknown>,
+): Date {
+  const raw = payload.recordedDate ?? payload.date ?? null;
+  if (raw == null || raw === '') {
+    throw new Error(
+      'center_feeding_day requires recordedDate (or date)',
+    );
+  }
+  const asString =
+    raw instanceof Date
+      ? raw.toISOString().slice(0, 10)
+      : String(raw).trim();
+  if (
+    !asString ||
+    asString === 'undefined' ||
+    asString === 'null'
+  ) {
+    throw new Error(
+      'center_feeding_day requires recordedDate (or date)',
+    );
+  }
+  const recordedDate = new Date(asString);
+  if (Number.isNaN(recordedDate.getTime())) {
+    throw new Error(
+      `center_feeding_day recordedDate is invalid: ${asString}`,
+    );
+  }
+  return recordedDate;
+}
+
+/**
+ * Resolve recordedBy for feeding-day sync CREATE.
+ * Accepts recordedById / recordedBy. Never coerces missing values to the
+ * string "undefined" (that caused P2003 retry loops → session stuck started).
+ */
+export function resolveFeedingRecordedByIdFromPayload(
+  payload: Record<string, unknown>,
+): string {
+  const raw = payload.recordedById ?? payload.recordedBy;
+  if (typeof raw !== 'string') {
+    throw new Error(
+      'center_feeding_day requires recordedById (or recordedBy)',
+    );
+  }
+  const trimmed = raw.trim();
+  if (
+    !trimmed ||
+    trimmed === 'undefined' ||
+    trimmed === 'null'
+  ) {
+    throw new Error(
+      'center_feeding_day requires recordedById (or recordedBy)',
+    );
+  }
+  return trimmed;
+}

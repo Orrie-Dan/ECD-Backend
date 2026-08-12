@@ -27,6 +27,10 @@ import {
   resolveStedAgeBandFromPayload,
 } from '../sted/mappers/sted.mapper';
 import {
+  resolveFeedingRecordedByIdFromPayload,
+  resolveFeedingRecordedDateFromPayload,
+} from '../feeding/mappers/feeding.mapper';
+import {
   CHILD_SCOPED_ENTITY_TYPES,
   SyncableEntityType,
 } from './sync.constants';
@@ -103,19 +107,21 @@ export class SyncApplyService {
 
     try {
       if (context.entityType === 'child_transfer') {
-        return this.applyChildTransferCreate(context);
+        return await this.applyChildTransferCreate(context);
       }
 
       if (context.entityType === 'attendance_record') {
-        return this.applyAttendanceCreate(context);
+        return await this.applyAttendanceCreate(context);
       }
 
       if (context.entityType === 'center_feeding_day') {
-        return this.applyFeedingDayCreate(context);
+        // Must await: bare return of a rejecting promise bypasses this catch,
+        // which left feeding ops pending with null conflictReason on LIVE.
+        return await this.applyFeedingDayCreate(context);
       }
 
       if (context.entityType === 'center_feeding_month_summary') {
-        return this.applyFeedingMonthCreate(context);
+        return await this.applyFeedingMonthCreate(context);
       }
 
       const missingParent = await this.missingParentChild(context);
@@ -219,8 +225,24 @@ export class SyncApplyService {
   private async applyFeedingDayCreate(context: ApplyContext) {
     const payload = context.payload;
     const db = this.db(context);
-    const centerId = String(payload.centerId);
-    const recordedDate = new Date(String(payload.recordedDate));
+    const centerId = String(payload.centerId ?? '');
+    if (!centerId) {
+      throw new Error('center_feeding_day requires centerId');
+    }
+    // Validate before Prisma: missing date → Invalid Date hung/retried as pending;
+    // missing recorder → String(undefined) → P2003 retry loop (same class as referral).
+    const recordedDate = resolveFeedingRecordedDateFromPayload(payload);
+    const recordedById = resolveFeedingRecordedByIdFromPayload(payload);
+    const recorder = await db.userAccount.findUnique({
+      where: { id: recordedById },
+      select: { id: true },
+    });
+    if (!recorder) {
+      throw new Error(
+        'center_feeding_day recordedById does not reference an existing user',
+      );
+    }
+
     const meta = this.syncMeta(
       context.deviceId,
       Math.max(1, context.clientVersion || 1),
@@ -240,7 +262,7 @@ export class SyncApplyService {
       animalProducts: Boolean(payload.animalProducts ?? false),
       fruitsVegetables: Boolean(payload.fruitsVegetables ?? false),
       addedFat: Boolean(payload.addedFat ?? false),
-      recordedById: String(payload.recordedById ?? payload.recordedBy),
+      recordedById,
       deletedAt: null,
       updatedAt: new Date(),
       ...meta,

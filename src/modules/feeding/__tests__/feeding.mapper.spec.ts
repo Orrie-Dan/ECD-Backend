@@ -2,6 +2,8 @@ import {
   balancedMealWarnings,
   decimalToNumber,
   feedingMapper,
+  resolveFeedingRecordedByIdFromPayload,
+  resolveFeedingRecordedDateFromPayload,
 } from '../mappers/feeding.mapper';
 import { Prisma } from '@prisma/client';
 
@@ -132,6 +134,46 @@ async function run() {
     eq(dto.flourKg, 40);
     eq(dto.recordedBy, 'u2');
     eq(dto.yearMonth, '2026-08');
+  });
+
+  await assert('resolveFeedingRecordedDateFromPayload prefers recordedDate', () => {
+    const d = resolveFeedingRecordedDateFromPayload({
+      recordedDate: '2026-08-04',
+      date: '2026-08-01',
+    });
+    eq(d.toISOString().slice(0, 10), '2026-08-04');
+  });
+
+  await assert('resolveFeedingRecordedDateFromPayload accepts date alias', () => {
+    const d = resolveFeedingRecordedDateFromPayload({ date: '2026-08-05' });
+    eq(d.toISOString().slice(0, 10), '2026-08-05');
+  });
+
+  await assert('resolveFeedingRecordedDateFromPayload rejects missing', () => {
+    try {
+      resolveFeedingRecordedDateFromPayload({});
+      throw new Error('expected throw');
+    } catch (err) {
+      if (!(err instanceof Error) || !err.message.includes('recordedDate')) {
+        throw err;
+      }
+    }
+  });
+
+  await assert('resolveFeedingRecordedByIdFromPayload accepts aliases', () => {
+    eq(resolveFeedingRecordedByIdFromPayload({ recordedById: 'u1' }), 'u1');
+    eq(resolveFeedingRecordedByIdFromPayload({ recordedBy: 'u2' }), 'u2');
+  });
+
+  await assert('resolveFeedingRecordedByIdFromPayload rejects sentinel undefined', () => {
+    try {
+      resolveFeedingRecordedByIdFromPayload({ recordedById: 'undefined' });
+      throw new Error('expected throw');
+    } catch (err) {
+      if (!(err instanceof Error) || !err.message.includes('recordedById')) {
+        throw err;
+      }
+    }
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);
