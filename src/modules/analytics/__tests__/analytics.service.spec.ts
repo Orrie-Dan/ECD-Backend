@@ -55,6 +55,7 @@ function createPrisma(counts: {
   let attIdx = 0;
   let refIdx = 0;
   let feedIdx = 0;
+  let distinctCalls = 0;
 
   return {
     ecdCenter: {
@@ -79,8 +80,6 @@ function createPrisma(counts: {
         attIdx += 1;
         return v;
       },
-      findMany: async () =>
-        (counts.attendanceCenters ?? ['c1']).map((centerId) => ({ centerId })),
     },
     childNutritionScreening: {
       groupBy: async () => counts.nutritionGroup ?? [],
@@ -99,8 +98,15 @@ function createPrisma(counts: {
         feedIdx += 1;
         return v;
       },
-      findMany: async () =>
-        (counts.feedingCenters ?? ['c1']).map((centerId) => ({ centerId })),
+    },
+    $queryRaw: async () => {
+      // Alternating attendance then feeding distinct-center counts
+      const list =
+        distinctCalls === 0
+          ? counts.attendanceCenters ?? ['c1']
+          : counts.feedingCenters ?? ['c1'];
+      distinctCalls += 1;
+      return [{ cnt: list.length }];
     },
   };
 }

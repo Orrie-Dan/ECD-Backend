@@ -5,6 +5,7 @@ import {
 import {
   canTransitionReferralStatus,
   referralMapper,
+  resolveReferralRecordedByIdFromPayload,
   resolveReferralSourceTypeFromPayload,
   resolveReferralStatusFromPayload,
   toApiReferralSourceType,
@@ -127,6 +128,36 @@ async function run() {
       resolveReferralStatusFromPayload({ status: 'completed' }),
       ReferralStatus.completed,
     );
+  });
+
+  await assert('Sync payload resolves recordedBy aliases', () => {
+    eq(
+      resolveReferralRecordedByIdFromPayload({ recordedById: 'u1' }),
+      'u1',
+    );
+    eq(resolveReferralRecordedByIdFromPayload({ recordedBy: 'u2' }), 'u2');
+    eq(
+      resolveReferralRecordedByIdFromPayload({ referredById: 'u3' }),
+      'u3',
+    );
+  });
+
+  await assert('Sync payload rejects missing/sentinel recordedBy', () => {
+    let missing = false;
+    try {
+      resolveReferralRecordedByIdFromPayload({});
+    } catch {
+      missing = true;
+    }
+    eq(missing, true);
+
+    let sentinel = false;
+    try {
+      resolveReferralRecordedByIdFromPayload({ recordedById: 'undefined' });
+    } catch {
+      sentinel = true;
+    }
+    eq(sentinel, true);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

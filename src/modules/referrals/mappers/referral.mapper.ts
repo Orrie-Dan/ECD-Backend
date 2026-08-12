@@ -92,6 +92,35 @@ export function toDbReferralSourceType(
 }
 
 /**
+ * Resolve recordedBy for referral sync CREATE.
+ * Accepts recordedById / recordedBy / referredById (harness alias).
+ * Never coerces missing values to the string "undefined" (that caused
+ * permanent FK failures classified as retryable P2003 → infinite pending).
+ */
+export function resolveReferralRecordedByIdFromPayload(
+  payload: Record<string, unknown>,
+): string {
+  const raw =
+    payload.recordedById ?? payload.recordedBy ?? payload.referredById;
+  if (typeof raw !== 'string') {
+    throw new Error(
+      'referral requires recordedById (or recordedBy / referredById)',
+    );
+  }
+  const trimmed = raw.trim();
+  if (
+    !trimmed ||
+    trimmed === 'undefined' ||
+    trimmed === 'null'
+  ) {
+    throw new Error(
+      'referral requires recordedById (or recordedBy / referredById)',
+    );
+  }
+  return trimmed;
+}
+
+/**
  * Resolve source type from sync payload (API string or Prisma enum).
  */
 export function resolveReferralSourceTypeFromPayload(

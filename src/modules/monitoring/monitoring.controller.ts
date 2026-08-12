@@ -17,6 +17,8 @@ import {
   MonitoringNutritionResponseDto,
   MonitoringReferralsResponseDto,
   MonitoringStedResponseDto,
+  MonitoringComplianceResponseDto,
+  MonitoringWashResponseDto,
 } from './dto/monitoring-response.dto';
 import { MonitoringService } from './monitoring.service';
 
@@ -83,6 +85,30 @@ export class MonitoringController {
   @ApiStandardClientErrors()
   sted(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
     return this.monitoring.sted(user, query);
+  }
+
+  @Get('compliance')
+  @ApiOperation({
+    summary: 'Monitor compliance aggregates',
+    description:
+      'National/district compliance assessment counts and status breakdown — SQL aggregates only.',
+  })
+  @ApiOkResponse({ type: MonitoringComplianceResponseDto })
+  @ApiStandardClientErrors()
+  compliance(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
+    return this.monitoring.compliance(user, query);
+  }
+
+  @Get('wash')
+  @ApiOperation({
+    summary: 'Monitor WASH aggregates',
+    description:
+      'WASH reporting volume and latest-snapshot facility counts for the selected scope.',
+  })
+  @ApiOkResponse({ type: MonitoringWashResponseDto })
+  @ApiStandardClientErrors()
+  wash(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
+    return this.monitoring.wash(user, query);
   }
 
   @Get('referrals')

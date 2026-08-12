@@ -8,6 +8,7 @@ import { SyncService } from '../sync.service';
 import {
   SYNC_JOB_PROCESS_SESSION,
   SYNC_MAX_RECOVERY_RETRIES,
+  SYNC_PARKED_RETRY_MS,
   SYNC_STALE_THRESHOLD_MS,
 } from '../sync.constants';
 
@@ -40,6 +41,7 @@ type SessionRow = {
   successfulOperations: number;
   failedOperations: number;
   completedAt: Date | null;
+  deviceId: string;
 };
 
 type OpRow = {
@@ -101,6 +103,8 @@ function createRecoveryHarness(opts?: {
             id: s.id,
             retryCount: s.retryCount,
             startedAt: s.startedAt,
+            lastRetryAt: s.lastRetryAt,
+            deviceId: s.deviceId,
           }));
       },
       update: async ({
@@ -193,6 +197,7 @@ function seedStaleSession(
     successfulOperations: overrides.successfulOperations ?? 0,
     failedOperations: overrides.failedOperations ?? 0,
     completedAt: overrides.completedAt ?? null,
+    deviceId: overrides.deviceId ?? randomUUID(),
   });
   if (overrides.pending !== false) {
     const opId = randomUUID();
@@ -241,7 +246,7 @@ async function main() {
     eq(h.sessions.get(sessionId)!.retryCount, 1);
   });
 
-  await assert('dead-letters after max recovery retries (failed, not new state)', async () => {
+  await assert('parks after max recovery retries without failing ops', async () => {
     const h = createRecoveryHarness();
     const sessionId = seedStaleSession(h, {
       retryCount: SYNC_MAX_RECOVERY_RETRIES,
@@ -249,14 +254,31 @@ async function main() {
 
     const result = await h.service.recoverStalePendingSessions();
 
-    eq(result.deadLettered, 1);
+    eq(result.deadLettered, 0);
     eq(result.requeued, 0);
+    eq(result.parkedRequeued, 0);
     eq(h.enqueued.length, 0);
-    eq(h.sessions.get(sessionId)!.status, SyncSessionStatus.failed);
+    eq(h.sessions.get(sessionId)!.status, SyncSessionStatus.started);
 
     const op = [...h.ops.values()].find((o) => o.sessionId === sessionId)!;
-    eq(op.status, SyncOperationStatus.failed);
-    eq(op.conflictReason, 'max recovery retries exceeded');
+    eq(op.status, SyncOperationStatus.pending);
+  });
+
+  await assert('requeues parked sessions after parked backoff', async () => {
+    const h = createRecoveryHarness();
+    const sessionId = seedStaleSession(h, {
+      retryCount: SYNC_MAX_RECOVERY_RETRIES,
+      lastRetryAt: new Date(Date.now() - SYNC_PARKED_RETRY_MS - 1000),
+    });
+
+    const result = await h.service.recoverStalePendingSessions();
+
+    eq(result.parkedRequeued, 1);
+    eq(result.deadLettered, 0);
+    eq(h.enqueued.length, 1);
+    eq(h.sessions.get(sessionId)!.status, SyncSessionStatus.started);
+    const op = [...h.ops.values()].find((o) => o.sessionId === sessionId)!;
+    eq(op.status, SyncOperationStatus.pending);
   });
 
   await assert('ignores fresh sessions below stale threshold', async () => {
@@ -299,13 +321,13 @@ async function main() {
     await h.service.recoverStalePendingSessions();
 
     eq(h.ops.get(appliedId)!.status, SyncOperationStatus.applied);
-    const pendingConverted = [...h.ops.values()].filter(
+    const stillPending = [...h.ops.values()].filter(
       (o) =>
         o.sessionId === sessionId &&
         o.id !== appliedId &&
-        o.status === SyncOperationStatus.failed,
+        o.status === SyncOperationStatus.pending,
     );
-    eq(pendingConverted.length, 1);
+    eq(stillPending.length, 1);
   });
 
   console.log('\nAll sync recovery tests passed.');

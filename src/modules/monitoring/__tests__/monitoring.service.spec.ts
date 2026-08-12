@@ -51,7 +51,11 @@ function stubPrisma() {
     referralGroupBy: 0,
     nutritionGroupBy: 0,
     nutritionQueryRaw: 0,
+    stedQueryRaw: 0,
+    stedGroupBy: 0,
     centersFindMany: 0,
+    complianceCount: 0,
+    washCount: 0,
   };
 
   const manyCenters = Array.from({ length: 50 }, (_, i) => ({
@@ -62,8 +66,11 @@ function stubPrisma() {
   return {
     callCounts,
     ecdCenter: {
-      findMany: async () => {
+      findMany: async (args?: { take?: number; skip?: number }) => {
         callCounts.centersFindMany += 1;
+        if (args?.take != null) {
+          return [{ id: 'c1', name: 'Center 1' }];
+        }
         return manyCenters;
       },
       findFirst: async () => ({ id: 'c1', districtId: 'd1', villageId: 'v1' }),
@@ -118,16 +125,41 @@ function stubPrisma() {
       },
     },
     stedAssessment: {
-      findMany: async () => [
-        {
-          id: 's1',
-          centerId: 'c1',
-          ageBand: 'band_1_3',
-          outcome: { score: 80 },
-          followUpIn6Months: false,
-        },
-      ],
-      count: async () => 0,
+      findMany: async () => {
+        throw new Error('sted findMany should not be used at national scale');
+      },
+      count: async () => 1,
+      groupBy: async () => {
+        callCounts.stedGroupBy += 1;
+        return [
+          { ageBand: 'band_1_3', _count: { _all: 1 } },
+          { centerId: 'c1', _count: { _all: 1 } },
+        ];
+      },
+    },
+    complianceAssessment: {
+      count: async () => {
+        callCounts.complianceCount += 1;
+        return 5;
+      },
+      groupBy: async (args: { by?: string[] }) => {
+        if (args?.by?.includes('status')) {
+          return [{ status: 'verified', _count: { _all: 5 } }];
+        }
+        if (args?.by?.includes('assessmentType')) {
+          return [{ assessmentType: 'self_assessment', _count: { _all: 5 } }];
+        }
+        if (args?.by?.includes('overallClassification')) {
+          return [{ overallClassification: 'compliant', _count: { _all: 3 } }];
+        }
+        return [];
+      },
+    },
+    washIndicator: {
+      count: async () => {
+        callCounts.washCount += 1;
+        return 10;
+      },
     },
     referral: {
       count: async () => {
@@ -144,12 +176,46 @@ function stubPrisma() {
       findUnique: async () => null,
       findMany: async () => [],
     },
-    $queryRaw: async () => {
-      callCounts.nutritionQueryRaw += 1;
-      return [
-        { centerId: 'c1', nutritionStatus: 'severe', cnt: 2 },
-        { centerId: 'c1', nutritionStatus: 'normal', cnt: 8 },
-      ];
+    $queryRaw: async (query: unknown) => {
+      callCounts.stedQueryRaw += 1;
+      const text = String(query);
+      if (text.includes('child_nutrition_screening')) {
+        callCounts.nutritionQueryRaw += 1;
+        return [
+          { centerId: 'c1', nutritionStatus: 'severe', cnt: 2 },
+          { centerId: 'c1', nutritionStatus: 'normal', cnt: 8 },
+        ];
+      }
+      if (text.includes('AVG(')) {
+        return [{ avg: 80 }];
+      }
+      if (text.includes('unspecified')) {
+        return [{ key: 'on_track', cnt: 1 }];
+      }
+      if (text.includes('wash_indicator') && text.includes('latest')) {
+        return [
+          {
+            centersWithData: 4,
+            waterSourceAvailable: 3,
+            sanitationFacilityAvailable: 3,
+            handwashingFacilityAvailable: 2,
+            wasteManagementAvailable: 2,
+          },
+        ];
+      }
+      if (text.includes('compliance_assessment')) {
+        return [{ cnt: 3 }];
+      }
+      if (text.includes('wash_indicator')) {
+        return [{ cnt: 4 }];
+      }
+      if (text.includes('DISTINCT')) {
+        return [{ cnt: 1 }];
+      }
+      if (text.includes('district_id') && text.includes('GROUP BY')) {
+        return [];
+      }
+      return [];
     },
   };
 }
@@ -198,6 +264,35 @@ async function main() {
     const result = await service.sted(actor, {});
     eq(result.summary.assessmentsCompleted, 1);
     eq(result.summary.averageScore, 80);
+    eq(result.granularity, 'center');
+    eq(result.summary.childrenAssessed, 1);
+  });
+
+  await assert('compliance monitoring returns SQL aggregates', async () => {
+    const result = await service.compliance(actor, {});
+    eq(result.summary.totalAssessments, 5);
+    eq(result.summary.centersAssessed, 3);
+    eq('verified' in result.summary.byStatus && result.summary.byStatus['verified'] === 5, true);
+  });
+
+  await assert('wash monitoring returns reporting + snapshot', async () => {
+    const result = await service.wash(actor, {});
+    eq(result.summary.reporting.recordsInRange, 10);
+    eq(result.summary.reporting.centersReporting, 4);
+    eq(result.summary.latestSnapshot.centersWithData, 4);
+  });
+
+  await assert('sted national uses aggregates not findMany', async () => {
+    const prisma = stubPrisma();
+    const svc = new MonitoringService(prisma as never);
+    const ncda = user({ role: UserRole.ncda_admin });
+    await svc.sted(ncda, { page: 1, pageSize: 20 });
+    if (prisma.callCounts.stedGroupBy < 1) {
+      throw new Error('expected sted groupBy');
+    }
+    if (prisma.callCounts.stedQueryRaw < 2) {
+      throw new Error('expected sted $queryRaw aggregations');
+    }
   });
 
   await assert('referrals monitoring returns overdue + pending', async () => {

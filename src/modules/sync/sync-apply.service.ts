@@ -19,13 +19,17 @@ import {
 } from '../nutrition/mappers/nutrition.mapper';
 import {
   canTransitionReferralStatus,
+  resolveReferralRecordedByIdFromPayload,
   resolveReferralSourceTypeFromPayload,
   resolveReferralStatusFromPayload,
 } from '../referrals/mappers/referral.mapper';
 import {
   resolveStedAgeBandFromPayload,
 } from '../sted/mappers/sted.mapper';
-import { SyncableEntityType } from './sync.constants';
+import {
+  CHILD_SCOPED_ENTITY_TYPES,
+  SyncableEntityType,
+} from './sync.constants';
 
 type JsonPayload = Record<string, unknown>;
 
@@ -37,8 +41,18 @@ export interface ApplyContext {
   operation: AuditAction;
   payload: JsonPayload;
   clientVersion: number;
+  /** Client wall-clock for natural-key last-write comparison. */
+  clientTimestamp?: Date;
   /** Optional tx so caller can finalize sync_operation in the same transaction */
   tx?: Prisma.TransactionClient;
+}
+
+export interface ApplyResult {
+  status: SyncOperationStatus;
+  conflictReason?: string;
+  entityId: string;
+  /** Transient: leave the operation pending for replay. */
+  retryable?: boolean;
 }
 
 type CasOutcome =
@@ -56,11 +70,7 @@ export class SyncApplyService {
     private readonly transferLifecycle: TransferLifecycleService,
   ) {}
 
-  async apply(context: ApplyContext): Promise<{
-    status: SyncOperationStatus;
-    conflictReason?: string;
-    entityId: string;
-  }> {
+  async apply(context: ApplyContext): Promise<ApplyResult> {
     switch (context.operation) {
       case AuditAction.create:
         return this.applyCreate(context);
@@ -96,6 +106,10 @@ export class SyncApplyService {
         return this.applyChildTransferCreate(context);
       }
 
+      if (context.entityType === 'attendance_record') {
+        return this.applyAttendanceCreate(context);
+      }
+
       if (context.entityType === 'center_feeding_day') {
         return this.applyFeedingDayCreate(context);
       }
@@ -104,10 +118,40 @@ export class SyncApplyService {
         return this.applyFeedingMonthCreate(context);
       }
 
+      const missingParent = await this.missingParentChild(context);
+      if (missingParent) {
+        return missingParent;
+      }
+
       await this.createRecord(context);
       return { status: SyncOperationStatus.applied, entityId: context.entityId };
     } catch (error) {
-      this.logger.error(`CREATE failed for ${context.entityType}`, error);
+      if (isRetryableApplyError(error)) {
+        this.logger.warn(
+          JSON.stringify({
+            event: 'sync.apply.retryable',
+            entityType: context.entityType,
+            entityId: context.entityId,
+            deviceId: context.deviceId,
+            reason: error instanceof Error ? error.message : 'retryable create failure',
+          }),
+        );
+        return {
+          status: SyncOperationStatus.pending,
+          retryable: true,
+          conflictReason: `RETRYABLE: ${error instanceof Error ? error.message : 'Create failed'}`,
+          entityId: context.entityId,
+        };
+      }
+      this.logger.error(
+        JSON.stringify({
+          event: 'sync.apply.failed',
+          entityType: context.entityType,
+          entityId: context.entityId,
+          deviceId: context.deviceId,
+          reason: error instanceof Error ? error.message : 'Create failed',
+        }),
+      );
       return {
         status: SyncOperationStatus.failed,
         conflictReason: error instanceof Error ? error.message : 'Create failed',
@@ -284,6 +328,197 @@ export class SyncApplyService {
     return { status: SyncOperationStatus.applied, entityId: id };
   }
 
+  /**
+   * Attendance natural key is (childId, attendanceDate).
+   * Duplicate client UUIDs for the same logical day must not become terminal `failed`.
+   */
+  private async applyAttendanceCreate(context: ApplyContext): Promise<ApplyResult> {
+    const payload = context.payload;
+    const db = this.db(context);
+    const childId = String(payload.childId ?? '');
+    if (!childId) {
+      return {
+        status: SyncOperationStatus.failed,
+        conflictReason: 'attendance_record requires childId',
+        entityId: context.entityId,
+      };
+    }
+
+    const child = await db.child.findUnique({
+      where: { id: childId },
+      select: { id: true, centerId: true },
+    });
+    if (!child) {
+      return {
+        status: SyncOperationStatus.pending,
+        retryable: true,
+        conflictReason: 'RETRYABLE: parent child not yet applied',
+        entityId: context.entityId,
+      };
+    }
+
+    let centerId =
+      typeof payload.centerId === 'string' ? payload.centerId : null;
+    if (!centerId) {
+      centerId = child.centerId;
+    }
+    if (!centerId) {
+      return {
+        status: SyncOperationStatus.failed,
+        conflictReason: 'attendance_record requires centerId or a valid childId',
+        entityId: context.entityId,
+      };
+    }
+
+    const attendanceDateRaw = payload.attendanceDate ?? payload.date ?? null;
+    if (attendanceDateRaw == null) {
+      return {
+        status: SyncOperationStatus.failed,
+        conflictReason: 'attendance_record requires attendanceDate (or date)',
+        entityId: context.entityId,
+      };
+    }
+    const attendanceDate = new Date(String(attendanceDateRaw));
+
+    const status = resolveAttendanceStatusFromPayload(payload);
+    const absentReason = resolveAbsentReasonFromPayload(payload, status);
+    const meta = this.syncMeta(
+      context.deviceId,
+      Math.max(1, context.clientVersion || 1),
+    );
+    const fieldData = {
+      status,
+      broughtBy: (payload.broughtBy as string) ?? null,
+      broughtByOther: (payload.broughtByOther as string) ?? null,
+      arrivedAt: payload.arrivedAt
+        ? new Date(String(payload.arrivedAt))
+        : null,
+      absentReason,
+      notes: (payload.notes as string) ?? null,
+      recordedById: String(payload.recordedById ?? payload.recordedBy),
+      deletedAt: null,
+      ...meta,
+      lastModifiedByDeviceId:
+        typeof payload.deviceId === 'string'
+          ? payload.deviceId
+          : meta.lastModifiedByDeviceId,
+    };
+
+    const existing = await db.attendanceRecord.findFirst({
+      where: { childId, attendanceDate },
+    });
+
+    if (existing) {
+      return this.mergeAttendanceNaturalKey(context, existing, fieldData);
+    }
+
+    try {
+      const id = context.entityId || randomUUID();
+      await db.attendanceRecord.create({
+        data: {
+          id,
+          childId,
+          centerId,
+          attendanceDate,
+          ...fieldData,
+        },
+      });
+      return { status: SyncOperationStatus.applied, entityId: id };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const raced = await db.attendanceRecord.findFirst({
+          where: { childId, attendanceDate },
+        });
+        if (raced) {
+          return this.mergeAttendanceNaturalKey(context, raced, fieldData);
+        }
+      }
+      if (isRetryableApplyError(error)) {
+        return {
+          status: SyncOperationStatus.pending,
+          retryable: true,
+          conflictReason: `RETRYABLE: ${error instanceof Error ? error.message : 'Create failed'}`,
+          entityId: context.entityId,
+        };
+      }
+      throw error;
+    }
+  }
+
+  private async mergeAttendanceNaturalKey(
+    context: ApplyContext,
+    existing: {
+      id: string;
+      version: number;
+      lastModifiedAt: Date;
+    },
+    fieldData: Prisma.AttendanceRecordUpdateManyMutationInput,
+  ): Promise<ApplyResult> {
+    const db = this.db(context);
+    const clientTs = context.clientTimestamp?.getTime() ?? 0;
+    const serverTs = existing.lastModifiedAt.getTime();
+
+    // Same logical record. If the existing row is newer or equal, this create
+    // is an idempotent duplicate — do not insert a second row.
+    if (clientTs > 0 && serverTs >= clientTs) {
+      return { status: SyncOperationStatus.applied, entityId: existing.id };
+    }
+
+    const updated = await db.attendanceRecord.updateMany({
+      where: { id: existing.id, version: existing.version },
+      data: {
+        ...fieldData,
+        version: { increment: 1 },
+      },
+    });
+    if (updated.count === 1) {
+      return { status: SyncOperationStatus.applied, entityId: existing.id };
+    }
+
+    const latest = await db.attendanceRecord.findUnique({
+      where: { id: existing.id },
+      select: { version: true },
+    });
+    return {
+      status: SyncOperationStatus.conflict,
+      conflictReason: `version mismatch: client ${existing.version}, server ${latest?.version ?? existing.version}`,
+      entityId: existing.id,
+    };
+  }
+
+  private async missingParentChild(
+    context: ApplyContext,
+  ): Promise<ApplyResult | null> {
+    if (
+      !CHILD_SCOPED_ENTITY_TYPES.includes(
+        context.entityType as (typeof CHILD_SCOPED_ENTITY_TYPES)[number],
+      )
+    ) {
+      return null;
+    }
+    const childId = context.payload.childId;
+    if (typeof childId !== 'string' || !childId) {
+      return null;
+    }
+    const db = this.db(context);
+    const child = await db.child.findUnique({
+      where: { id: childId },
+      select: { id: true },
+    });
+    if (child) {
+      return null;
+    }
+    return {
+      status: SyncOperationStatus.pending,
+      retryable: true,
+      conflictReason: 'RETRYABLE: parent child not yet applied',
+      entityId: context.entityId,
+    };
+  }
+
   private async applyUpdate(context: ApplyContext) {
     if (
       context.entityType === 'child_nutrition_screening' ||
@@ -322,6 +557,14 @@ export class SyncApplyService {
         entityId: context.entityId,
       };
     } catch (error) {
+      if (isRetryableApplyError(error)) {
+        return {
+          status: SyncOperationStatus.pending,
+          retryable: true,
+          conflictReason: `RETRYABLE: ${error instanceof Error ? error.message : 'Update failed'}`,
+          entityId: context.entityId,
+        };
+      }
       this.logger.error(`UPDATE failed for ${context.entityType}`, error);
       return {
         status: SyncOperationStatus.failed,
@@ -1327,6 +1570,18 @@ export class SyncApplyService {
           payload.status != null
             ? resolveReferralStatusFromPayload(payload)
             : ReferralStatus.pending;
+        // Validate before Prisma create so missing/alias-only recordedBy
+        // becomes a terminal failed op — not String(undefined) → P2003 retry loop.
+        const recordedById = resolveReferralRecordedByIdFromPayload(payload);
+        const recorder = await db.userAccount.findUnique({
+          where: { id: recordedById },
+          select: { id: true },
+        });
+        if (!recorder) {
+          throw new Error(
+            'referral recordedById does not reference an existing user',
+          );
+        }
 
         await db.referral.create({
           data: {
@@ -1343,9 +1598,7 @@ export class SyncApplyService {
               ? new Date(String(payload.implementedAt))
               : null,
             notes: (payload.notes as string) ?? null,
-            recordedById: String(
-              payload.recordedById ?? payload.recordedBy,
-            ),
+            recordedById,
             ...meta,
             lastModifiedByDeviceId:
               typeof payload.deviceId === 'string'
@@ -1359,4 +1612,34 @@ export class SyncApplyService {
         throw new Error(`Unsupported entity type: ${context.entityType}`);
     }
   }
+}
+
+const RETRYABLE_PRISMA_CODES = new Set([
+  'P1001',
+  'P1002',
+  'P1008',
+  'P1017',
+  'P2024',
+  'P2034',
+  'P2003',
+]);
+
+export function isRetryableApplyError(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return RETRYABLE_PRISMA_CODES.has(error.code);
+  }
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    return true;
+  }
+  if (error instanceof Prisma.PrismaClientRustPanicError) {
+    return true;
+  }
+  const message = error instanceof Error ? error.message.toLowerCase() : '';
+  return (
+    message.includes('timeout') ||
+    message.includes('econnrefused') ||
+    message.includes('connection') ||
+    message.includes('too many clients') ||
+    message.includes('could not serialize')
+  );
 }

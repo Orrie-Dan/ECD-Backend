@@ -262,6 +262,12 @@ export class MonitoringStedSummaryDto {
   @ApiProperty({ example: 40 })
   assessmentsCompleted: number;
 
+  @ApiProperty({ example: 35, description: 'Distinct children assessed in range' })
+  childrenAssessed: number;
+
+  @ApiProperty({ example: 12, description: 'Distinct centers with assessments in range' })
+  centersWithAssessments: number;
+
   @ApiProperty({ example: 100 })
   activeChildren: number;
 
@@ -273,6 +279,9 @@ export class MonitoringStedSummaryDto {
 
   @ApiProperty({ example: 5 })
   pendingFollowUps: number;
+
+  @ApiProperty({ example: 39445, description: 'Centers in resolved scope' })
+  centersInScope: number;
 
   @ApiProperty({
     type: 'object',
@@ -292,14 +301,23 @@ export class MonitoringStedSummaryDto {
 }
 
 export class MonitoringStedCenterItemDto {
-  @ApiProperty({ format: 'uuid' })
-  centerId: string;
+  @ApiProperty({ format: 'uuid', required: false })
+  centerId?: string;
 
-  @ApiProperty({ example: 'Kigali ECD Center' })
-  centerName: string;
+  @ApiProperty({ example: 'Kigali ECD Center', required: false })
+  centerName?: string;
+
+  @ApiProperty({ format: 'uuid', required: false })
+  districtId?: string;
+
+  @ApiProperty({ example: 'Gasabo', required: false })
+  districtName?: string;
 
   @ApiProperty({ example: 8 })
   assessmentsCompleted: number;
+
+  @ApiProperty({ example: 6, required: false })
+  childrenAssessed?: number;
 
   @ApiProperty({ example: 70, nullable: true })
   averageScore: number | null;
@@ -318,6 +336,12 @@ export class MonitoringStedResponseDto {
   @ApiProperty({ format: 'uuid', nullable: true })
   centerId: string | null;
 
+  @ApiProperty({
+    enum: ['district', 'center'],
+    description: 'Grain of items — district rollup at national scope, centers when scoped',
+  })
+  granularity: 'district' | 'center';
+
   @ApiProperty({ type: () => MonitoringStedSummaryDto })
   summary: MonitoringStedSummaryDto;
 
@@ -335,6 +359,121 @@ export class MonitoringStedResponseDto {
 
   @ApiProperty({ example: 1 })
   totalPages: number;
+}
+
+export class MonitoringComplianceSummaryDto {
+  @ApiProperty({ example: 120 })
+  totalAssessments: number;
+
+  @ApiProperty({ example: 45 })
+  centersAssessed: number;
+
+  @ApiProperty({ example: 30 })
+  centersInScope: number;
+
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'number' },
+    example: { draft: 10, submitted: 20, verified: 80, rejected: 10 },
+  })
+  byStatus: Record<string, number>;
+
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'number' },
+    example: { self_assessment: 50, supportive_supervision: 40, external_audit: 30 },
+  })
+  byType: Record<string, number>;
+
+  @ApiProperty({ example: 60 })
+  classificationPopulated: number;
+
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'number' },
+    example: { compliant: 30, partially_compliant: 20, non_compliant: 10 },
+  })
+  byClassification: Record<string, number>;
+
+  @ApiProperty({
+    example: 0.5,
+    nullable: true,
+    description: 'Share of assessments with null overallClassification (sparse when REST-only)',
+  })
+  classificationNullRate: number | null;
+}
+
+export class MonitoringComplianceResponseDto {
+  @ApiProperty({ example: '2026-08-01T00:00:00.000Z' })
+  from: string;
+
+  @ApiProperty({ example: '2026-08-06T23:59:59.999Z' })
+  to: string;
+
+  @ApiProperty({ format: 'uuid', nullable: true })
+  districtId: string | null;
+
+  @ApiProperty({ format: 'uuid', nullable: true })
+  centerId: string | null;
+
+  @ApiProperty({ type: () => MonitoringComplianceSummaryDto })
+  summary: MonitoringComplianceSummaryDto;
+}
+
+export class MonitoringWashReportingDto {
+  @ApiProperty({ example: 200 })
+  recordsInRange: number;
+
+  @ApiProperty({ example: 80 })
+  centersReporting: number;
+}
+
+export class MonitoringWashLatestSnapshotDto {
+  @ApiProperty({ example: 500 })
+  centersWithData: number;
+
+  @ApiProperty({ example: 420 })
+  waterSourceAvailable: number;
+
+  @ApiProperty({ example: 380 })
+  sanitationFacilityAvailable: number;
+
+  @ApiProperty({ example: 350 })
+  handwashingFacilityAvailable: number;
+
+  @ApiProperty({ example: 300 })
+  wasteManagementAvailable: number;
+}
+
+export class MonitoringWashSummaryDto {
+  @ApiProperty({ example: 30 })
+  centersInScope: number;
+
+  @ApiProperty({ type: () => MonitoringWashReportingDto })
+  reporting: MonitoringWashReportingDto;
+
+  @ApiProperty({
+    type: () => MonitoringWashLatestSnapshotDto,
+    description: 'Latest indicator per center (point-in-time facility state)',
+  })
+  latestSnapshot: MonitoringWashLatestSnapshotDto;
+}
+
+export class MonitoringWashResponseDto {
+  @ApiProperty({ example: '2026-08-01T00:00:00.000Z' })
+  from: string;
+
+  @ApiProperty({ example: '2026-08-06T23:59:59.999Z' })
+  to: string;
+
+  @ApiProperty({ format: 'uuid', nullable: true })
+  districtId: string | null;
+
+  @ApiProperty({ format: 'uuid', nullable: true })
+  centerId: string | null;
+
+  @ApiProperty({ type: () => MonitoringWashSummaryDto })
+  summary: MonitoringWashSummaryDto;
 }
 
 export class MonitoringReferralsSummaryDto {

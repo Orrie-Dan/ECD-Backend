@@ -2,6 +2,7 @@ import { ReferralSourceType, ReferralStatus } from '@prisma/client';
 import { SYNCABLE_ENTITY_TYPES } from '../../sync/sync.constants';
 import {
   canTransitionReferralStatus,
+  resolveReferralRecordedByIdFromPayload,
   resolveReferralSourceTypeFromPayload,
   resolveReferralStatusFromPayload,
   toApiReferralStatus,
@@ -23,12 +24,12 @@ type SyncReferralPayload = {
   status?: string;
   notes?: string;
   implementedAt?: string;
-  recordedById: string;
+  recordedById?: string;
   deviceId?: string;
 };
 
 function buildSyncCreate(
-  payload: SyncReferralPayload,
+  payload: SyncReferralPayload & { referredById?: string },
   contextDeviceId: string,
   resolvedCenterId: string,
 ) {
@@ -41,6 +42,9 @@ function buildSyncCreate(
           payload as unknown as Record<string, unknown>,
         )
       : ReferralStatus.pending;
+  const recordedById = resolveReferralRecordedByIdFromPayload(
+    payload as unknown as Record<string, unknown>,
+  );
 
   return {
     childId: payload.childId,
@@ -52,7 +56,7 @@ function buildSyncCreate(
     destination: payload.destination,
     status,
     notes: payload.notes ?? null,
-    recordedById: payload.recordedById,
+    recordedById,
     lastModifiedByDeviceId: payload.deviceId ?? contextDeviceId,
   };
 }
@@ -150,6 +154,42 @@ async function run() {
     eq(data.centerId, 'center-a');
     eq(data.lastModifiedByDeviceId, 'dev-1');
     eq(toApiReferralStatus(data.status), 'pending');
+  });
+
+  await assert('Sync create accepts referredById alias (5.8a harness)', () => {
+    const data = buildSyncCreate(
+      {
+        childId: 'c1',
+        sourceType: 'sted',
+        sourceId: 'sted-1',
+        referralDate: '2026-08-12',
+        reason: 'STED',
+        destination: 'HC',
+        referredById: 'user-alias',
+        deviceId: 'dev-1',
+      } as SyncReferralPayload & { referredById: string },
+      'dev-context',
+      'center-a',
+    );
+    eq(data.sourceType, ReferralSourceType.sted);
+    eq(data.recordedById, 'user-alias');
+  });
+
+  await assert('Sync create prefers referredById when recordedById absent', () => {
+    const recordedById = resolveReferralRecordedByIdFromPayload({
+      referredById: 'user-from-alias',
+    });
+    eq(recordedById, 'user-from-alias');
+  });
+
+  await assert('Sync create rejects missing recordedBy (no String(undefined))', () => {
+    let threw = false;
+    try {
+      resolveReferralRecordedByIdFromPayload({ sourceType: 'sted' });
+    } catch {
+      threw = true;
+    }
+    eq(threw, true);
   });
 
   await assert('Sync update: status/notes only + state machine', () => {

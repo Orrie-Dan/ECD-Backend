@@ -18,6 +18,7 @@ import {
   AuditService,
   toAuditJson,
 } from '../../common/audit';
+import { assertDistrictAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -127,8 +128,24 @@ export class ChildrenService {
     const pageSize = query.pageSize ?? query.limit ?? 20;
     const skip = (page - 1) * pageSize;
 
+    if (query.districtId) {
+      assertDistrictAccess(user, query.districtId);
+    }
+
     if (query.centerId) {
       await this.assertCenterAccess(scope, query.centerId, user);
+    }
+
+    if (query.centerId && query.districtId) {
+      const center = await this.prisma.ecdCenter.findFirst({
+        where: { id: query.centerId, deletedAt: null },
+        select: { id: true, districtId: true },
+      });
+      if (!center || center.districtId !== query.districtId) {
+        throw new BadRequestException(
+          'centerId does not belong to the given districtId',
+        );
+      }
     }
 
     const statusFilter = childMapper.parseStatusFilter(query.status);
@@ -137,6 +154,14 @@ export class ChildrenService {
       deletedAt: null,
       ...this.syncAccess.centerFilter(scope),
       ...(query.centerId ? { centerId: query.centerId } : {}),
+      ...(query.districtId && !query.centerId
+        ? {
+            center: {
+              districtId: query.districtId,
+              deletedAt: null,
+            },
+          }
+        : {}),
       ...(statusFilter ? { status: statusFilter } : {}),
       ...(query.search
         ? {

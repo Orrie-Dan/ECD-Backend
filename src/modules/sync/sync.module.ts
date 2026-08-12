@@ -6,6 +6,7 @@ import { SyncAccessService } from './sync-access.service';
 import { SyncApplyService } from './sync-apply.service';
 import { SyncController } from './sync.controller';
 import { SYNC_QUEUE } from './sync.constants';
+import { buildRedisConnection } from './redis.connection';
 import { SyncProcessor } from './sync.processor';
 import { SyncService } from './sync.service';
 
@@ -15,10 +16,7 @@ import { SyncService } from './sync.service';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        connection: {
-          host: config.get<string>('REDIS_HOST', '127.0.0.1'),
-          port: Number(config.get<string>('REDIS_PORT', '6379')),
-        },
+        connection: buildRedisConnection(config),
       }),
     }),
     BullModule.registerQueue({

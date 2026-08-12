@@ -215,11 +215,62 @@ export class ReportsService {
     const scope = await resolveDistrictQueryScope(this.prisma, user, query);
     const { from, to } = resolveInclusiveDateRange(query.from, query.to);
     const { page, pageSize, skip } = paginateParams(query.page, query.pageSize);
-    const cWhere = centerIdWhere(scope);
-    const childWhere = childCenterWhere(scope);
+
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
+      return {
+        from: from.toISOString(),
+        to: to.toISOString(),
+        districtId: scope.districtId,
+        items: [],
+        total: 0,
+        page,
+        pageSize,
+        totalPages: 1,
+      };
+    }
+
+    const centerWhere = {
+      deletedAt: null,
+      ...(scope.centerIds === 'all'
+        ? scope.districtId
+          ? { districtId: scope.districtId }
+          : {}
+        : { id: { in: scope.centerIds } }),
+    };
+
+    const [total, pageCenters] = await Promise.all([
+      this.prisma.ecdCenter.count({ where: centerWhere }),
+      this.prisma.ecdCenter.findMany({
+        where: centerWhere,
+        select: { id: true, name: true, code: true, status: true },
+        orderBy: { name: 'asc' },
+        skip,
+        take: pageSize,
+      }),
+    ]);
+
+    if (pageCenters.length === 0) {
+      return {
+        from: from.toISOString(),
+        to: to.toISOString(),
+        districtId: scope.districtId,
+        items: [],
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize) || 1,
+      };
+    }
+
+    const pageIds = pageCenters.map((c) => c.id);
+    const pageScope = {
+      centerIds: pageIds,
+      districtId: scope.districtId,
+    };
+    const cWhere = { centerId: { in: pageIds } };
+    const childWhere = { centerId: { in: pageIds } };
 
     const [
-      centers,
       enrolledByCenter,
       attByCenter,
       severeByChildCenter,
@@ -227,18 +278,6 @@ export class ReportsService {
       pendingByCenter,
       stedByCenter,
     ] = await Promise.all([
-      this.prisma.ecdCenter.findMany({
-        where: {
-          deletedAt: null,
-          ...(scope.centerIds === 'all'
-            ? scope.districtId
-              ? { districtId: scope.districtId }
-              : {}
-            : { id: { in: scope.centerIds } }),
-        },
-        select: { id: true, name: true, code: true, status: true },
-        orderBy: { name: 'asc' },
-      }),
       this.prisma.child.groupBy({
         by: ['centerId'],
         where: {
@@ -257,7 +296,7 @@ export class ReportsService {
         },
         _count: { _all: true },
       }),
-      this.nutritionSevereByCenter(scope, from, to),
+      this.nutritionSevereByCenter(pageScope, from, to, pageIds),
       this.prisma.centerFeedingDay.groupBy({
         by: ['centerId'],
         where: {
@@ -302,7 +341,7 @@ export class ReportsService {
     const pendingMap = new Map(pendingByCenter.map((r) => [r.centerId, r._count._all]));
     const stedMap = new Map(stedByCenter.map((r) => [r.centerId, r._count._all]));
 
-    const items = centers.map((c) => {
+    const items = pageCenters.map((c) => {
       const present = presentMap.get(c.id) ?? 0;
       const absent = absentMap.get(c.id) ?? 0;
       const attTotal = present + absent;
@@ -328,11 +367,11 @@ export class ReportsService {
       from: from.toISOString(),
       to: to.toISOString(),
       districtId: scope.districtId,
-      items: items.slice(skip, skip + pageSize),
-      total: items.length,
+      items,
+      total,
       page,
       pageSize,
-      totalPages: Math.ceil(items.length / pageSize) || 1,
+      totalPages: Math.ceil(total / pageSize) || 1,
     };
   }
 
@@ -465,6 +504,7 @@ export class ReportsService {
     scope: { centerIds: string[] | 'all'; districtId: string | null },
     from: Date,
     to: Date,
+    pageCenterIds?: string[],
   ): Promise<Array<{ centerId: string; cnt: number }>> {
     const conditions: Prisma.Sql[] = [
       Prisma.sql`s.deleted_at IS NULL`,
@@ -474,7 +514,9 @@ export class ReportsService {
       Prisma.sql`s.screening_date <= ${to}`,
     ];
 
-    if (scope.centerIds !== 'all') {
+    if (pageCenterIds && pageCenterIds.length > 0) {
+      conditions.push(Prisma.sql`ch.center_id IN (${Prisma.join(pageCenterIds)})`);
+    } else if (scope.centerIds !== 'all') {
       if (scope.centerIds.length === 0) return [];
       conditions.push(Prisma.sql`ch.center_id IN (${Prisma.join(scope.centerIds)})`);
     } else if (scope.districtId) {

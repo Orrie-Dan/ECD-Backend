@@ -8,6 +8,7 @@ import {
   AttendanceStatus,
   ChildStatus,
   NutritionStatus,
+  Prisma,
   ReferralStatus,
   UserRole,
 } from '@prisma/client';
@@ -73,7 +74,7 @@ export class AnalyticsService {
       referralsCompleted,
       referralsCancelled,
       feedingAgg,
-      feedingCenters,
+      feedingCentersReporting,
       feedingMilk,
       feedingPorridge,
       feedingBalanced,
@@ -118,15 +119,15 @@ export class AnalyticsService {
           ...centerIdWhere,
         },
       }),
-      this.prisma.attendanceRecord.findMany({
-        where: {
-          deletedAt: null,
-          attendanceDate: { gte: from, lte: to },
-          ...centerIdWhere,
-        },
-        select: { centerId: true },
-        distinct: ['centerId'],
-      }),
+      // National-safe: COUNT(DISTINCT) — never hydrate center id lists
+      countDistinctCenterIds(
+        this.prisma,
+        'attendance_record',
+        'attendance_date',
+        from,
+        to,
+        scope.centerIds,
+      ),
       this.prisma.childNutritionScreening.groupBy({
         by: ['nutritionStatus'],
         where: {
@@ -181,15 +182,14 @@ export class AnalyticsService {
           ...centerIdWhere,
         },
       }),
-      this.prisma.centerFeedingDay.findMany({
-        where: {
-          deletedAt: null,
-          recordedDate: { gte: from, lte: to },
-          ...centerIdWhere,
-        },
-        select: { centerId: true },
-        distinct: ['centerId'],
-      }),
+      countDistinctCenterIds(
+        this.prisma,
+        'center_feeding_day',
+        'recorded_date',
+        from,
+        to,
+        scope.centerIds,
+      ),
       this.prisma.centerFeedingDay.count({
         where: {
           deletedAt: null,
@@ -251,7 +251,7 @@ export class AnalyticsService {
         absent: attendanceAbsent,
         totalRecords: totalAttendance,
         rate,
-        centersReporting: centersReportingAttendance.length,
+        centersReporting: centersReportingAttendance,
       },
       nutrition: {
         screenings,
@@ -272,7 +272,7 @@ export class AnalyticsService {
         daysWithMilk: feedingMilk,
         daysWithPorridge: feedingPorridge,
         daysWithBalancedMeal: feedingBalanced,
-        centersReporting: feedingCenters.length,
+        centersReporting: feedingCentersReporting,
       },
     };
   }
@@ -377,6 +377,39 @@ export class AnalyticsService {
       singleCenterId: null,
     };
   }
+}
+
+/**
+ * Bounded scalar: distinct reporting centers without hydrating id lists.
+ * Tables/columns are compile-time constants only (never user input).
+ */
+async function countDistinctCenterIds(
+  prisma: PrismaService,
+  table: 'attendance_record' | 'center_feeding_day',
+  dateColumn: 'attendance_date' | 'recorded_date',
+  from: Date,
+  to: Date,
+  centerIds: string[] | 'all',
+): Promise<number> {
+  if (centerIds !== 'all' && centerIds.length === 0) return 0;
+
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`deleted_at IS NULL`,
+    Prisma.sql`${Prisma.raw(dateColumn)} >= ${from}`,
+    Prisma.sql`${Prisma.raw(dateColumn)} <= ${to}`,
+  ];
+
+  if (centerIds !== 'all') {
+    conditions.push(Prisma.sql`center_id IN (${Prisma.join(centerIds)})`);
+  }
+
+  const rows = await prisma.$queryRaw<Array<{ cnt: number }>>`
+    SELECT COUNT(DISTINCT center_id)::int AS cnt
+    FROM ${Prisma.raw(table)}
+    WHERE ${Prisma.join(conditions, ' AND ')}
+  `;
+
+  return rows[0]?.cnt ?? 0;
 }
 
 function resolveDateRange(

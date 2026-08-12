@@ -19,12 +19,21 @@ import {
   SYNC_JOB_PROCESS_SESSION,
   SYNC_JOB_RECOVER_STALE,
   SYNC_QUEUE,
+  SYNC_WORKER_CONCURRENCY,
+  SYNC_WORKER_LOCK_DURATION_MS,
+  SYNC_WORKER_MAX_STALLED_COUNT,
+  SYNC_WORKER_STALLED_INTERVAL_MS,
   SYNCABLE_ENTITY_TYPES,
   SyncJobPayload,
   SyncableEntityType,
 } from './sync.constants';
 
-@Processor(SYNC_QUEUE)
+@Processor(SYNC_QUEUE, {
+  concurrency: SYNC_WORKER_CONCURRENCY,
+  lockDuration: SYNC_WORKER_LOCK_DURATION_MS,
+  stalledInterval: SYNC_WORKER_STALLED_INTERVAL_MS,
+  maxStalledCount: SYNC_WORKER_MAX_STALLED_COUNT,
+})
 export class SyncProcessor extends WorkerHost {
   private readonly logger = new Logger(SyncProcessor.name);
 
@@ -155,8 +164,22 @@ export class SyncProcessor extends WorkerHost {
           operation: op.operation as AuditAction,
           payload,
           clientVersion,
+          clientTimestamp: op.clientTimestamp,
           tx,
         });
+
+        if (
+          applyResult.retryable ||
+          applyResult.status === SyncOperationStatus.pending
+        ) {
+          await tx.syncOperation.update({
+            where: { id: op.id },
+            data: {
+              conflictReason: applyResult.conflictReason,
+            },
+          });
+          return { skipped: false as const, applyResult };
+        }
 
         await tx.syncOperation.update({
           where: { id: op.id },
@@ -194,9 +217,35 @@ export class SyncProcessor extends WorkerHost {
         continue;
       }
 
+      this.logger.log(
+        JSON.stringify({
+          event: 'sync.apply',
+          sessionId,
+          deviceId: op.deviceId,
+          clientOperationId: op.clientOperationId,
+          entityType: op.entityType,
+          entityId: result.applyResult.entityId ?? op.entityId,
+          status: result.applyResult.status,
+          retryable: result.applyResult.retryable ?? false,
+          conflictReason: result.applyResult.conflictReason ?? null,
+        }),
+      );
+
+      if (result.applyResult.retryable) {
+        continue;
+      }
+
       if (result.applyResult.status === SyncOperationStatus.failed) {
         this.logger.warn(
-          `Sync op ${op.id} failed: ${result.applyResult.conflictReason ?? 'unknown'}`,
+          JSON.stringify({
+            event: 'sync.apply.failed',
+            sessionId,
+            deviceId: op.deviceId,
+            clientOperationId: op.clientOperationId,
+            entityType: op.entityType,
+            entityId: op.entityId,
+            conflictReason: result.applyResult.conflictReason ?? 'unknown',
+          }),
         );
       }
     }
@@ -245,7 +294,14 @@ export class SyncProcessor extends WorkerHost {
     });
 
     this.logger.log(
-      `Sync session ${sessionId} finished: ${successful} applied, ${failed} failed/conflict`,
+      JSON.stringify({
+        event: 'sync.session.finished',
+        sessionId,
+        deviceId: session.deviceId,
+        status: sessionStatus,
+        applied: successful,
+        failed,
+      }),
     );
   }
 

@@ -24,6 +24,7 @@ import {
   SYNC_JOB_PROCESS_SESSION,
   SYNC_JOB_RECOVER_STALE,
   SYNC_MAX_RECOVERY_RETRIES,
+  SYNC_PARKED_RETRY_MS,
   SYNC_PULL_DEFAULT_LIMIT,
   SYNC_PULL_MAX_LIMIT,
   SYNC_QUEUE,
@@ -175,6 +176,7 @@ export class SyncService implements OnModuleInit {
         __clientVersion: op.version,
         __localId: op.localId ?? null,
         __clientOperationId: op.clientOperationId,
+        __clientTimestamp: op.clientTimestamp ?? null,
       };
 
       const auth = await this.syncAccess.authorizeSyncWrite({
@@ -338,7 +340,30 @@ export class SyncService implements OnModuleInit {
       ).length;
 
       if (createdSessionId && stillPending > 0) {
-        await this.enqueueSession(createdSessionId, 0);
+        this.logger.log(
+          JSON.stringify({
+            event: 'sync.push.accepted',
+            sessionId: createdSessionId,
+            deviceId: device.id,
+            userId: user.id,
+            pending: stillPending,
+            accepted: results.length,
+          }),
+        );
+        try {
+          await this.enqueueSession(createdSessionId, 0);
+        } catch (err) {
+          this.logger.error(
+            JSON.stringify({
+              event: 'sync.enqueue.failed',
+              sessionId: createdSessionId,
+              deviceId: device.id,
+              userId: user.id,
+              reason: err instanceof Error ? err.message : String(err),
+            }),
+          );
+          throw err;
+        }
       } else if (createdSessionId && newPendingCount === 0) {
         this.logger.warn(
           `Sync session ${createdSessionId}: all new operations rejected at push (auth)`,
@@ -641,12 +666,14 @@ export class SyncService implements OnModuleInit {
    * (worker crash, Redis outage after enqueue, Bull attempts exhausted).
    * Retryable: session status `started` with pending ops.
    * Terminal ops: applied | conflict | failed — never requeued.
-   * After SYNC_MAX_RECOVERY_RETRIES: remaining pending → failed.
+   * After SYNC_MAX_RECOVERY_RETRIES: keep ops pending and retry on
+   * SYNC_PARKED_RETRY_MS. Do not dead-letter caregiver data.
    */
   async recoverStalePendingSessions(now = new Date()): Promise<{
     scanned: number;
     requeued: number;
     deadLettered: number;
+    parkedRequeued: number;
   }> {
     const threshold = new Date(now.getTime() - SYNC_STALE_THRESHOLD_MS);
 
@@ -660,6 +687,8 @@ export class SyncService implements OnModuleInit {
         id: true,
         retryCount: true,
         startedAt: true,
+        lastRetryAt: true,
+        deviceId: true,
       },
       take: 100,
       orderBy: { startedAt: 'asc' },
@@ -667,6 +696,7 @@ export class SyncService implements OnModuleInit {
 
     let requeued = 0;
     let deadLettered = 0;
+    let parkedRequeued = 0;
 
     const inFlight = await this.sessionIdsInFlight();
 
@@ -676,8 +706,24 @@ export class SyncService implements OnModuleInit {
       }
 
       if (session.retryCount >= SYNC_MAX_RECOVERY_RETRIES) {
-        await this.deadLetterSession(session.id);
-        deadLettered += 1;
+        const last = session.lastRetryAt ?? session.startedAt;
+        if (now.getTime() - last.getTime() < SYNC_PARKED_RETRY_MS) {
+          continue;
+        }
+        await this.prisma.syncSession.update({
+          where: { id: session.id },
+          data: { lastRetryAt: now },
+        });
+        await this.enqueueSession(session.id, session.retryCount);
+        parkedRequeued += 1;
+        this.logger.warn(
+          JSON.stringify({
+            event: 'sync.recovery.parked_requeue',
+            sessionId: session.id,
+            deviceId: session.deviceId,
+            retryCount: session.retryCount,
+          }),
+        );
         continue;
       }
 
@@ -693,13 +739,25 @@ export class SyncService implements OnModuleInit {
       await this.enqueueSession(session.id, nextRetry);
       requeued += 1;
       this.logger.warn(
-        `Requeued stale sync session ${session.id} (retry ${nextRetry}/${SYNC_MAX_RECOVERY_RETRIES})`,
+        JSON.stringify({
+          event: 'sync.recovery.requeue',
+          sessionId: session.id,
+          deviceId: session.deviceId,
+          retry: nextRetry,
+          max: SYNC_MAX_RECOVERY_RETRIES,
+        }),
       );
     }
 
     if (staleSessions.length > 0) {
       this.logger.log(
-        `Sync recovery: scanned=${staleSessions.length} requeued=${requeued} deadLettered=${deadLettered}`,
+        JSON.stringify({
+          event: 'sync.recovery.sweep',
+          scanned: staleSessions.length,
+          requeued,
+          parkedRequeued,
+          deadLettered,
+        }),
       );
     }
 
@@ -707,48 +765,8 @@ export class SyncService implements OnModuleInit {
       scanned: staleSessions.length,
       requeued,
       deadLettered,
+      parkedRequeued,
     };
-  }
-
-  private async deadLetterSession(sessionId: string): Promise<void> {
-    const now = new Date();
-    await this.prisma.$transaction(async (tx) => {
-      await tx.syncOperation.updateMany({
-        where: {
-          sessionId,
-          status: SyncOperationStatus.pending,
-        },
-        data: {
-          status: SyncOperationStatus.failed,
-          conflictReason: 'max recovery retries exceeded',
-          processedAt: now,
-        },
-      });
-
-      const allOps = await tx.syncOperation.findMany({
-        where: { sessionId },
-        select: { status: true },
-      });
-      const successful = allOps.filter(
-        (o) => o.status === SyncOperationStatus.applied,
-      ).length;
-      const failed = allOps.length - successful;
-
-      await tx.syncSession.update({
-        where: { id: sessionId },
-        data: {
-          status: SyncSessionStatus.failed,
-          completedAt: now,
-          successfulOperations: successful,
-          failedOperations: failed,
-          lastRetryAt: now,
-        },
-      });
-    });
-
-    this.logger.error(
-      `Dead-lettered sync session ${sessionId} after ${SYNC_MAX_RECOVERY_RETRIES} recovery attempts`,
-    );
   }
 
   private async enqueueSession(

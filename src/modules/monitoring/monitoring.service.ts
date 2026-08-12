@@ -360,21 +360,35 @@ export class MonitoringService {
       return emptySted(from, to, scope, page, pageSize);
     }
 
-    const [assessments, activeChildren, followUpDue] = await Promise.all([
-      this.prisma.stedAssessment.findMany({
-        where: {
-          deletedAt: null,
-          assessmentDate: { gte: from, lte: to },
-          ...cWhere,
-        },
-        select: {
-          id: true,
-          centerId: true,
-          ageBand: true,
-          outcome: true,
-          followUpIn6Months: true,
-        },
-      }),
+    const stedWhere = {
+      deletedAt: null,
+      assessmentDate: { gte: from, lte: to },
+      ...cWhere,
+    };
+
+    const centersInScope =
+      scope.centerIds === 'all'
+        ? await this.prisma.ecdCenter.count({
+            where: {
+              deletedAt: null,
+              ...(scope.districtId ? { districtId: scope.districtId } : {}),
+            },
+          })
+        : scope.centerIds.length;
+
+    const [
+      assessmentsCompleted,
+      childrenAssessed,
+      centersWithAssessments,
+      activeChildren,
+      followUpDue,
+      ageBandRows,
+      averageScore,
+      outcomeDistribution,
+    ] = await Promise.all([
+      this.prisma.stedAssessment.count({ where: stedWhere }),
+      this.countDistinctStedColumn(scope, from, to, 'child_id'),
+      this.countDistinctStedColumn(scope, from, to, 'center_id'),
       this.prisma.child.count({
         where: {
           deletedAt: null,
@@ -390,56 +404,153 @@ export class MonitoringService {
           ...cWhere,
         },
       }),
+      this.prisma.stedAssessment.groupBy({
+        by: ['ageBand'],
+        where: stedWhere,
+        _count: { _all: true },
+      }),
+      this.stedAverageScore(scope, from, to),
+      this.stedOutcomeDistribution(scope, from, to),
     ]);
 
-    const scores = assessments
-      .map((a) => extractStedScore(a.outcome))
-      .filter((n): n is number => n != null);
-    const averageScore =
-      scores.length > 0
-        ? Math.round((scores.reduce((s, n) => s + n, 0) / scores.length) * 10) / 10
+    const byBand: Record<string, number> = {};
+    for (const row of ageBandRows) {
+      byBand[row.ageBand] = row._count._all;
+    }
+
+    const coverage =
+      activeChildren > 0
+        ? Math.round((childrenAssessed / activeChildren) * 1000) / 10
         : null;
 
-    const byBand: Record<string, number> = {};
-    for (const a of assessments) {
-      byBand[a.ageBand] = (byBand[a.ageBand] ?? 0) + 1;
+    const isNationalDistrictView =
+      scope.centerIds === 'all' && !scope.districtId && !scope.singleCenterId;
+
+    let items: Array<{
+      centerId?: string;
+      centerName?: string;
+      districtId?: string;
+      districtName?: string;
+      assessmentsCompleted: number;
+      childrenAssessed?: number;
+      averageScore: number | null;
+    }> = [];
+    let total = 0;
+
+    if (isNationalDistrictView) {
+      const rollup = await this.stedDistrictRollup(scope, from, to, skip, pageSize);
+      items = rollup.items;
+      total = rollup.total;
+    } else {
+      const centerPage = await this.stedCenterItems(scope, from, to, skip, pageSize);
+      items = centerPage.items;
+      total = centerPage.total;
     }
 
-    // Outcome distribution from JSON outcome.classification / status if present
-    const outcomeDistribution: Record<string, number> = {};
-    for (const a of assessments) {
-      const key = extractStedClassification(a.outcome) ?? 'unspecified';
-      outcomeDistribution[key] = (outcomeDistribution[key] ?? 0) + 1;
+    return {
+      from: from.toISOString(),
+      to: to.toISOString(),
+      districtId: scope.districtId,
+      centerId: scope.singleCenterId,
+      granularity: isNationalDistrictView ? 'district' : 'center',
+      summary: {
+        assessmentsCompleted,
+        childrenAssessed,
+        centersWithAssessments,
+        activeChildren,
+        coverage,
+        averageScore,
+        pendingFollowUps: followUpDue,
+        centersInScope,
+        ageBandDistribution: byBand,
+        outcomeDistribution,
+      },
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize) || 1,
+    };
+  }
+
+  async compliance(user: AuthUser, query: MonitoringQueryDto) {
+    const scope = await resolveDistrictQueryScope(this.prisma, user, query);
+    const { from, to } = resolveInclusiveDateRange(query.from, query.to);
+    const cWhere = centerIdWhere(scope);
+
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
+      return emptyCompliance(from, to, scope);
     }
 
-    const centers = await this.loadCenters(scope);
-    const byCenter = new Map<string, { count: number; scoreSum: number; scoreN: number }>();
-    for (const a of assessments) {
-      const cur = byCenter.get(a.centerId) ?? {
-        count: 0,
-        scoreSum: 0,
-        scoreN: 0,
-      };
-      cur.count += 1;
-      const score = extractStedScore(a.outcome);
-      if (score != null) {
-        cur.scoreSum += score;
-        cur.scoreN += 1;
+    const assessmentWhere = {
+      deletedAt: null,
+      assessmentDate: { gte: from, lte: to },
+      ...cWhere,
+    };
+
+    const centersInScope =
+      scope.centerIds === 'all'
+        ? await this.prisma.ecdCenter.count({
+            where: {
+              deletedAt: null,
+              ...(scope.districtId ? { districtId: scope.districtId } : {}),
+            },
+          })
+        : scope.centerIds.length;
+
+    const [
+      totalAssessments,
+      centersAssessed,
+      byStatusRows,
+      byTypeRows,
+      byClassificationRows,
+    ] = await Promise.all([
+      this.prisma.complianceAssessment.count({ where: assessmentWhere }),
+      this.countDistinctComplianceCenters(scope, from, to),
+      this.prisma.complianceAssessment.groupBy({
+        by: ['status'],
+        where: assessmentWhere,
+        _count: { _all: true },
+      }),
+      this.prisma.complianceAssessment.groupBy({
+        by: ['assessmentType'],
+        where: assessmentWhere,
+        _count: { _all: true },
+      }),
+      this.prisma.complianceAssessment.groupBy({
+        by: ['overallClassification'],
+        where: {
+          ...assessmentWhere,
+          overallClassification: { not: null },
+        },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const byStatus: Record<string, number> = {};
+    for (const row of byStatusRows) {
+      byStatus[row.status] = row._count._all;
+    }
+
+    const byType: Record<string, number> = {};
+    for (const row of byTypeRows) {
+      byType[row.assessmentType] = row._count._all;
+    }
+
+    const byClassification: Record<string, number> = {};
+    let classificationPopulated = 0;
+    for (const row of byClassificationRows) {
+      if (row.overallClassification) {
+        byClassification[row.overallClassification] = row._count._all;
+        classificationPopulated += row._count._all;
       }
-      byCenter.set(a.centerId, cur);
     }
 
-    const items = centers.map((c) => {
-      const row = byCenter.get(c.id);
-      return {
-        centerId: c.id,
-        centerName: c.name,
-        assessmentsCompleted: row?.count ?? 0,
-        averageScore:
-          row && row.scoreN > 0 ? Math.round((row.scoreSum / row.scoreN) * 10) / 10 : null,
-      };
-    });
-    items.sort((a, b) => b.assessmentsCompleted - a.assessmentsCompleted);
+    const classificationNullRate =
+      totalAssessments > 0
+        ? Math.round(((totalAssessments - classificationPopulated) / totalAssessments) * 1000) /
+          1000
+        : null;
 
     return {
       from: from.toISOString(),
@@ -447,20 +558,62 @@ export class MonitoringService {
       districtId: scope.districtId,
       centerId: scope.singleCenterId,
       summary: {
-        assessmentsCompleted: assessments.length,
-        activeChildren,
-        coverage:
-          activeChildren > 0 ? Math.round((assessments.length / activeChildren) * 1000) / 10 : null,
-        averageScore,
-        pendingFollowUps: followUpDue,
-        ageBandDistribution: byBand,
-        outcomeDistribution,
+        totalAssessments,
+        centersAssessed,
+        centersInScope,
+        byStatus,
+        byType,
+        classificationPopulated,
+        byClassification,
+        classificationNullRate,
       },
-      items: items.slice(skip, skip + pageSize),
-      total: items.length,
-      page,
-      pageSize,
-      totalPages: Math.ceil(items.length / pageSize) || 1,
+    };
+  }
+
+  async wash(user: AuthUser, query: MonitoringQueryDto) {
+    const scope = await resolveDistrictQueryScope(this.prisma, user, query);
+    const { from, to } = resolveInclusiveDateRange(query.from, query.to);
+    const cWhere = centerIdWhere(scope);
+
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
+      return emptyWash(from, to, scope);
+    }
+
+    const indicatorWhere = {
+      deletedAt: null,
+      recordedDate: { gte: from, lte: to },
+      ...cWhere,
+    };
+
+    const centersInScope =
+      scope.centerIds === 'all'
+        ? await this.prisma.ecdCenter.count({
+            where: {
+              deletedAt: null,
+              ...(scope.districtId ? { districtId: scope.districtId } : {}),
+            },
+          })
+        : scope.centerIds.length;
+
+    const [recordsInRange, centersReporting, latestSnapshot] = await Promise.all([
+      this.prisma.washIndicator.count({ where: indicatorWhere }),
+      this.countDistinctWashCenters(scope, from, to),
+      this.washLatestSnapshot(scope),
+    ]);
+
+    return {
+      from: from.toISOString(),
+      to: to.toISOString(),
+      districtId: scope.districtId,
+      centerId: scope.singleCenterId,
+      summary: {
+        centersInScope,
+        reporting: {
+          recordsInRange,
+          centersReporting,
+        },
+        latestSnapshot,
+      },
     };
   }
 
@@ -601,6 +754,402 @@ export class MonitoringService {
       page,
       pageSize,
       totalPages: Math.ceil(items.length / pageSize) || 1,
+    };
+  }
+
+  private stedCenterScopeConditions(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+  ): Prisma.Sql[] {
+    const parts: Prisma.Sql[] = [];
+    if (scope.centerIds !== 'all') {
+      if (scope.centerIds.length === 0) {
+        return [Prisma.sql`FALSE`];
+      }
+      parts.push(Prisma.sql`s.center_id IN (${Prisma.join(scope.centerIds)})`);
+    } else if (scope.districtId) {
+      parts.push(Prisma.sql`c.district_id = ${scope.districtId}`);
+    }
+    return parts;
+  }
+
+  private async countDistinctStedColumn(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+    column: 'child_id' | 'center_id',
+  ): Promise<number> {
+    const scopeParts = this.stedCenterScopeConditions(scope);
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`s.deleted_at IS NULL`,
+      Prisma.sql`s.assessment_date >= ${from}`,
+      Prisma.sql`s.assessment_date <= ${to}`,
+      ...scopeParts,
+    ];
+
+    const rows = await this.prisma.$queryRaw<Array<{ cnt: number }>>`
+      SELECT COUNT(DISTINCT s.${Prisma.raw(column)})::int AS cnt
+      FROM sted_assessment s
+      INNER JOIN ecd_center c ON c.id = s.center_id AND c.deleted_at IS NULL
+      WHERE ${Prisma.join(conditions, ' AND ')}
+    `;
+    return rows[0]?.cnt ?? 0;
+  }
+
+  private async stedAverageScore(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+  ): Promise<number | null> {
+    const scopeParts = this.stedCenterScopeConditions(scope);
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`s.deleted_at IS NULL`,
+      Prisma.sql`s.assessment_date >= ${from}`,
+      Prisma.sql`s.assessment_date <= ${to}`,
+      Prisma.sql`s.outcome IS NOT NULL`,
+      ...scopeParts,
+    ];
+
+    const rows = await this.prisma.$queryRaw<Array<{ avg: number | null }>>`
+      SELECT AVG(
+        COALESCE(
+          (s.outcome::jsonb->>'score')::numeric,
+          (s.outcome::jsonb->>'totalScore')::numeric,
+          (s.outcome::jsonb->>'overallScore')::numeric,
+          (s.outcome::jsonb->>'percentage')::numeric
+        )
+      ) AS avg
+      FROM sted_assessment s
+      INNER JOIN ecd_center c ON c.id = s.center_id AND c.deleted_at IS NULL
+      WHERE ${Prisma.join(conditions, ' AND ')}
+    `;
+
+    const avg = rows[0]?.avg;
+    return avg != null ? Math.round(Number(avg) * 10) / 10 : null;
+  }
+
+  private async stedOutcomeDistribution(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+  ): Promise<Record<string, number>> {
+    const scopeParts = this.stedCenterScopeConditions(scope);
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`s.deleted_at IS NULL`,
+      Prisma.sql`s.assessment_date >= ${from}`,
+      Prisma.sql`s.assessment_date <= ${to}`,
+      ...scopeParts,
+    ];
+
+    const rows = await this.prisma.$queryRaw<Array<{ key: string; cnt: number }>>`
+      SELECT
+        COALESCE(
+          s.outcome::jsonb->>'classification',
+          s.outcome::jsonb->>'status',
+          s.outcome::jsonb->>'result',
+          s.outcome::jsonb->>'level',
+          'unspecified'
+        ) AS key,
+        COUNT(*)::int AS cnt
+      FROM sted_assessment s
+      INNER JOIN ecd_center c ON c.id = s.center_id AND c.deleted_at IS NULL
+      WHERE ${Prisma.join(conditions, ' AND ')}
+      GROUP BY key
+    `;
+
+    const out: Record<string, number> = {};
+    for (const row of rows) {
+      out[row.key] = row.cnt;
+    }
+    return out;
+  }
+
+  private async stedDistrictRollup(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+    skip: number,
+    take: number,
+  ): Promise<{
+    items: Array<{
+      districtId: string;
+      districtName: string;
+      assessmentsCompleted: number;
+      childrenAssessed: number;
+      averageScore: number | null;
+    }>;
+    total: number;
+  }> {
+    const scopeParts = this.stedCenterScopeConditions(scope);
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`s.deleted_at IS NULL`,
+      Prisma.sql`s.assessment_date >= ${from}`,
+      Prisma.sql`s.assessment_date <= ${to}`,
+      ...scopeParts,
+    ];
+
+    const countRows = await this.prisma.$queryRaw<Array<{ cnt: number }>>`
+      SELECT COUNT(DISTINCT c.district_id)::int AS cnt
+      FROM sted_assessment s
+      INNER JOIN ecd_center c ON c.id = s.center_id AND c.deleted_at IS NULL
+      WHERE ${Prisma.join(conditions, ' AND ')}
+    `;
+    const total = countRows[0]?.cnt ?? 0;
+
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        districtId: string;
+        districtName: string;
+        assessmentsCompleted: number;
+        childrenAssessed: number;
+        averageScore: number | null;
+      }>
+    >`
+      SELECT
+        c.district_id AS "districtId",
+        d.name AS "districtName",
+        COUNT(*)::int AS "assessmentsCompleted",
+        COUNT(DISTINCT s.child_id)::int AS "childrenAssessed",
+        ROUND(AVG(
+          COALESCE(
+            (s.outcome::jsonb->>'score')::numeric,
+            (s.outcome::jsonb->>'totalScore')::numeric,
+            (s.outcome::jsonb->>'overallScore')::numeric,
+            (s.outcome::jsonb->>'percentage')::numeric
+          )
+        )::numeric, 1) AS "averageScore"
+      FROM sted_assessment s
+      INNER JOIN ecd_center c ON c.id = s.center_id AND c.deleted_at IS NULL
+      INNER JOIN district d ON d.id = c.district_id
+      WHERE ${Prisma.join(conditions, ' AND ')}
+      GROUP BY c.district_id, d.name
+      ORDER BY COUNT(*) DESC
+      LIMIT ${take} OFFSET ${skip}
+    `;
+
+    return {
+      items: rows.map((r) => ({
+        districtId: r.districtId,
+        districtName: r.districtName,
+        assessmentsCompleted: r.assessmentsCompleted,
+        childrenAssessed: r.childrenAssessed,
+        averageScore: r.averageScore != null ? Number(r.averageScore) : null,
+      })),
+      total,
+    };
+  }
+
+  private async stedCenterItems(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+    skip: number,
+    take: number,
+  ): Promise<{
+    items: Array<{
+      centerId: string;
+      centerName: string;
+      assessmentsCompleted: number;
+      averageScore: number | null;
+    }>;
+    total: number;
+  }> {
+    const centerWhere = {
+      deletedAt: null,
+      ...(scope.centerIds === 'all'
+        ? scope.districtId
+          ? { districtId: scope.districtId }
+          : {}
+        : { id: { in: scope.centerIds } }),
+    };
+
+    const [total, pageCenters] = await Promise.all([
+      this.prisma.ecdCenter.count({ where: centerWhere }),
+      this.prisma.ecdCenter.findMany({
+        where: centerWhere,
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+        skip,
+        take,
+      }),
+    ]);
+
+    if (pageCenters.length === 0) {
+      return { items: [], total };
+    }
+
+    const pageIds = pageCenters.map((c) => c.id);
+    const [countRows, scoreRows] = await Promise.all([
+      this.prisma.stedAssessment.groupBy({
+        by: ['centerId'],
+        where: {
+          deletedAt: null,
+          assessmentDate: { gte: from, lte: to },
+          centerId: { in: pageIds },
+        },
+        _count: { _all: true },
+      }),
+      this.prisma.$queryRaw<Array<{ centerId: string; avg: number | null }>>`
+        SELECT
+          s.center_id AS "centerId",
+          ROUND(AVG(
+            COALESCE(
+              (s.outcome::jsonb->>'score')::numeric,
+              (s.outcome::jsonb->>'totalScore')::numeric,
+              (s.outcome::jsonb->>'overallScore')::numeric,
+              (s.outcome::jsonb->>'percentage')::numeric
+            )
+          )::numeric, 1) AS avg
+        FROM sted_assessment s
+        WHERE s.deleted_at IS NULL
+          AND s.assessment_date >= ${from}
+          AND s.assessment_date <= ${to}
+          AND s.center_id IN (${Prisma.join(pageIds)})
+        GROUP BY s.center_id
+      `,
+    ]);
+
+    const countMap = new Map(countRows.map((r) => [r.centerId, r._count._all]));
+    const scoreMap = new Map(
+      scoreRows.map((r) => [r.centerId, r.avg != null ? Number(r.avg) : null]),
+    );
+
+    const items = pageCenters.map((c) => ({
+      centerId: c.id,
+      centerName: c.name,
+      assessmentsCompleted: countMap.get(c.id) ?? 0,
+      averageScore: scoreMap.get(c.id) ?? null,
+    }));
+    items.sort((a, b) => b.assessmentsCompleted - a.assessmentsCompleted);
+
+    return { items, total };
+  }
+
+  private async countDistinctComplianceCenters(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+  ): Promise<number> {
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) return 0;
+
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`a.deleted_at IS NULL`,
+      Prisma.sql`a.assessment_date >= ${from}`,
+      Prisma.sql`a.assessment_date <= ${to}`,
+    ];
+
+    if (scope.centerIds !== 'all') {
+      conditions.push(Prisma.sql`a.center_id IN (${Prisma.join(scope.centerIds)})`);
+    } else if (scope.districtId) {
+      conditions.push(
+        Prisma.sql`a.center_id IN (
+          SELECT id FROM ecd_center WHERE district_id = ${scope.districtId} AND deleted_at IS NULL
+        )`,
+      );
+    }
+
+    const rows = await this.prisma.$queryRaw<Array<{ cnt: number }>>`
+      SELECT COUNT(DISTINCT a.center_id)::int AS cnt
+      FROM compliance_assessment a
+      WHERE ${Prisma.join(conditions, ' AND ')}
+    `;
+    return rows[0]?.cnt ?? 0;
+  }
+
+  private async countDistinctWashCenters(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+  ): Promise<number> {
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) return 0;
+
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`w.deleted_at IS NULL`,
+      Prisma.sql`w.recorded_date >= ${from}`,
+      Prisma.sql`w.recorded_date <= ${to}`,
+    ];
+
+    if (scope.centerIds !== 'all') {
+      conditions.push(Prisma.sql`w.center_id IN (${Prisma.join(scope.centerIds)})`);
+    } else if (scope.districtId) {
+      conditions.push(
+        Prisma.sql`w.center_id IN (
+          SELECT id FROM ecd_center WHERE district_id = ${scope.districtId} AND deleted_at IS NULL
+        )`,
+      );
+    }
+
+    const rows = await this.prisma.$queryRaw<Array<{ cnt: number }>>`
+      SELECT COUNT(DISTINCT w.center_id)::int AS cnt
+      FROM wash_indicator w
+      WHERE ${Prisma.join(conditions, ' AND ')}
+    `;
+    return rows[0]?.cnt ?? 0;
+  }
+
+  private async washLatestSnapshot(scope: {
+    centerIds: string[] | 'all';
+    districtId: string | null;
+  }): Promise<{
+    centersWithData: number;
+    waterSourceAvailable: number;
+    sanitationFacilityAvailable: number;
+    handwashingFacilityAvailable: number;
+    wasteManagementAvailable: number;
+  }> {
+    const centerConditions: Prisma.Sql[] = [Prisma.sql`c.deleted_at IS NULL`];
+    if (scope.centerIds !== 'all') {
+      if (scope.centerIds.length === 0) {
+        return {
+          centersWithData: 0,
+          waterSourceAvailable: 0,
+          sanitationFacilityAvailable: 0,
+          handwashingFacilityAvailable: 0,
+          wasteManagementAvailable: 0,
+        };
+      }
+      centerConditions.push(Prisma.sql`c.id IN (${Prisma.join(scope.centerIds)})`);
+    } else if (scope.districtId) {
+      centerConditions.push(Prisma.sql`c.district_id = ${scope.districtId}`);
+    }
+
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        centersWithData: number;
+        waterSourceAvailable: number;
+        sanitationFacilityAvailable: number;
+        handwashingFacilityAvailable: number;
+        wasteManagementAvailable: number;
+      }>
+    >`
+      WITH latest AS (
+        SELECT DISTINCT ON (w.center_id)
+          w.center_id,
+          w.water_source_available,
+          w.sanitation_facility_available,
+          w.handwashing_facility_available,
+          w.waste_management_available
+        FROM wash_indicator w
+        WHERE w.deleted_at IS NULL
+        ORDER BY w.center_id, w.recorded_date DESC
+      )
+      SELECT
+        COUNT(*)::int AS "centersWithData",
+        COUNT(*) FILTER (WHERE latest.water_source_available)::int AS "waterSourceAvailable",
+        COUNT(*) FILTER (WHERE latest.sanitation_facility_available)::int AS "sanitationFacilityAvailable",
+        COUNT(*) FILTER (WHERE latest.handwashing_facility_available)::int AS "handwashingFacilityAvailable",
+        COUNT(*) FILTER (WHERE latest.waste_management_available)::int AS "wasteManagementAvailable"
+      FROM latest
+      INNER JOIN ecd_center c ON c.id = latest.center_id
+      WHERE ${Prisma.join(centerConditions, ' AND ')}
+    `;
+
+    const row = rows[0];
+    return {
+      centersWithData: row?.centersWithData ?? 0,
+      waterSourceAvailable: row?.waterSourceAvailable ?? 0,
+      sanitationFacilityAvailable: row?.sanitationFacilityAvailable ?? 0,
+      handwashingFacilityAvailable: row?.handwashingFacilityAvailable ?? 0,
+      wasteManagementAvailable: row?.wasteManagementAvailable ?? 0,
     };
   }
 
@@ -872,12 +1421,16 @@ function emptySted(
     to: to.toISOString(),
     districtId: scope.districtId,
     centerId: scope.singleCenterId,
+    granularity: 'center' as const,
     summary: {
       assessmentsCompleted: 0,
+      childrenAssessed: 0,
+      centersWithAssessments: 0,
       activeChildren: 0,
       coverage: null,
       averageScore: null,
       pendingFollowUps: 0,
+      centersInScope: 0,
       ageBandDistribution: {},
       outcomeDistribution: {},
     },
@@ -886,6 +1439,56 @@ function emptySted(
     page,
     pageSize,
     totalPages: 1,
+  };
+}
+
+function emptyCompliance(
+  from: Date,
+  to: Date,
+  scope: { districtId: string | null; singleCenterId: string | null },
+) {
+  return {
+    from: from.toISOString(),
+    to: to.toISOString(),
+    districtId: scope.districtId,
+    centerId: scope.singleCenterId,
+    summary: {
+      totalAssessments: 0,
+      centersAssessed: 0,
+      centersInScope: 0,
+      byStatus: {},
+      byType: {},
+      classificationPopulated: 0,
+      byClassification: {},
+      classificationNullRate: null,
+    },
+  };
+}
+
+function emptyWash(
+  from: Date,
+  to: Date,
+  scope: { districtId: string | null; singleCenterId: string | null },
+) {
+  return {
+    from: from.toISOString(),
+    to: to.toISOString(),
+    districtId: scope.districtId,
+    centerId: scope.singleCenterId,
+    summary: {
+      centersInScope: 0,
+      reporting: {
+        recordsInRange: 0,
+        centersReporting: 0,
+      },
+      latestSnapshot: {
+        centersWithData: 0,
+        waterSourceAvailable: 0,
+        sanitationFacilityAvailable: 0,
+        handwashingFacilityAvailable: 0,
+        wasteManagementAvailable: 0,
+      },
+    },
   };
 }
 

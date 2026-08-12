@@ -12,6 +12,16 @@ export class ListChildrenQueryDto {
   centerId?: string;
 
   @ApiPropertyOptional({
+    format: 'uuid',
+    description:
+      'Filter by district (via center.districtId). NCDA may use nationally; ' +
+      'district focal persons may only pass their own district.',
+  })
+  @IsOptional()
+  @IsUUID()
+  districtId?: string;
+
+  @ApiPropertyOptional({
     enum: ['active', 'transferred', 'archived'],
     enumName: 'ApiChildStatus',
     example: 'active',
