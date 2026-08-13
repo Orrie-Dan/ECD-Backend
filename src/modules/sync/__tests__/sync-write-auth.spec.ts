@@ -88,6 +88,32 @@ async function run() {
     );
   });
 
+  await assert('ecdCenterFilter: caregiver with districtId is own center only', () => {
+    const scope: AccessScope = { centerIds: ['center-a'], districtId: 'd1' };
+    const filter = svc.ecdCenterFilter(scope);
+    if (JSON.stringify(filter) !== JSON.stringify({ id: { in: ['center-a'] } })) {
+      throw new Error(`unexpected filter ${JSON.stringify(filter)}`);
+    }
+  });
+
+  await assert('ecdCenterFilter: district focal uses assigned center ids', () => {
+    const scope: AccessScope = {
+      centerIds: ['c1', 'c2'],
+      districtId: 'd1',
+    };
+    const filter = svc.ecdCenterFilter(scope);
+    if (JSON.stringify(filter) !== JSON.stringify({ id: { in: ['c1', 'c2'] } })) {
+      throw new Error(`unexpected filter ${JSON.stringify(filter)}`);
+    }
+  });
+
+  await assert('ecdCenterFilter: ncda is unscoped', () => {
+    const filter = svc.ecdCenterFilter({ centerIds: 'all', districtId: null });
+    if (JSON.stringify(filter) !== '{}') {
+      throw new Error(`unexpected filter ${JSON.stringify(filter)}`);
+    }
+  });
+
   await assert('isCenterInScope: caregiver own center', () => {
     const scope: AccessScope = { centerIds: ['center-a'], districtId: 'd1' };
     eq(svc.isCenterInScope(scope, 'center-a'), true);

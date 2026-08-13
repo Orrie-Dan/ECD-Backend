@@ -1,5 +1,8 @@
 import { ChildGender, ChildStatus } from '@prisma/client';
-import { childMapper } from '../mappers/child.mapper';
+import {
+  childMapper,
+  resolveChildGenderFromPayload,
+} from '../mappers/child.mapper';
 
 /**
  * Children mapper / contract tests.
@@ -59,6 +62,13 @@ async function run() {
     eq(childMapper.toApiGender(ChildGender.female), 'Umukobwa');
     eq(childMapper.toDbGender('Umuhungu'), ChildGender.male);
     eq(childMapper.toDbGender('Umukobwa'), ChildGender.female);
+  });
+
+  await assert('resolveChildGenderFromPayload accepts UI and harness values', () => {
+    eq(resolveChildGenderFromPayload({ gender: 'Umuhungu' }), ChildGender.male);
+    eq(resolveChildGenderFromPayload({ gender: 'Umukobwa' }), ChildGender.female);
+    eq(resolveChildGenderFromPayload({ gender: 'male' }), ChildGender.male);
+    eq(resolveChildGenderFromPayload({ gender: 'female' }), ChildGender.female);
   });
 
   await assert('pagination shape: items/pageSize (not data/meta)', () => {

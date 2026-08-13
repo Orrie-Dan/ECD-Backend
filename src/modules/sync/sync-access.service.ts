@@ -67,13 +67,14 @@ export class SyncAccessService {
 
   ecdCenterFilter(
     scope: AccessScope,
-  ): { id?: { in: string[] }; districtId?: string } | Record<string, never> {
+  ): { id?: { in: string[] } } | Record<string, never> {
     if (scope.centerIds === 'all') {
       return {};
     }
-    if (scope.districtId) {
-      return { districtId: scope.districtId };
-    }
+    // Caregivers also have districtId. Using districtId here streamed every
+    // district center into caregiver pull (~tens of thousands), so pullAll
+    // hit max pages and the UI never reached push. District focal already
+    // has every in-scope center id on scope.centerIds.
     return { id: { in: scope.centerIds } };
   }
 

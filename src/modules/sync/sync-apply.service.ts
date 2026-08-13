@@ -30,6 +30,7 @@ import {
   resolveFeedingRecordedByIdFromPayload,
   resolveFeedingRecordedDateFromPayload,
 } from '../feeding/mappers/feeding.mapper';
+import { resolveChildGenderFromPayload } from '../children/mappers/child.mapper';
 import {
   CHILD_SCOPED_ENTITY_TYPES,
   SyncableEntityType,
@@ -1322,7 +1323,7 @@ export class SyncApplyService {
             lastName: (payload.lastName as string) ?? null,
             centerId: String(payload.centerId),
             dateOfBirth: new Date(String(payload.dateOfBirth)),
-            gender: payload.gender as never,
+            gender: resolveChildGenderFromPayload(payload),
             status: (payload.status as never) ?? undefined,
             specialNeeds: (payload.specialNeeds as string) ?? null,
             disabilityNotes: (payload.disabilityNotes as string) ?? null,

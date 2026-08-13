@@ -277,3 +277,30 @@ export class ChildMapper
 }
 
 export const childMapper = new ChildMapper();
+
+/**
+ * Resolve Prisma ChildGender from sync payload.
+ * Accepts API labels (Umuhungu/Umukobwa) and DB/harness aliases (male/female).
+ */
+export function resolveChildGenderFromPayload(
+  payload: Record<string, unknown>,
+): ChildGender {
+  const raw = payload.gender;
+  if (
+    raw === 'Umuhungu' ||
+    raw === ChildGender.male ||
+    raw === 'male'
+  ) {
+    return ChildGender.male;
+  }
+  if (
+    raw === 'Umukobwa' ||
+    raw === ChildGender.female ||
+    raw === 'female'
+  ) {
+    return ChildGender.female;
+  }
+  throw new Error(
+    'child requires gender of Umuhungu/Umukobwa (or male/female)',
+  );
+}
