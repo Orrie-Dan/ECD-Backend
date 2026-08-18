@@ -39,7 +39,7 @@ import { UsersService } from './users.service';
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
-@Roles(UserRole.district_focal_person, UserRole.ncda_admin)
+@Roles(UserRole.ecd_director, UserRole.district_focal_person, UserRole.ncda_admin)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -48,6 +48,9 @@ export class UsersController {
     summary: 'Create a user',
     description:
       'Provisions a new user account within the caller management scope. ' +
+      'NCDA can create district officers, ECD directors, and caregivers; ' +
+      'district officers can create ECD directors and caregivers in their district; ' +
+      'ECD directors can create caregivers at their center. ' +
       'Returns a one-time `temporaryPassword` that must be shared out-of-band; ' +
       'it is never included on subsequent GET/list/update responses.',
   })
@@ -62,6 +65,7 @@ export class UsersController {
     summary: 'List users',
     description:
       'Returns a paginated list of users visible to the caller. ' +
+      'ECD directors see caregivers at their center only. ' +
       'Pagination shape uses `data` (not `items`) and omits `totalPages`.',
   })
   @ApiOkResponse({ type: PaginatedUsersResponseDto })
@@ -90,7 +94,8 @@ export class UsersController {
   @ApiOperation({
     summary: 'Update a user',
     description:
-      'Partial update of user profile/role/status fields within caller scope.',
+      'Partial update of user profile/status fields within caller scope. ' +
+      'Set `status` to `SUSPENDED` to deactivate (remove) a caregiver.',
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'User account UUID' })
   @ApiOkResponse({ type: UserResponseDto })

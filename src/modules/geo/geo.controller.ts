@@ -33,7 +33,12 @@ export class GeoController {
   constructor(private readonly geoService: GeoService) {}
 
   @Get('admin-units')
-  @Roles(UserRole.caregiver, UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(
+    UserRole.caregiver,
+    UserRole.ecd_director,
+    UserRole.district_focal_person,
+    UserRole.ncda_admin,
+  )
   @ApiOperation({
     summary: 'List administrative units',
     description:
@@ -49,11 +54,16 @@ export class GeoController {
   }
 
   @Get('districts')
-  @Roles(UserRole.caregiver, UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(
+    UserRole.caregiver,
+    UserRole.ecd_director,
+    UserRole.district_focal_person,
+    UserRole.ncda_admin,
+  )
   @ApiOperation({
     summary: 'List districts',
     description:
-      'Paginated districts. Caregivers and district focal persons are scoped to their district.',
+      'Paginated districts. Center staff and district focal persons are scoped to their district.',
   })
   @ApiOkResponse({ type: PaginatedDistrictsResponseDto })
   @ApiStandardClientErrors()
@@ -65,11 +75,16 @@ export class GeoController {
   }
 
   @Get('districts/:id')
-  @Roles(UserRole.caregiver, UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(
+    UserRole.caregiver,
+    UserRole.ecd_director,
+    UserRole.district_focal_person,
+    UserRole.ncda_admin,
+  )
   @ApiOperation({
     summary: 'Get district by id',
     description:
-      'Returns a single district. Caregivers and district focal persons are limited to their own district.',
+      'Returns a single district. Center staff and district focal persons are limited to their own district.',
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'District UUID' })
   @ApiOkResponse({ type: DistrictResponseDto })

@@ -7,6 +7,7 @@ import { AdministrativeLevel, UserRole } from '@prisma/client';
 import {
   assertCenterAccess,
   assertDistrictAccess,
+  isCenterStaffRole,
 } from '../auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../../modules/auth/interfaces/jwt-payload.interface';
@@ -67,16 +68,16 @@ export async function resolveDistrictQueryScope(
   user: AuthUser,
   query: ScopeQuery,
 ): Promise<DistrictQueryScope> {
-  if (user.role === UserRole.caregiver) {
+  if (isCenterStaffRole(user.role)) {
     if (!user.centerId) {
-      throw new ForbiddenException('Center scope is required for caregivers');
+      throw new ForbiddenException('Center scope is required for this role');
     }
     if (query.centerId && query.centerId !== user.centerId) {
       throw new ForbiddenException('Cannot query another center');
     }
     if (query.districtId || query.sectorId) {
       throw new ForbiddenException(
-        'Caregivers cannot filter by district or sector',
+        'Center-scoped roles cannot filter by district or sector',
       );
     }
     return {

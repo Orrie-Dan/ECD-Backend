@@ -21,6 +21,7 @@ import {
 import {
   assertCenterAccess,
   assertDistrictAccess,
+  isCenterStaffRole,
 } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -171,8 +172,8 @@ export class CentersService {
     }
 
     assertCenterAccess(user, existing.id, existing.districtId);
-    if (user.role === UserRole.caregiver) {
-      throw new ForbiddenException('Caregivers cannot update centers');
+    if (isCenterStaffRole(user.role)) {
+      throw new ForbiddenException('Center staff cannot update centers');
     }
 
     if (dto.villageId) {
@@ -282,9 +283,9 @@ export class CentersService {
       deletedAt: null,
     };
 
-    if (user.role === UserRole.caregiver) {
+    if (isCenterStaffRole(user.role)) {
       if (!user.centerId) {
-        throw new ForbiddenException('Center scope is required for caregivers');
+        throw new ForbiddenException('Center scope is required for this role');
       }
       where.id = user.centerId;
     } else if (user.role === UserRole.district_focal_person) {

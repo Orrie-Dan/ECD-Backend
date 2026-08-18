@@ -43,6 +43,7 @@ import { ListAttendanceQueryDto } from './dto/list-attendance-query.dto';
 @Controller('attendance')
 @Roles(
   UserRole.caregiver,
+  UserRole.ecd_director,
   UserRole.district_focal_person,
   UserRole.ncda_admin,
 )

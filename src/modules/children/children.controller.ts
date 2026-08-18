@@ -50,6 +50,7 @@ import { UpdateChildDto } from './dto/update-child.dto';
 @Controller('children')
 @Roles(
   UserRole.caregiver,
+  UserRole.ecd_director,
   UserRole.district_focal_person,
   UserRole.ncda_admin,
 )

@@ -77,8 +77,12 @@ async function run() {
     eq(svc.isEntityTypePermittedForRole(UserRole.caregiver, 'ecd_center'), false);
   });
 
-  await assert('caregiver can write child (entity type)', () => {
-    eq(svc.isEntityTypePermittedForRole(UserRole.caregiver, 'child'), true);
+  await assert('ecd_director cannot write ecd_center (entity type)', () => {
+    eq(svc.isEntityTypePermittedForRole(UserRole.ecd_director, 'ecd_center'), false);
+  });
+
+  await assert('ecd_director can write child (entity type)', () => {
+    eq(svc.isEntityTypePermittedForRole(UserRole.ecd_director, 'child'), true);
   });
 
   await assert('district_focal_person can write ecd_center (entity type)', () => {

@@ -11,7 +11,7 @@ import {
   ReferralStatus,
   UserRole,
 } from '@prisma/client';
-import { assertCenterAccess, assertDistrictAccess } from '../../common/auth/scope.util';
+import { assertCenterAccess, assertDistrictAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { FollowUpAlertDto, FollowUpAlertsResponseDto } from './dto/follow-up-alert.dto';
@@ -445,9 +445,9 @@ export class AlertsService {
   }
 
   private async resolveScope(user: AuthUser, query: FollowUpAlertsQueryDto): Promise<Scope> {
-    if (user.role === UserRole.caregiver) {
+    if (isCenterStaffRole(user.role)) {
       if (!user.centerId) {
-        throw new ForbiddenException('Center scope is required for caregivers');
+        throw new ForbiddenException('Center scope is required for this role');
       }
       if (query.centerId && query.centerId !== user.centerId) {
         throw new ForbiddenException('Cannot query another center');

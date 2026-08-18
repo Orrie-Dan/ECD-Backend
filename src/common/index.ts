@@ -4,6 +4,7 @@ export {
   assertDistrictAccess,
   canAccessCenter,
   canAccessDistrict,
+  isCenterStaffRole,
   type ScopeUser,
 } from './auth/scope.util';
 export type { BidirectionalMapper, Mapper } from './mappers/base.mapper';

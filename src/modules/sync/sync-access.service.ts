@@ -1,5 +1,6 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { AuditAction, UserRole } from '@prisma/client';
+import { isCenterStaffRole } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncableEntityType } from './sync.constants';
@@ -50,12 +51,15 @@ export class SyncAccessService {
       };
     }
 
-    // caregiver
-    if (!user.centerId) {
-      throw new ForbiddenException('Center scope is required for caregivers');
+    if (isCenterStaffRole(user.role)) {
+      if (!user.centerId) {
+        throw new ForbiddenException('Center scope is required for this role');
+      }
+
+      return { centerIds: [user.centerId], districtId: user.districtId };
     }
 
-    return { centerIds: [user.centerId], districtId: user.districtId };
+    throw new ForbiddenException(`Unsupported role ${user.role}`);
   }
 
   centerFilter(scope: AccessScope): { centerId?: { in: string[] } } | Record<string, never> {
@@ -93,7 +97,7 @@ export class SyncAccessService {
       return true;
     }
 
-    if (role === UserRole.caregiver) {
+    if (isCenterStaffRole(role)) {
       return !(CAREGIVER_FORBIDDEN_SYNC_ENTITY_TYPES as readonly string[]).includes(
         entityType,
       );

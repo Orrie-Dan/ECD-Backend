@@ -22,6 +22,7 @@ enum UserRole {
   caregiver
   district_focal_person
   ncda_admin
+  ecd_director
 
   @@map("user_role")
 }

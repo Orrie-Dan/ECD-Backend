@@ -24,7 +24,12 @@ import { NutritionService } from './nutrition.service';
 
 @ApiTags('nutrition')
 @ApiBearerAuth()
-@Roles(UserRole.caregiver, UserRole.district_focal_person, UserRole.ncda_admin)
+@Roles(
+  UserRole.caregiver,
+  UserRole.ecd_director,
+  UserRole.district_focal_person,
+  UserRole.ncda_admin,
+)
 @Controller()
 export class NutritionController {
   constructor(private readonly nutritionService: NutritionService) {}

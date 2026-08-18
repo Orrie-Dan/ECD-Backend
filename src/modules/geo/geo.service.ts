@@ -5,7 +5,7 @@ import {
   Prisma,
   UserRole,
 } from '@prisma/client';
-import { assertDistrictAccess } from '../../common/auth/scope.util';
+import { assertDistrictAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import {
@@ -67,7 +67,7 @@ export class GeoService {
         throw new ForbiddenException('District scope is required');
       }
       where.id = user.districtId;
-    } else if (user.role === UserRole.caregiver) {
+    } else if (isCenterStaffRole(user.role)) {
       if (!user.districtId) {
         throw new ForbiddenException('District scope is required');
       }
@@ -111,12 +111,18 @@ export class GeoService {
   ): Promise<DistrictResponseDto> {
     if (
       user.role === UserRole.district_focal_person ||
-      user.role === UserRole.caregiver
+      isCenterStaffRole(user.role)
     ) {
       if (!user.districtId) {
         throw new ForbiddenException('District scope is required');
       }
-      assertDistrictAccess(user, districtId);
+      if (user.role === UserRole.district_focal_person) {
+        assertDistrictAccess(user, districtId);
+      } else if (user.districtId !== districtId) {
+        throw new ForbiddenException(
+          `You do not have access to district ${districtId} (${user.role})`,
+        );
+      }
     }
 
     const row = await this.prisma.district.findUnique({
@@ -137,8 +143,8 @@ export class GeoService {
   ): Promise<PaginatedCentersInDistrictResponseDto> {
     if (user.role === UserRole.district_focal_person) {
       assertDistrictAccess(user, districtId);
-    } else if (user.role === UserRole.caregiver) {
-      throw new ForbiddenException('Caregivers cannot list centers by district');
+    } else if (isCenterStaffRole(user.role)) {
+      throw new ForbiddenException('Center staff cannot list centers by district');
     }
 
     const district = await this.prisma.district.findUnique({

@@ -48,9 +48,12 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({
     format: 'uuid',
-    description: 'Required when role is caregiver',
+    description: 'Required when role is caregiver or ecd_director',
   })
-  @ValidateIf((o: CreateUserDto) => o.role === UserRole.caregiver)
+  @ValidateIf(
+    (o: CreateUserDto) =>
+      o.role === UserRole.caregiver || o.role === UserRole.ecd_director,
+  )
   @IsUUID()
   centerId?: string;
 

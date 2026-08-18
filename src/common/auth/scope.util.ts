@@ -5,8 +5,13 @@ import { UserContext } from '../interfaces/user-context.interface';
 /** Fields required for scope decisions (subset of UserContext). */
 export type ScopeUser = Pick<UserContext, 'role' | 'centerId' | 'districtId'>;
 
+/** Center-assigned operational staff (caregiver and ECD director / head of ECD). */
+export function isCenterStaffRole(role: UserRole): boolean {
+  return role === UserRole.caregiver || role === UserRole.ecd_director;
+}
+
 /**
- * Caregiver: own center only.
+ * Caregiver / ECD director: own center only.
  * District focal: centers in their district (pass centerDistrictId).
  * NCDA: unrestricted.
  */
@@ -19,7 +24,7 @@ export function canAccessCenter(
     return true;
   }
 
-  if (user.role === UserRole.caregiver) {
+  if (isCenterStaffRole(user.role)) {
     return user.centerId != null && user.centerId === centerId;
   }
 
@@ -36,7 +41,7 @@ export function canAccessCenter(
 /**
  * District focal: own district only.
  * NCDA: unrestricted.
- * Caregiver: not district-scoped (denied).
+ * Center staff: not district-scoped (denied).
  */
 export function canAccessDistrict(user: ScopeUser, districtId: string): boolean {
   if (user.role === UserRole.ncda_admin) {

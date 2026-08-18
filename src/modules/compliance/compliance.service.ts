@@ -17,7 +17,7 @@ import {
   UserRole,
 } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { assertCenterAccess } from '../../common/auth/scope.util';
+import { assertCenterAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -466,9 +466,9 @@ export class ComplianceService {
       deletedAt: null,
     };
 
-    if (user.role === UserRole.caregiver) {
+    if (isCenterStaffRole(user.role)) {
       if (!user.centerId) {
-        throw new ForbiddenException('Center scope is required for caregivers');
+        throw new ForbiddenException('Center scope is required for this role');
       }
       where.centerId = user.centerId;
     } else if (user.role === UserRole.district_focal_person) {

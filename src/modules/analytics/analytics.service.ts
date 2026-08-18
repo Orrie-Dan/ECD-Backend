@@ -15,6 +15,7 @@ import {
 import {
   assertCenterAccess,
   assertDistrictAccess,
+  isCenterStaffRole,
 } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -289,15 +290,15 @@ export class AnalyticsService {
       // Both allowed if center belongs to district — validated below
     }
 
-    if (user.role === UserRole.caregiver) {
+    if (isCenterStaffRole(user.role)) {
       if (!user.centerId) {
-        throw new ForbiddenException('Center scope is required for caregivers');
+        throw new ForbiddenException('Center scope is required for this role');
       }
       if (query.centerId && query.centerId !== user.centerId) {
         throw new ForbiddenException('Cannot query another center');
       }
       if (query.districtId) {
-        throw new ForbiddenException('Caregivers cannot filter by district');
+        throw new ForbiddenException('Center-scoped roles cannot filter by district');
       }
       return {
         centerIds: [user.centerId],

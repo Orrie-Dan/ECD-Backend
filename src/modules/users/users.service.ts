@@ -242,10 +242,17 @@ export class UsersService {
     if (actor.role === UserRole.ncda_admin) {
       return (
         targetRole === UserRole.district_focal_person ||
+        targetRole === UserRole.ecd_director ||
         targetRole === UserRole.caregiver
       );
     }
     if (actor.role === UserRole.district_focal_person) {
+      return (
+        targetRole === UserRole.ecd_director ||
+        targetRole === UserRole.caregiver
+      );
+    }
+    if (actor.role === UserRole.ecd_director) {
       return targetRole === UserRole.caregiver;
     }
     return false;
@@ -257,7 +264,7 @@ export class UsersService {
    */
   canResetPassword(
     actor: AuthUser,
-    target: Pick<UserWithRelations, 'role' | 'districtId'>,
+    target: Pick<UserWithRelations, 'role' | 'districtId' | 'centerId'>,
   ): boolean {
     if (actor.role === UserRole.caregiver) {
       return false;
@@ -267,10 +274,19 @@ export class UsersService {
     }
     if (actor.role === UserRole.district_focal_person) {
       return (
-        target.role === UserRole.caregiver &&
+        (target.role === UserRole.caregiver ||
+          target.role === UserRole.ecd_director) &&
         target.districtId != null &&
         actor.districtId != null &&
         target.districtId === actor.districtId
+      );
+    }
+    if (actor.role === UserRole.ecd_director) {
+      return (
+        target.role === UserRole.caregiver &&
+        target.centerId != null &&
+        actor.centerId != null &&
+        target.centerId === actor.centerId
       );
     }
     return false;
@@ -279,7 +295,8 @@ export class UsersService {
   private assertCanManageUsers(actor: AuthUser): void {
     if (
       actor.role !== UserRole.ncda_admin &&
-      actor.role !== UserRole.district_focal_person
+      actor.role !== UserRole.district_focal_person &&
+      actor.role !== UserRole.ecd_director
     ) {
       throw new ForbiddenException('You do not have access to user management');
     }
@@ -335,9 +352,13 @@ export class UsersService {
       return { districtId, centerId: null };
     }
 
-    // caregiver
+    if (role !== UserRole.caregiver && role !== UserRole.ecd_director) {
+      throw new BadRequestException(`Unsupported role ${role}`);
+    }
+
+    // caregiver / ecd_director
     if (!centerId) {
-      throw new BadRequestException('centerId is required for caregiver');
+      throw new BadRequestException(`centerId is required for ${role}`);
     }
     if (districtId) {
       // Accept only when it matches the center's district (validated below).
@@ -364,7 +385,16 @@ export class UsersService {
       (!actor.districtId || actor.districtId !== center.districtId)
     ) {
       throw new ForbiddenException(
-        'Caregiver center must belong to your district',
+        'Assigned center must belong to your district',
+      );
+    }
+
+    if (
+      actor.role === UserRole.ecd_director &&
+      (!actor.centerId || actor.centerId !== center.id)
+    ) {
+      throw new ForbiddenException(
+        'Caregivers must be assigned to your center',
       );
     }
 
@@ -382,6 +412,21 @@ export class UsersService {
         throw new ForbiddenException('District scope is required for this role');
       }
       and.push({ districtId: actor.districtId });
+    }
+
+    if (actor.role === UserRole.ecd_director) {
+      if (!actor.centerId) {
+        throw new ForbiddenException('Center scope is required for this role');
+      }
+      and.push({ centerId: actor.centerId, role: UserRole.caregiver });
+      if (query.role && query.role !== UserRole.caregiver) {
+        throw new ForbiddenException('ECD directors can only manage caregivers');
+      }
+      if (query.centerId && query.centerId !== actor.centerId) {
+        throw new ForbiddenException(
+          `You do not have access to center ${query.centerId}`,
+        );
+      }
     }
 
     if (query.role) {
@@ -436,6 +481,19 @@ export class UsersService {
         !user.districtId ||
         !actor.districtId ||
         user.districtId !== actor.districtId
+      ) {
+        throw new ForbiddenException(
+          `You do not have access to user ${id}`,
+        );
+      }
+    }
+
+    if (actor.role === UserRole.ecd_director) {
+      if (
+        user.role !== UserRole.caregiver ||
+        !user.centerId ||
+        !actor.centerId ||
+        user.centerId !== actor.centerId
       ) {
         throw new ForbiddenException(
           `You do not have access to user ${id}`,

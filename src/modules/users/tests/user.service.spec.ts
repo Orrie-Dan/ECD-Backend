@@ -112,6 +112,12 @@ async function run() {
     centerId: 'c1',
     districtId: 'd1',
   });
+  const director = user({
+    role: UserRole.ecd_director,
+    id: 'dir-1',
+    centerId: 'c1',
+    districtId: 'd1',
+  });
 
   await assert('NCDA creates district officer', async () => {
     const creates: Record<string, unknown>[] = [];
@@ -287,6 +293,161 @@ async function run() {
         role: UserRole.caregiver,
         centerId: 'c1',
       });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof ForbiddenException, true);
+  });
+
+  await assert('ECD director creates caregiver at own center', async () => {
+    const creates: Record<string, unknown>[] = [];
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: {
+        findFirst: async () => ({ id: 'c1', districtId: 'd1' }),
+      },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              creates.push(data);
+              return createdUserRow(data);
+            },
+          },
+          passwordResetToken: { create: async () => ({}) },
+        }),
+    };
+
+    const svc = createService(prisma);
+    const result = await svc.create(director, {
+      username: 'cg_center',
+      fullName: 'Center Caregiver',
+      role: UserRole.caregiver,
+      centerId: 'c1',
+    });
+    eq(creates[0].role, UserRole.caregiver);
+    eq(creates[0].centerId, 'c1');
+    eq(creates[0].createdById, 'dir-1');
+    eq(result.role, UserRole.caregiver);
+  });
+
+  await assert('ECD director cannot create caregiver at another center', async () => {
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: {
+        findFirst: async () => ({ id: 'c-other', districtId: 'd1' }),
+      },
+    };
+    const svc = createService(prisma);
+
+    let caught: unknown;
+    try {
+      await svc.create(director, {
+        username: 'cg_out',
+        fullName: 'Outsider',
+        role: UserRole.caregiver,
+        centerId: 'c-other',
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof ForbiddenException, true);
+  });
+
+  await assert('ECD director cannot create another ECD director', async () => {
+    const svc = createService({});
+    let caught: unknown;
+    try {
+      await svc.create(director, {
+        username: 'dir2',
+        fullName: 'Other Director',
+        role: UserRole.ecd_director,
+        centerId: 'c1',
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof ForbiddenException, true);
+  });
+
+  await assert('NCDA creates ECD director (district derived from center)', async () => {
+    const creates: Record<string, unknown>[] = [];
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: {
+        findFirst: async () => ({ id: 'c1', districtId: 'd1' }),
+      },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              creates.push(data);
+              return createdUserRow(data);
+            },
+          },
+          passwordResetToken: { create: async () => ({}) },
+        }),
+    };
+
+    const svc = createService(prisma);
+    const result = await svc.create(ncda, {
+      username: 'ecd_head',
+      fullName: 'Head of ECD',
+      role: UserRole.ecd_director,
+      centerId: 'c1',
+    });
+    eq(creates[0].role, UserRole.ecd_director);
+    eq(creates[0].centerId, 'c1');
+    eq(creates[0].districtId, 'd1');
+    eq(result.role, UserRole.ecd_director);
+  });
+
+  await assert('ECD director can suspend caregiver at own center', async () => {
+    const target = createdUserRow({
+      username: 'cg',
+      fullName: 'Care',
+      role: UserRole.caregiver,
+      districtId: 'd1',
+      centerId: 'c1',
+      createdById: 'dir-1',
+      updatedById: 'dir-1',
+    });
+    const prisma = {
+      userAccount: {
+        findUnique: async () => target,
+        update: async ({ data }: { data: Record<string, unknown> }) => ({
+          ...target,
+          ...data,
+          status: data.status ?? target.status,
+        }),
+      },
+    };
+    const svc = createService(prisma);
+    const result = await svc.update(director, 'new-user-id', {
+      status: 'SUSPENDED',
+    });
+    eq(result.status, 'SUSPENDED');
+  });
+
+  await assert('ECD director cannot update caregiver at another center', async () => {
+    const target = createdUserRow({
+      username: 'cg',
+      fullName: 'Care',
+      role: UserRole.caregiver,
+      districtId: 'd1',
+      centerId: 'c2',
+      createdById: 'ncda-1',
+      updatedById: 'ncda-1',
+    });
+    const prisma = {
+      userAccount: {
+        findUnique: async () => target,
+      },
+    };
+    const svc = createService(prisma);
+    let caught: unknown;
+    try {
+      await svc.update(director, 'new-user-id', { fullName: 'Hacked' });
     } catch (err) {
       caught = err;
     }

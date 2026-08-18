@@ -19,6 +19,7 @@ import { FollowUpAlertsQueryDto } from './dto/follow-up-alerts-query.dto';
 @Controller('alerts')
 @Roles(
   UserRole.caregiver,
+  UserRole.ecd_director,
   UserRole.district_focal_person,
   UserRole.ncda_admin,
 )

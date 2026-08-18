@@ -67,9 +67,19 @@ async function run() {
     centerId: 'c1',
     districtId: 'd1',
   });
+  const director = user({
+    role: UserRole.ecd_director,
+    id: 'dir-1',
+    centerId: 'c1',
+    districtId: 'd1',
+  });
 
   await assert('NCDA can create district officer', () => {
     eq(svc.canCreateRole(ncda, UserRole.district_focal_person), true);
+  });
+
+  await assert('NCDA can create ECD director', () => {
+    eq(svc.canCreateRole(ncda, UserRole.ecd_director), true);
   });
 
   await assert('NCDA can create caregiver', () => {
@@ -78,6 +88,10 @@ async function run() {
 
   await assert('NCDA cannot create ncda_admin (no escalation)', () => {
     eq(svc.canCreateRole(ncda, UserRole.ncda_admin), false);
+  });
+
+  await assert('District officer can create ECD director', () => {
+    eq(svc.canCreateRole(focal, UserRole.ecd_director), true);
   });
 
   await assert('District officer can create caregiver', () => {
@@ -92,8 +106,22 @@ async function run() {
     eq(svc.canCreateRole(focal, UserRole.ncda_admin), false);
   });
 
+  await assert('ECD director can create caregiver', () => {
+    eq(svc.canCreateRole(director, UserRole.caregiver), true);
+  });
+
+  await assert('ECD director cannot create another ECD director', () => {
+    eq(svc.canCreateRole(director, UserRole.ecd_director), false);
+  });
+
+  await assert('ECD director cannot create district officer or admin', () => {
+    eq(svc.canCreateRole(director, UserRole.district_focal_person), false);
+    eq(svc.canCreateRole(director, UserRole.ncda_admin), false);
+  });
+
   await assert('Caregiver cannot create users', () => {
     eq(svc.canCreateRole(caregiver, UserRole.caregiver), false);
+    eq(svc.canCreateRole(caregiver, UserRole.ecd_director), false);
     eq(svc.canCreateRole(caregiver, UserRole.district_focal_person), false);
     eq(svc.canCreateRole(caregiver, UserRole.ncda_admin), false);
   });
@@ -103,6 +131,7 @@ async function run() {
       svc.canResetPassword(ncda, {
         role: UserRole.caregiver,
         districtId: 'd9',
+        centerId: 'c9',
       }),
       true,
     );
@@ -110,6 +139,15 @@ async function run() {
       svc.canResetPassword(ncda, {
         role: UserRole.district_focal_person,
         districtId: 'd1',
+        centerId: null,
+      }),
+      true,
+    );
+    eq(
+      svc.canResetPassword(ncda, {
+        role: UserRole.ecd_director,
+        districtId: 'd1',
+        centerId: 'c1',
       }),
       true,
     );
@@ -120,6 +158,18 @@ async function run() {
       svc.canResetPassword(focal, {
         role: UserRole.caregiver,
         districtId: 'd1',
+        centerId: 'c1',
+      }),
+      true,
+    );
+  });
+
+  await assert('District officer can reset ECD director in district', () => {
+    eq(
+      svc.canResetPassword(focal, {
+        role: UserRole.ecd_director,
+        districtId: 'd1',
+        centerId: 'c1',
       }),
       true,
     );
@@ -130,6 +180,7 @@ async function run() {
       svc.canResetPassword(focal, {
         role: UserRole.caregiver,
         districtId: 'd2',
+        centerId: 'c2',
       }),
       false,
     );
@@ -140,6 +191,40 @@ async function run() {
       svc.canResetPassword(focal, {
         role: UserRole.district_focal_person,
         districtId: 'd1',
+        centerId: null,
+      }),
+      false,
+    );
+  });
+
+  await assert('ECD director can reset caregiver at same center', () => {
+    eq(
+      svc.canResetPassword(director, {
+        role: UserRole.caregiver,
+        districtId: 'd1',
+        centerId: 'c1',
+      }),
+      true,
+    );
+  });
+
+  await assert('ECD director cannot reset caregiver at another center', () => {
+    eq(
+      svc.canResetPassword(director, {
+        role: UserRole.caregiver,
+        districtId: 'd1',
+        centerId: 'c2',
+      }),
+      false,
+    );
+  });
+
+  await assert('ECD director cannot reset another ECD director', () => {
+    eq(
+      svc.canResetPassword(director, {
+        role: UserRole.ecd_director,
+        districtId: 'd1',
+        centerId: 'c1',
       }),
       false,
     );
@@ -150,6 +235,7 @@ async function run() {
       svc.canResetPassword(caregiver, {
         role: UserRole.caregiver,
         districtId: 'd1',
+        centerId: 'c1',
       }),
       false,
     );

@@ -49,6 +49,7 @@ export class ComplianceController {
   @Get('assessments')
   @Roles(
     UserRole.caregiver,
+    UserRole.ecd_director,
     UserRole.district_focal_person,
     UserRole.ncda_admin,
   )
@@ -68,6 +69,7 @@ export class ComplianceController {
   @Get('assessments/:id')
   @Roles(
     UserRole.caregiver,
+    UserRole.ecd_director,
     UserRole.district_focal_person,
     UserRole.ncda_admin,
   )
@@ -125,6 +127,7 @@ export class ComplianceController {
   @Get('standards')
   @Roles(
     UserRole.caregiver,
+    UserRole.ecd_director,
     UserRole.district_focal_person,
     UserRole.ncda_admin,
   )

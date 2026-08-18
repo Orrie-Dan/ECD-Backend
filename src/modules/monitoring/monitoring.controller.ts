@@ -27,6 +27,7 @@ import { MonitoringService } from './monitoring.service';
 @Controller('monitoring')
 @Roles(
   UserRole.caregiver,
+  UserRole.ecd_director,
   UserRole.district_focal_person,
   UserRole.ncda_admin,
 )
