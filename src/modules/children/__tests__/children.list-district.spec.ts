@@ -58,10 +58,18 @@ async function main() {
       resolveScope: async () => ({ centerIds: 'all' as const, districtId: null }),
       centerFilter: () => ({}),
     };
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
     const service = new ChildrenService(
       prisma as never,
       syncAccess as never,
       { log: async () => undefined } as never,
+      mockNotifications,
     );
 
     await service.findAll(user({ role: UserRole.ncda_admin }), {
@@ -90,10 +98,18 @@ async function main() {
       }),
       centerFilter: () => ({ centerId: { in: ['center-a'] } }),
     };
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
     const service = new ChildrenService(
       prisma as never,
       syncAccess as never,
       { log: async () => undefined } as never,
+      mockNotifications,
     );
 
     let threw = false;
@@ -123,10 +139,18 @@ async function main() {
       resolveScope: async () => ({ centerIds: 'all' as const, districtId: null }),
       centerFilter: () => ({}),
     };
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
     const service = new ChildrenService(
       prisma as never,
       syncAccess as never,
       { log: async () => undefined } as never,
+      mockNotifications,
     );
 
     let threw = false;

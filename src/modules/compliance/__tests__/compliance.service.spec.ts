@@ -84,7 +84,14 @@ async function main() {
       },
     };
     const audit = { log: async () => undefined };
-    const service = new ComplianceService(prisma as never, audit as never);
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
+    const service = new ComplianceService(prisma as never, audit as never, mockNotifications);
 
     const result = await service.listAssessments(
       user({ role: UserRole.caregiver, centerId: 'center-1' }),
@@ -107,9 +114,17 @@ async function main() {
         count: async () => 0,
       },
     };
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
+      mockNotifications,
     );
 
     await service.listAssessments(
@@ -144,7 +159,14 @@ async function main() {
         auditLogs.push(args);
       },
     };
-    const service = new ComplianceService(prisma as never, audit as never);
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
+    const service = new ComplianceService(prisma as never, audit as never, mockNotifications);
 
     const result = await service.createAssessment(
       user({ role: UserRole.ncda_admin }),
@@ -173,9 +195,17 @@ async function main() {
         return fn(tx);
       },
     };
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
+      mockNotifications,
     );
 
     const result = await service.updateAssessment(
@@ -193,9 +223,17 @@ async function main() {
         findFirst: async () => assessmentRow({ status: AssessmentStatus.verified }),
       },
     };
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
+      mockNotifications,
     );
 
     let threw = false;
@@ -225,9 +263,17 @@ async function main() {
         return fn(tx);
       },
     };
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
+      mockNotifications,
     );
 
     let threw = false;
@@ -252,9 +298,17 @@ async function main() {
           }),
       },
     };
+    const mockNotifications = {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
+      mockNotifications,
     );
 
     let threw = false;

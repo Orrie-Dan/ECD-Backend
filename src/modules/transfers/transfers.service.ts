@@ -8,12 +8,14 @@ import {
   ChildStatus,
   DeviceStatus,
   TransferStatus,
+  UserRole,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
+import { NotificationsService } from '../notifications/notifications.service';
 import { SyncAccessService } from '../sync/sync-access.service';
 import { AcceptTransferDto } from './dto/accept-transfer.dto';
 import { CancelTransferDto } from './dto/cancel-transfer.dto';
@@ -28,6 +30,7 @@ export class TransfersService {
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly lifecycle: TransferLifecycleService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async create(
@@ -87,6 +90,15 @@ export class TransfersService {
       this.throwTransferConflict(result.conflictReason);
     }
 
+    this.sendTransferNotification(
+      'transfer_request',
+      dto.toCenterId,
+      `Transfer request for ${child.firstName ?? 'child'}`,
+      `A child transfer has been requested to your center.`,
+      'child_transfer',
+      transferId,
+    );
+
     return transferMapper.toDto(result.transfer);
   }
 
@@ -133,6 +145,16 @@ export class TransfersService {
       this.throwTransferConflict(result.conflictReason);
     }
 
+    this.sendTransferNotification(
+      'transfer_accepted',
+      transfer.fromCenterId,
+      'Transfer accepted',
+      `Your child transfer request has been accepted by the destination center.`,
+      'child_transfer',
+      transfer.id,
+      [UserRole.ecd_director, UserRole.caregiver],
+    );
+
     return transferMapper.toDto(result.transfer);
   }
 
@@ -177,6 +199,15 @@ export class TransfersService {
     if (result.status === 'conflict') {
       this.throwTransferConflict(result.conflictReason);
     }
+
+    this.sendTransferNotification(
+      'transfer_cancelled',
+      transfer.toCenterId,
+      'Transfer cancelled',
+      `A child transfer to your center has been cancelled.`,
+      'child_transfer',
+      transfer.id,
+    );
 
     return transferMapper.toDto(result.transfer);
   }
@@ -318,6 +349,29 @@ export class TransfersService {
       );
     }
     throw new BadRequestException(reason);
+  }
+
+  private sendTransferNotification(
+    type: 'transfer_request' | 'transfer_accepted' | 'transfer_cancelled',
+    centerId: string,
+    title: string,
+    message: string,
+    entityType: string,
+    entityId: string,
+    roles: UserRole[] = [UserRole.ecd_director],
+  ): void {
+    this.notifications
+      .findUserIdsByRoleAndCenter(centerId, roles)
+      .then((userIds) => {
+        this.notifications.notifyAsync(userIds, {
+          type,
+          title,
+          message,
+          entityType,
+          entityId,
+        });
+      })
+      .catch(() => {});
   }
 
   private async resolveDeviceId(

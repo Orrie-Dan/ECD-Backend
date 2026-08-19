@@ -216,6 +216,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       audit,
+      { findUserIdsByRoleAndCenter: async () => [], findUserIdsByRoleAndDistrict: async () => [], notifyAsync: () => {}, create: async () => ({}), createForMultipleUsers: async () => 0 } as any,
     );
 
     const updated = await children.update(caregiver, 'child-1', {
@@ -277,6 +278,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       audit,
+      { findUserIdsByRoleAndCenter: async () => [], findUserIdsByRoleAndDistrict: async () => [], notifyAsync: () => {}, create: async () => ({}), createForMultipleUsers: async () => 0 } as any,
     );
 
     let caught: unknown;
@@ -437,6 +439,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       audit,
+      { findUserIdsByRoleAndCenter: async () => [], findUserIdsByRoleAndDistrict: async () => [], notifyAsync: () => {}, create: async () => ({}), createForMultipleUsers: async () => 0 } as any,
     );
 
     let caught: unknown;

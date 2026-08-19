@@ -98,8 +98,8 @@ async function main() {
   const alerts = new AlertsService(prisma);
   const reports = new ReportsService(prisma);
   const syncAccess = new SyncAccessService(prisma);
-  const nutrition = new NutritionService(prisma, syncAccess as never, null as never);
-  const referrals = new ReferralsService(prisma, syncAccess as never, null as never);
+  const nutrition = new NutritionService(prisma, syncAccess as never, null as never, null as never);
+  const referrals = new ReferralsService(prisma, syncAccess as never, null as never, null as never);
 
   const query = {
     from: new Date('2026-07-01'),

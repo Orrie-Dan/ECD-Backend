@@ -84,6 +84,14 @@ async function run() {
     }
   };
 
+  const mockNotifications = {
+    findUserIdsByRoleAndCenter: async () => [],
+    findUserIdsByRoleAndDistrict: async () => [],
+    notifyAsync: () => {},
+    create: async () => ({}),
+    createForMultipleUsers: async () => 0,
+  } as any;
+
   const caregiver = user({
     role: UserRole.caregiver,
     id: 'cg-1',
@@ -140,6 +148,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
+      mockNotifications,
     ).create(caregiver, baseDto());
 
     eq(creates.length, 1);
@@ -174,6 +183,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
+        mockNotifications,
       ).create(caregiver, baseDto({ sourceId: 'missing' }));
     } catch (err) {
       caught = err;
@@ -206,6 +216,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
+      mockNotifications,
     ).getChildHistory(caregiver, 'child-1');
 
     eq(history.items[0].id, 'ref-2');
@@ -259,6 +270,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
+      mockNotifications,
     ).updateStatus(caregiver, 'ref-1', { status: 'completed', version: 1 });
 
     eq(result.status, 'completed');
@@ -288,6 +300,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
+      mockNotifications,
     ).updateStatus(caregiver, 'ref-1', { status: 'cancelled', version: 1 });
 
     eq(result.status, 'cancelled');
@@ -319,6 +332,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
+        mockNotifications,
       ).updateStatus(caregiver, 'ref-1', { status: 'completed', version: 5 });
     } catch (err) {
       caught = err;
@@ -343,6 +357,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
+        mockNotifications,
       ).updateStatus(caregiver, 'ref-1', { status: 'cancelled', version: 1 });
     } catch (err) {
       caught = err;
@@ -368,6 +383,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
+        mockNotifications,
       ).create(caregiver, baseDto({ childId: 'child-x', centerId: 'center-b' }));
     } catch (err) {
       caught = err;
@@ -393,6 +409,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
+        mockNotifications,
       ).create(focal, baseDto({ childId: 'child-z', centerId: 'center-z' }));
     } catch (err) {
       caught = err;
@@ -430,6 +447,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
+      mockNotifications,
     ).create(
       ncda,
       baseDto({
@@ -459,6 +477,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
+      mockNotifications,
     ).findAll(focal, {
       from: '2026-08-01',
       to: '2026-08-31',
@@ -491,6 +510,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
+      mockNotifications,
     ).findAll(focal, { page: 1, pageSize: 50 });
 
     eq(capturedWhere != null && !('referralDate' in capturedWhere), true);
@@ -507,6 +527,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
+        mockNotifications,
       ).findAll(focal, { from: '2026-08-31', to: '2026-08-01' });
     } catch (err) {
       message = (err as Error).message;

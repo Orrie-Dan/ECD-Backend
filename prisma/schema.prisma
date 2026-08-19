@@ -430,6 +430,7 @@ model UserAccount {
   updatedAppSettings             AppSetting[]              @relation("AppSettingUpdatedBy")
   auditLogs                      AuditLog[]                @relation("AuditLogChangedBy")
   createdClassroomAssignments    ClassroomAssignmentHistory[] @relation("ClassroomAssignmentCreatedBy")
+  notifications                  Notification[]              @relation("NotificationUser")
 
   @@index([username])
   @@index([role])
@@ -1000,6 +1001,49 @@ model WashIndicator {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("wash_indicator")
+}
+
+//////////////////////////////////////////////
+// NOTIFICATIONS
+//////////////////////////////////////////////
+
+enum NotificationType {
+  transfer_request
+  transfer_accepted
+  transfer_cancelled
+  child_enrolled
+  child_archived
+  assessment_due
+  referral_created
+  referral_updated
+  nutrition_alert
+  sted_followup
+  compliance_update
+  capacity_warning
+  general
+
+  @@map("notification_type")
+}
+
+model Notification {
+  id         String           @id @default(uuid())
+  userId     String           @map("user_id")
+  type       NotificationType
+  title      String
+  message    String           @db.Text
+  isRead     Boolean          @default(false) @map("is_read")
+  readAt     DateTime?        @map("read_at")
+  entityType String?          @map("entity_type")
+  entityId   String?          @map("entity_id")
+  metadata   Json?
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  user UserAccount @relation("NotificationUser", fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([type])
+  @@map("notification")
 }
 
 //////////////////////////////////////////////

@@ -85,9 +85,16 @@ function createService(prisma: object) {
     }),
     centerFilter: () => ({ centerId: { in: ['center-a'] } }),
   };
+  const mockNotifications = {
+    findUserIdsByRoleAndCenter: async () => [],
+    findUserIdsByRoleAndDistrict: async () => [],
+    notifyAsync: () => {},
+    create: async () => ({}),
+    createForMultipleUsers: async () => 0,
+  } as any;
   return new ChildrenService(prisma as never, syncAccess as never, {
     log: async () => {},
-  } as never);
+  } as never, mockNotifications);
 }
 
 async function run() {

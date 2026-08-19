@@ -64,6 +64,14 @@ async function run() {
     }
   };
 
+  const mockNotifications = {
+    findUserIdsByRoleAndCenter: async () => [],
+    findUserIdsByRoleAndDistrict: async () => [],
+    notifyAsync: () => {},
+    create: async () => ({}),
+    createForMultipleUsers: async () => 0,
+  } as any;
+
   const caregiver = user({
     role: UserRole.caregiver,
     id: 'cg-1',
@@ -107,7 +115,7 @@ async function run() {
         fn({ stedAssessment: stedApi }),
     };
 
-    const result = await new StedService(prisma as never, { log: async () => {} } as never).create(
+    const result = await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
       caregiver,
       baseDto(),
     );
@@ -188,7 +196,7 @@ async function run() {
       },
     };
 
-    const history = await new StedService(prisma as never, { log: async () => {} } as never).getHistory(
+    const history = await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).getHistory(
       caregiver,
       'child-1',
     );
@@ -217,7 +225,7 @@ async function run() {
     };
     let caught: unknown;
     try {
-      await new StedService(prisma as never, { log: async () => {} } as never).create(
+      await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
         caregiver,
         baseDto({ childId: 'child-x', centerId: 'center-b' }),
       );
@@ -241,7 +249,7 @@ async function run() {
     };
     let caught: unknown;
     try {
-      await new StedService(prisma as never, { log: async () => {} } as never).create(
+      await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
         focal,
         baseDto({ childId: 'child-z', centerId: 'center-z' }),
       );
@@ -281,7 +289,7 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({ stedAssessment: stedApi }),
     };
-    await new StedService(prisma as never, { log: async () => {} } as never).create(
+    await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
       ncda,
       baseDto({
         childId: 'child-z',
@@ -305,7 +313,7 @@ async function run() {
     };
     let caught: unknown;
     try {
-      await new StedService(prisma as never, { log: async () => {} } as never).create(
+      await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
         caregiver,
         baseDto({ consentObtained: false }),
       );
@@ -345,7 +353,7 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({ stedAssessment: stedApi }),
     };
-    const svc = new StedService(prisma as never, { log: async () => {} } as never);
+    const svc = new StedService(prisma as never, { log: async () => {} } as never, mockNotifications);
     await svc.create(caregiver, baseDto({ assessmentDate: '2026-08-01' }));
     await svc.create(caregiver, baseDto({ assessmentDate: '2026-08-15' }));
     eq(creates.length, 2);

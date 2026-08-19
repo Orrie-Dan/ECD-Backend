@@ -33,12 +33,14 @@ import { CreateAssessmentItemDto } from './dto/create-assessment-item.dto';
 import { ListAssessmentsQueryDto } from './dto/list-assessments-query.dto';
 import { UpdateAssessmentDto } from './dto/update-assessment.dto';
 import { UpdateAssessmentItemDto } from './dto/update-assessment-item.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ComplianceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async listAssessments(
@@ -253,6 +255,44 @@ export class ComplianceService {
 
       return updated;
     });
+
+    if (dto.status && dto.status !== existing.status) {
+      const centerId = existing.centerId;
+      const districtId = existing.center.districtId;
+
+      if (dto.status === AssessmentStatus.submitted) {
+        this.notifications
+          .findUserIdsByRoleAndDistrict(districtId, [UserRole.district_focal_person])
+          .then((ids) => {
+            this.notifications.notifyAsync(ids, {
+              type: 'compliance_update',
+              title: 'Compliance assessment submitted',
+              message: `A compliance assessment for ${existing.center.name} has been submitted for review.`,
+              entityType: 'compliance_assessment',
+              entityId: existing.id,
+            });
+          })
+          .catch(() => {});
+      }
+
+      if (
+        dto.status === AssessmentStatus.verified ||
+        dto.status === AssessmentStatus.rejected
+      ) {
+        this.notifications
+          .findUserIdsByRoleAndCenter(centerId, [UserRole.ecd_director])
+          .then((ids) => {
+            this.notifications.notifyAsync(ids, {
+              type: 'compliance_update',
+              title: `Compliance assessment ${dto.status}`,
+              message: `Your compliance assessment has been ${dto.status}.`,
+              entityType: 'compliance_assessment',
+              entityId: existing.id,
+            });
+          })
+          .catch(() => {});
+      }
+    }
 
     return this.toAssessmentDto(result);
   }

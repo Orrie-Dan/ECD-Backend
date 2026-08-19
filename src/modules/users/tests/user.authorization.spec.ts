@@ -22,10 +22,18 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
 
 function createService(): UsersService {
   // Authorization helpers do not touch prisma/auth/config.
+  const mockNotifications = {
+    findUserIdsByRoleAndCenter: async () => [],
+    findUserIdsByRoleAndDistrict: async () => [],
+    notifyAsync: () => {},
+    create: async () => ({}),
+    createForMultipleUsers: async () => 0,
+  } as any;
   return new UsersService(
     {} as never,
     {} as never,
     {} as never,
+    mockNotifications,
   );
 }
 

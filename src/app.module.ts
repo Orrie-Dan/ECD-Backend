@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditModule } from './common/audit';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -27,6 +28,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { GeoModule } from './modules/geo/geo.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { WashModule } from './modules/wash/wash.module';
 import { PrismaModule } from './prisma/prisma.module';
 
@@ -36,6 +38,7 @@ import { PrismaModule } from './prisma/prisma.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuditModule,
     AuthModule,
@@ -60,6 +63,7 @@ import { PrismaModule } from './prisma/prisma.module';
     GeoModule,
     ComplianceModule,
     WashModule,
+    NotificationsModule,
   ],
   providers: [
     {

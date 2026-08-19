@@ -4,7 +4,11 @@ export type FollowUpAlertCategory =
   | 'nutrition'
   | 'attendance'
   | 'referral'
-  | 'data_quality';
+  | 'data_quality'
+  | 'sted'
+  | 'transfer'
+  | 'compliance'
+  | 'capacity';
 
 export type FollowUpAlertPriority = 'high' | 'medium' | 'low';
 
@@ -21,7 +25,7 @@ export class FollowUpAlertDto {
   id: string;
 
   @ApiProperty({
-    enum: ['nutrition', 'attendance', 'referral', 'data_quality'],
+    enum: ['nutrition', 'attendance', 'referral', 'data_quality', 'sted', 'transfer', 'compliance', 'capacity'],
     enumName: 'FollowUpAlertCategory',
   })
   category: FollowUpAlertCategory;
@@ -81,6 +85,18 @@ export class FollowUpAlertCountsDto {
 
   @ApiProperty({ example: 0 })
   data_quality: number;
+
+  @ApiProperty({ example: 0 })
+  sted: number;
+
+  @ApiProperty({ example: 0 })
+  transfer: number;
+
+  @ApiProperty({ example: 0 })
+  compliance: number;
+
+  @ApiProperty({ example: 0 })
+  capacity: number;
 
   @ApiProperty({ example: 4 })
   high: number;

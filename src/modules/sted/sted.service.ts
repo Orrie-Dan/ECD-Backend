@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DeviceStatus, RecordSyncStatus } from '@prisma/client';
+import { DeviceStatus, RecordSyncStatus, UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import {
   AuditAction,
@@ -23,6 +23,7 @@ import {
   extractStedReferralSignals,
   stedMapper,
 } from './mappers/sted.mapper';
+import { NotificationsService } from '../notifications/notifications.service';
 
 /**
  * STED assessments are append-only clinical records.
@@ -34,6 +35,7 @@ export class StedService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async create(
@@ -106,6 +108,24 @@ export class StedService {
 
       return row;
     });
+
+    if (mapped.followUpIn6Months) {
+      this.notifications
+        .findUserIdsByRoleAndCenter(dto.centerId, [
+          UserRole.ecd_director,
+          UserRole.caregiver,
+        ])
+        .then((ids) => {
+          this.notifications.notifyAsync(ids, {
+            type: 'sted_followup',
+            title: 'STED follow-up scheduled',
+            message: `A STED assessment requires a 6-month follow-up.`,
+            entityType: 'sted_assessment',
+            entityId: created.id,
+          });
+        })
+        .catch(() => {});
+    }
 
     return stedMapper.toDto(created);
   }

@@ -11,6 +11,7 @@ import {
   Prisma,
   RecordSyncStatus,
   SyncOperationStatus,
+  UserRole,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import {
@@ -37,6 +38,7 @@ import {
   childMapper,
 } from './mappers/child.mapper';
 import { ClassroomsService } from '../classrooms/classrooms.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ChildrenService {
@@ -44,6 +46,7 @@ export class ChildrenService {
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async create(
@@ -144,6 +147,19 @@ export class ChildrenService {
 
       return final;
     });
+
+    this.notifications
+      .findUserIdsByRoleAndCenter(dto.centerId, [UserRole.ecd_director])
+      .then((ids) => {
+        this.notifications.notifyAsync(ids, {
+          type: 'child_enrolled',
+          title: 'New child enrolled',
+          message: `${child.firstName} ${child.lastName ?? ''} has been enrolled.`.trim(),
+          entityType: 'child',
+          entityId: child.id,
+        });
+      })
+      .catch(() => {});
 
     return childMapper.toDetailDto(child as ChildWithRelations);
   }
@@ -424,6 +440,19 @@ export class ChildrenService {
 
       return updated;
     });
+
+    this.notifications
+      .findUserIdsByRoleAndCenter(existing.centerId, [UserRole.caregiver])
+      .then((ids) => {
+        this.notifications.notifyAsync(ids, {
+          type: 'child_archived',
+          title: 'Child archived',
+          message: `${existing.firstName} ${existing.lastName ?? ''} has been archived.`.trim(),
+          entityType: 'child',
+          entityId: existing.id,
+        });
+      })
+      .catch(() => {});
 
     return childMapper.toDetailDto(child as ChildWithRelations);
   }

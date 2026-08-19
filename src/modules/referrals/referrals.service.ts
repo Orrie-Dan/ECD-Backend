@@ -10,6 +10,7 @@ import {
   RecordSyncStatus,
   ReferralSourceType,
   ReferralStatus,
+  UserRole,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
@@ -32,6 +33,7 @@ import {
   toDbReferralSourceType,
   toDbReferralStatus,
 } from './mappers/referral.mapper';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export type CreateReferralFromSignalInput = {
   childId: string;
@@ -51,6 +53,7 @@ export class ReferralsService {
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async create(user: AuthUser, dto: CreateReferralDto): Promise<ReferralResponseDto> {
@@ -102,6 +105,19 @@ export class ReferralsService {
 
       return row;
     });
+
+    this.notifications
+      .findUserIdsByRoleAndCenter(dto.centerId, [UserRole.ecd_director])
+      .then((ids) => {
+        this.notifications.notifyAsync(ids, {
+          type: 'referral_created',
+          title: 'New referral created',
+          message: `A new ${dto.sourceType} referral has been created.`,
+          entityType: 'referral',
+          entityId: created.id,
+        });
+      })
+      .catch(() => {});
 
     return referralMapper.toDto(created);
   }
@@ -272,6 +288,22 @@ export class ReferralsService {
 
       return row;
     });
+
+    this.notifications
+      .findUserIdsByRoleAndCenter(referral.centerId, [
+        UserRole.ecd_director,
+        UserRole.caregiver,
+      ])
+      .then((ids) => {
+        this.notifications.notifyAsync(ids, {
+          type: 'referral_updated',
+          title: 'Referral status updated',
+          message: `A referral has been updated to ${dto.status}.`,
+          entityType: 'referral',
+          entityId: referral.id,
+        });
+      })
+      .catch(() => {});
 
     return referralMapper.toDto(updated);
   }

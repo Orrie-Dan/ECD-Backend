@@ -42,9 +42,16 @@ function createService(prisma: object, syncAccess?: SyncAccessService) {
       },
     } as SyncAccessService);
 
+  const mockNotifications = {
+    findUserIdsByRoleAndCenter: async () => [],
+    findUserIdsByRoleAndDistrict: async () => [],
+    notifyAsync: () => {},
+    create: async () => ({}),
+    createForMultipleUsers: async () => 0,
+  } as any;
   return new NutritionService(prisma as never, access, {
     log: async () => {},
-  } as never);
+  } as never, mockNotifications);
 }
 
 async function run() {

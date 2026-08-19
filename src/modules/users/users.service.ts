@@ -32,6 +32,7 @@ import {
   UserResponseDto,
 } from './dto/user-response.dto';
 import { UserWithRelations, userMapper } from './mappers/user.mapper';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 /** Readable temp password length (unambiguous alphabet → ~59 bits at 10 chars). */
@@ -47,6 +48,7 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
     private readonly config: ConfigService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async create(
@@ -107,6 +109,22 @@ export class UsersService {
     });
 
     this.logProvisioningSecrets(created.id, rawResetToken);
+
+    if (centerId) {
+      this.notifications
+        .findUserIdsByRoleAndCenter(centerId, [UserRole.ecd_director])
+        .then((ids) => {
+          const filtered = ids.filter((id) => id !== created.id);
+          this.notifications.notifyAsync(filtered, {
+            type: 'general',
+            title: 'New user added',
+            message: `${created.fullName} (${mapped.role}) has been added to your center.`,
+            entityType: 'user_account',
+            entityId: created.id,
+          });
+        })
+        .catch(() => {});
+    }
 
     return {
       ...userMapper.toDto(created as UserWithRelations),

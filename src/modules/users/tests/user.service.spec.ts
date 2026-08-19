@@ -38,7 +38,14 @@ function createService(prisma: object, auth?: Partial<AuthService>) {
     get: (key: string) => (key === 'NODE_ENV' ? 'test' : undefined),
   } as ConfigService;
 
-  return new UsersService(prisma as never, authService, config);
+  const mockNotifications = {
+    findUserIdsByRoleAndCenter: async () => [],
+    findUserIdsByRoleAndDistrict: async () => [],
+    notifyAsync: () => {},
+    create: async () => ({}),
+    createForMultipleUsers: async () => 0,
+  } as any;
+  return new UsersService(prisma as never, authService, config, mockNotifications);
 }
 
 function createdUserRow(data: Record<string, unknown>) {

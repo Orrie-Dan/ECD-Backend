@@ -8,6 +8,10 @@ export const FOLLOW_UP_CATEGORIES = [
   'attendance',
   'referral',
   'data_quality',
+  'sted',
+  'transfer',
+  'compliance',
+  'capacity',
 ] as const;
 
 export type FollowUpCategory = (typeof FOLLOW_UP_CATEGORIES)[number];

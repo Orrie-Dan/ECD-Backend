@@ -10,6 +10,7 @@ import {
   NutritionStatus,
   Prisma,
   RecordSyncStatus,
+  UserRole,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
@@ -33,6 +34,7 @@ import {
   deriveRequiresReferral,
   nutritionMapper,
 } from './mappers/nutrition.mapper';
+import { NotificationsService } from '../notifications/notifications.service';
 
 /** Active children with no screening within this window are overdue. */
 const OVERDUE_SCREENING_DAYS = 30;
@@ -48,6 +50,7 @@ export class NutritionService {
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async createScreening(
@@ -98,6 +101,34 @@ export class NutritionService {
 
       return row;
     });
+
+    if (
+      dto.nutritionStatus === NutritionStatus.severe ||
+      dto.nutritionStatus === NutritionStatus.moderate
+    ) {
+      const statusLabel = dto.nutritionStatus === NutritionStatus.severe ? 'severe' : 'moderate';
+      const notifData = {
+        type: 'nutrition_alert' as const,
+        title: `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} nutrition status`,
+        message: `A child has been screened with ${statusLabel} nutrition status.`,
+        entityType: 'child_nutrition_screening',
+        entityId: created.id,
+      };
+
+      Promise.all([
+        this.notifications.findUserIdsByRoleAndCenter(child.centerId, [UserRole.ecd_director]),
+        child.center.districtId
+          ? this.notifications.findUserIdsByRoleAndDistrict(child.center.districtId, [
+              UserRole.district_focal_person,
+            ])
+          : Promise.resolve([]),
+      ])
+        .then(([centerIds, districtIds]) => {
+          const allIds = [...new Set([...centerIds, ...districtIds])];
+          this.notifications.notifyAsync(allIds, notifData);
+        })
+        .catch(() => {});
+    }
 
     return nutritionMapper.toDto(created);
   }
