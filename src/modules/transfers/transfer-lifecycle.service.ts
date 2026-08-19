@@ -8,6 +8,7 @@ import {
   TransferStatus,
 } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
+import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
 
 export type TransferLifecycleResult =
   | { status: 'applied'; transfer: ChildTransfer; child: Child }
@@ -269,9 +270,10 @@ export class TransferLifecycleService {
     });
 
     if (childUpdate.count === 0) {
-      // Throw so wrapping transactions roll back the transfer status change.
-      throw new Error(
-        `Child version mismatch during accept: client ${input.childVersion}`,
+      // Ensure the transaction rolls back the transfer status change and surface a clean 409.
+      throw new OptimisticLockConflictException(
+        'child_transfer',
+        childBefore?.version,
       );
     }
 
@@ -400,9 +402,10 @@ export class TransferLifecycleService {
     });
 
     if (childUpdate.count === 0) {
-      // Throw so wrapping transactions roll back the transfer status change.
-      throw new Error(
-        `Child version mismatch during cancel: client ${input.childVersion}`,
+      // Ensure the transaction rolls back the transfer status change and surface a clean 409.
+      throw new OptimisticLockConflictException(
+        'child_transfer',
+        childBefore?.version,
       );
     }
 
