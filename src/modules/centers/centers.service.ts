@@ -283,11 +283,18 @@ export class CentersService {
       deletedAt: null,
     };
 
-    if (isCenterStaffRole(user.role)) {
+    if (user.role === UserRole.caregiver) {
       if (!user.centerId) {
         throw new ForbiddenException('Center scope is required for this role');
       }
       where.id = user.centerId;
+    } else if (user.role === UserRole.ecd_director) {
+      if (!user.districtId) {
+        throw new ForbiddenException(
+          'District scope is required for ECD directors',
+        );
+      }
+      where.districtId = user.districtId;
     } else if (user.role === UserRole.district_focal_person) {
       if (!user.districtId) {
         throw new ForbiddenException(
