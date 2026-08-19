@@ -53,6 +53,14 @@ export class ChildrenService {
       throw new BadRequestException('Either fullName or firstName is required');
     }
 
+    const ninGenderDigit = dto.nationalId.charAt(4);
+    const expectedDigit = dto.gender === 'Umuhungu' ? '8' : '7';
+    if (ninGenderDigit !== expectedDigit) {
+      throw new BadRequestException(
+        `NIN gender digit (${ninGenderDigit}) does not match the declared gender (${dto.gender})`,
+      );
+    }
+
     const scope = await this.syncAccess.resolveScope(user);
     await this.assertCenterAccess(scope, dto.centerId, user);
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
@@ -71,7 +79,7 @@ export class ChildrenService {
           dateOfBirth: new Date(dto.dateOfBirth),
           gender: mapped.gender,
           centerId: mapped.centerId,
-          registrationNumber: dto.registrationNumber.trim(),
+          nationalId: dto.nationalId.trim(),
           homeVillageId: dto.homeVillageId,
           guardianName: dto.guardianName.trim(),
           guardianPhone: dto.guardianPhone.trim(),
@@ -81,6 +89,7 @@ export class ChildrenService {
           guardian2Relation: dto.guardian2Relation?.trim() ?? null,
           specialNeeds: dto.specialNeeds ?? null,
           disabilityNotes: mapped.disabilityNotes,
+          classroomId: dto.classroomId ?? null,
           registeredAt: dto.registeredAt ? new Date(dto.registeredAt) : now,
           status: ChildStatus.active,
           createdById: user.id,
@@ -154,6 +163,7 @@ export class ChildrenService {
       deletedAt: null,
       ...this.syncAccess.centerFilter(scope),
       ...(query.centerId ? { centerId: query.centerId } : {}),
+      ...(query.classroomId ? { classroomId: query.classroomId } : {}),
       ...(query.districtId && !query.centerId
         ? {
             center: {
@@ -170,7 +180,7 @@ export class ChildrenService {
               { lastName: { contains: query.search, mode: 'insensitive' } },
               { middleName: { contains: query.search, mode: 'insensitive' } },
               {
-                registrationNumber: {
+                nationalId: {
                   contains: query.search,
                   mode: 'insensitive',
                 },
@@ -268,6 +278,9 @@ export class ChildrenService {
           }),
           ...(mapped.disabilityNotes !== undefined && {
             disabilityNotes: mapped.disabilityNotes,
+          }),
+          ...(dto.classroomId !== undefined && {
+            classroomId: dto.classroomId ?? null,
           }),
           ...(dto.archiveReason !== undefined && {
             archiveReason: dto.archiveReason ?? null,
@@ -637,6 +650,9 @@ export class ChildrenService {
 
   private defaultInclude() {
     return {
+      classroom: {
+        select: { id: true, grade: true },
+      },
       center: {
         select: {
           id: true,

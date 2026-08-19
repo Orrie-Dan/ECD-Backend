@@ -1317,7 +1317,7 @@ export class SyncApplyService {
         await db.child.create({
           data: {
             id,
-            registrationNumber: String(payload.registrationNumber),
+            nationalId: String(payload.nationalId),
             firstName: String(payload.firstName),
             middleName: (payload.middleName as string) ?? null,
             lastName: (payload.lastName as string) ?? null,

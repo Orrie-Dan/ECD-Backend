@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   MaxLength,
   MinLength,
   ValidateIf,
@@ -13,6 +14,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApiChildGender } from './child-response.dto';
 
 const API_GENDERS: ApiChildGender[] = ['Umuhungu', 'Umukobwa'];
+
+/**
+ * Rwanda NIN: 16 digits — [status 1|2|3][YYYY birth year][gender 7|8][7-digit seq][issue freq][2-digit checksum]
+ */
+export const RWANDA_NIN_REGEX = /^[123]\d{3}[78]\d{10}$/;
 
 export class CreateChildDto {
   @ApiProperty({
@@ -73,11 +79,23 @@ export class CreateChildDto {
   @IsUUID()
   centerId: string;
 
-  @ApiProperty({ example: 'REG-2024-001', maxLength: 50 })
+  @ApiProperty({
+    example: '1200080012345600',
+    minLength: 16,
+    maxLength: 16,
+    pattern: '^[123]\\d{3}[78]\\d{10}$',
+    description:
+      'Rwanda National Identification Number (NIN) — 16 digits: ' +
+      '[1|2|3 status][YYYY birth year][7|8 gender][7-digit seq][issue freq][2-digit checksum]',
+  })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
-  registrationNumber: string;
+  @Matches(RWANDA_NIN_REGEX, {
+    message:
+      'nationalId must be a valid 16-digit Rwanda NIN ' +
+      '(e.g. 1200080012345600)',
+  })
+  nationalId: string;
 
   @ApiProperty({
     format: 'uuid',
@@ -143,6 +161,14 @@ export class CreateChildDto {
   @IsOptional()
   @IsDateString()
   registeredAt?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Classroom UUID; if omitted, backend may auto-assign based on age',
+  })
+  @IsOptional()
+  @IsUUID()
+  classroomId?: string;
 
   @ApiPropertyOptional({
     format: 'uuid',

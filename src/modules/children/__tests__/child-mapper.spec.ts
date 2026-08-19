@@ -92,11 +92,12 @@ async function run() {
   await assert('toDto: fullName + localized gender, no DB gender leak', () => {
     const dto = childMapper.toDto({
       id: 'c1',
-      registrationNumber: 'REG-1',
+      nationalId: 'REG-1',
       firstName: 'Jean',
       middleName: null,
       lastName: 'Habimana',
       centerId: 'center-1',
+      classroomId: null,
       dateOfBirth: new Date('2020-01-01'),
       gender: ChildGender.male,
       status: ChildStatus.active,
@@ -159,7 +160,7 @@ async function run() {
     eq(dto.sector, 'Sector A');
     eq(dto.district, 'Gasabo');
     eq(dto.province, 'Kigali');
-    eq(dto.registrationNumber, 'REG-1');
+    eq(dto.nationalId, 'REG-1');
     eq(dto.version, 1);
     // Structured name parts remain detail-only (list stays lighter).
     eq((dto as { firstName?: string }).firstName, undefined);
@@ -168,7 +169,7 @@ async function run() {
   await assert('archive/reactivate field mapping via detail DTO', () => {
     const baseEntity = {
       id: 'c1',
-      registrationNumber: 'REG-1',
+      nationalId: 'REG-1',
       firstName: 'Aline',
       middleName: null,
       lastName: null,
@@ -217,7 +218,7 @@ async function run() {
     eq(archived.notes, 'follow-up');
     eq(archived.specialNeeds, 'speech');
     eq(archived.version, 3);
-    eq(archived.registrationNumber, 'REG-1');
+    eq(archived.nationalId, 'REG-1');
     eq(archived.firstName, 'Aline');
     eq(archived.middleName, null);
     eq(archived.lastName, null);
@@ -248,7 +249,7 @@ async function run() {
       dateOfBirth: '2020-01-01',
       gender: 'Umuhungu',
       centerId: 'center-1',
-      registrationNumber: 'R1',
+      nationalId: 'R1',
       homeVillageId: 'v1',
       guardianName: 'P',
       guardianPhone: '07',

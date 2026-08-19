@@ -29,16 +29,26 @@ export class ChildResponseDto {
   status: string;
 
   @ApiProperty({
-    example: 'REG-2024-001',
-    description: 'Unique registration number (additive on list/detail)',
+    example: '1200080012345678',
+    description: 'National Identification Number (NIN) — unique child identifier',
   })
-  registrationNumber: string;
+  nationalId: string;
 
   @ApiProperty({ format: 'uuid' })
   centerId: string;
 
   @ApiProperty({ nullable: true, example: 'Kigali ECD Center' })
   centerName: string | null;
+
+  @ApiProperty({ format: 'uuid', nullable: true })
+  classroomId: string | null;
+
+  @ApiProperty({
+    enum: ['grade_1', 'grade_2', 'grade_3'],
+    enumName: 'ClassroomGrade',
+    nullable: true,
+  })
+  classroomGrade: string | null;
 
   @ApiProperty({ format: 'uuid' })
   homeVillageId: string;
@@ -78,6 +88,9 @@ export class ChildResponseDto {
 }
 
 export class ChildDetailResponseDto extends ChildResponseDto {
+  @ApiProperty({ nullable: true, example: 'Grade 1 / Umwaka wa 1' })
+  classroomLabel: string | null;
+
   @ApiProperty({ example: 'Jean' })
   firstName: string;
 

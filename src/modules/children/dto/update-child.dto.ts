@@ -150,6 +150,14 @@ export class UpdateChildDto {
 
   @ApiPropertyOptional({
     format: 'uuid',
+    description: 'Classroom UUID for grade reassignment',
+  })
+  @IsOptional()
+  @IsUUID()
+  classroomId?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
     description: 'Originating device UUID for offline sync',
   })
   @IsOptional()

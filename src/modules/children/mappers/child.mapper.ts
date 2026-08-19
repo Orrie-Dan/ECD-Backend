@@ -3,6 +3,7 @@ import {
   Child,
   ChildGender,
   ChildStatus,
+  ClassroomGrade,
 } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { CreateChildDto } from '../dto/create-child.dto';
@@ -38,6 +39,7 @@ export type ChildWithRelations = Child & {
     district?: { name: string; province?: { name: string } | null } | null;
   };
   homeVillage: AdminNode;
+  classroom?: { id: string; grade: ClassroomGrade } | null;
 };
 
 export class ChildMapper
@@ -56,9 +58,11 @@ export class ChildMapper
       gender: this.toApiGender(entity.gender),
       dateOfBirth: entity.dateOfBirth,
       status: entity.status,
-      registrationNumber: entity.registrationNumber,
+      nationalId: entity.nationalId,
       centerId: entity.centerId,
       centerName: entity.center?.name ?? null,
+      classroomId: entity.classroomId ?? null,
+      classroomGrade: entity.classroom?.grade ?? null,
       homeVillageId: entity.homeVillageId,
       province: geo.province,
       district: geo.district,
@@ -76,6 +80,9 @@ export class ChildMapper
   toDetailDto(entity: ChildWithRelations): ChildDetailResponseDto {
     return {
       ...this.toDto(entity),
+      classroomLabel: entity.classroom
+        ? this.gradeLabel(entity.classroom.grade)
+        : null,
       firstName: entity.firstName,
       middleName: entity.middleName,
       lastName: entity.lastName,
@@ -229,6 +236,15 @@ export class ChildMapper
       return status;
     }
     return undefined;
+  }
+
+  private gradeLabel(grade: ClassroomGrade): string {
+    const labels: Record<ClassroomGrade, string> = {
+      grade_1: 'Grade 1 / Umwaka wa 1',
+      grade_2: 'Grade 2 / Umwaka wa 2',
+      grade_3: 'Grade 3 / Umwaka wa 3',
+    };
+    return labels[grade];
   }
 
   private resolveGeoNames(

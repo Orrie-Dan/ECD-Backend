@@ -18,6 +18,7 @@ import { StedModule } from './modules/sted/sted.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { UsersModule } from './modules/users/users.module';
 import { CentersModule } from './modules/centers/centers.module';
+import { ClassroomsModule } from './modules/classrooms/classrooms.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AlertsModule } from './modules/alerts/alerts.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
@@ -49,6 +50,7 @@ import { PrismaModule } from './prisma/prisma.module';
     StedModule,
     ReferralsModule,
     CentersModule,
+    ClassroomsModule,
     AnalyticsModule,
     AlertsModule,
     MonitoringModule,

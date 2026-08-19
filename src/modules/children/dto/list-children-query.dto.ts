@@ -32,6 +32,14 @@ export class ListChildrenQueryDto {
   status?: string;
 
   @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Filter by classroom',
+  })
+  @IsOptional()
+  @IsUUID()
+  classroomId?: string;
+
+  @ApiPropertyOptional({
     example: 'Uwimana',
     description: 'Search by name or registration number',
   })

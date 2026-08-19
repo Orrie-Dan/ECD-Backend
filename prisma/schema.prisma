@@ -214,6 +214,22 @@ enum AdministrativeLevel {
   @@map("administrative_level")
 }
 
+enum ClassroomGrade {
+  grade_1
+  grade_2
+  grade_3
+
+  @@map("classroom_grade")
+}
+
+enum ClassroomAssignmentReason {
+  initial_enrollment
+  promotion
+  manual_reassignment
+
+  @@map("classroom_assignment_reason")
+}
+
 //////////////////////////////////////////////
 // GIS / ADMINISTRATIVE HIERARCHY
 //////////////////////////////////////////////
@@ -296,6 +312,7 @@ model EcdCenter {
   lastModifiedByDevice  Device?                @relation("EcdCenterLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
   userAccounts          UserAccount[]
   children              Child[]
+  classrooms            Classroom[]
   transfersFrom         ChildTransfer[]        @relation("ChildTransferFromCenter")
   transfersTo           ChildTransfer[]        @relation("ChildTransferToCenter")
   attendanceRecords     AttendanceRecord[]
@@ -315,6 +332,48 @@ model EcdCenter {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("ecd_center")
+}
+
+//////////////////////////////////////////////
+// CLASSROOMS
+//////////////////////////////////////////////
+
+model Classroom {
+  id        String         @id @default(uuid())
+  centerId  String         @map("center_id")
+  grade     ClassroomGrade
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @default(now()) @map("updated_at")
+
+  center   EcdCenter @relation(fields: [centerId], references: [id])
+  children Child[]
+  assignmentHistoryFrom ClassroomAssignmentHistory[] @relation("AssignmentFromClassroom")
+  assignmentHistoryTo   ClassroomAssignmentHistory[] @relation("AssignmentToClassroom")
+
+  @@unique([centerId, grade])
+  @@index([centerId])
+  @@map("classroom")
+}
+
+model ClassroomAssignmentHistory {
+  id              String                    @id @default(uuid())
+  childId         String                    @map("child_id")
+  fromClassroomId String?                   @map("from_classroom_id")
+  toClassroomId   String                    @map("to_classroom_id")
+  reason          ClassroomAssignmentReason
+  effectiveDate   DateTime                  @map("effective_date") @db.Date
+  createdAt       DateTime                  @default(now()) @map("created_at")
+  createdById     String?                   @map("created_by")
+
+  child         Child        @relation(fields: [childId], references: [id])
+  fromClassroom Classroom?   @relation("AssignmentFromClassroom", fields: [fromClassroomId], references: [id])
+  toClassroom   Classroom    @relation("AssignmentToClassroom", fields: [toClassroomId], references: [id])
+  createdBy     UserAccount? @relation("ClassroomAssignmentCreatedBy", fields: [createdById], references: [id])
+
+  @@index([childId])
+  @@index([fromClassroomId])
+  @@index([toClassroomId])
+  @@map("classroom_assignment_history")
 }
 
 //////////////////////////////////////////////
@@ -370,6 +429,7 @@ model UserAccount {
   recordedWashIndicators         WashIndicator[]           @relation("WashIndicatorRecordedBy")
   updatedAppSettings             AppSetting[]              @relation("AppSettingUpdatedBy")
   auditLogs                      AuditLog[]                @relation("AuditLogChangedBy")
+  createdClassroomAssignments    ClassroomAssignmentHistory[] @relation("ClassroomAssignmentCreatedBy")
 
   @@index([username])
   @@index([role])
@@ -482,11 +542,12 @@ model SyncOperation {
 
 model Child {
   id                     String           @id @default(uuid())
-  registrationNumber     String           @unique @map("registration_number")
+  nationalId             String           @unique @map("national_id")
   firstName              String           @map("first_name")
   middleName             String?          @map("middle_name")
   lastName               String?          @map("last_name")
   centerId               String           @map("center_id")
+  classroomId            String?          @map("classroom_id")
   dateOfBirth            DateTime         @map("date_of_birth") @db.Date
   gender                 ChildGender
   status                 ChildStatus      @default(active)
@@ -513,6 +574,7 @@ model Child {
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
   center               EcdCenter                 @relation(fields: [centerId], references: [id])
+  classroom            Classroom?                @relation(fields: [classroomId], references: [id])
   homeVillage          AdministrativeUnit        @relation("ChildHomeVillage", fields: [homeVillageId], references: [id])
   createdBy            UserAccount?              @relation("ChildCreatedBy", fields: [createdById], references: [id])
   updatedBy            UserAccount?              @relation("ChildUpdatedBy", fields: [updatedById], references: [id])
@@ -522,12 +584,14 @@ model Child {
   nutritionScreenings  ChildNutritionScreening[]
   stedAssessments      StedAssessment[]
   referrals            Referral[]
+  classroomAssignments ClassroomAssignmentHistory[]
 
   @@index([centerId])
+  @@index([classroomId])
   @@index([status])
   @@index([firstName])
   @@index([lastName])
-  @@index([registrationNumber])
+  @@index([nationalId])
   @@index([homeVillageId])
   @@index([deletedAt])
   @@index([syncStatus])

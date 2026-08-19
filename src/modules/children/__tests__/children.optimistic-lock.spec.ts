@@ -30,7 +30,7 @@ function childRow(overrides: Record<string, unknown> = {}) {
   const now = new Date();
   return {
     id: 'child-1',
-    registrationNumber: 'REG-1',
+    nationalId: 'REG-1',
     firstName: 'Ada',
     middleName: null,
     lastName: 'Lovelace',
