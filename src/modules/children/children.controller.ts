@@ -4,7 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  GoneException,
   Headers,
   Param,
   ParseUUIDPipe,
@@ -15,7 +14,6 @@ import {
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
-  ApiGoneResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -28,7 +26,6 @@ import {
   ApiNotFoundError,
   ApiOptimisticLockConflict,
   ApiStandardClientErrors,
-  ErrorResponseDto,
 } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -42,7 +39,6 @@ import {
 import { CreateChildDto } from './dto/create-child.dto';
 import { ListChildrenQueryDto } from './dto/list-children-query.dto';
 import { ReactivateChildDto } from './dto/reactivate-child.dto';
-import { TransferChildDto } from './dto/transfer-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 
 @ApiTags('children')
@@ -231,29 +227,4 @@ export class ChildrenController {
     );
   }
 
-  /**
-   * @deprecated Use POST /transfers
-   */
-  @Post(':id/transfer')
-  @ApiOperation({
-    summary: 'Transfer child (deprecated)',
-    description:
-      'Deprecated. Always returns HTTP 410 Gone. Use POST /api/v1/transfers instead.',
-    deprecated: true,
-  })
-  @ApiParam({ name: 'id', format: 'uuid', description: 'Child UUID' })
-  @ApiGoneResponse({
-    description:
-      'Endpoint removed — use POST /api/v1/transfers for child transfers',
-    type: ErrorResponseDto,
-  })
-  @ApiStandardClientErrors()
-  transfer(
-    @Param('id', ParseUUIDPipe) _id: string,
-    @Body() _dto: TransferChildDto,
-  ): never {
-    throw new GoneException(
-      'POST /children/:id/transfer has been removed. Use POST /api/v1/transfers instead.',
-    );
-  }
 }

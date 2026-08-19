@@ -254,6 +254,58 @@ export class ClassroomsService {
   }
 
   /**
+   * Compute the appropriate grade for a child based on date of birth.
+   * Rwanda ECD cycle: Grade 1 = age ≤ 3, Grade 2 = age 4–5, Grade 3 = age ≥ 6.
+   */
+  static gradeFromDob(dateOfBirth: Date, referenceDate = new Date()): ClassroomGrade {
+    let age = referenceDate.getFullYear() - dateOfBirth.getFullYear();
+    const m = referenceDate.getMonth() - dateOfBirth.getMonth();
+    if (m < 0 || (m === 0 && referenceDate.getDate() < dateOfBirth.getDate())) {
+      age--;
+    }
+    if (age <= 3) return ClassroomGrade.grade_1;
+    if (age <= 5) return ClassroomGrade.grade_2;
+    return ClassroomGrade.grade_3;
+  }
+
+  /**
+   * Auto-assign a child to the correct classroom for their center based on DOB.
+   * Returns the classroomId, or null if the classroom doesn't exist.
+   */
+  static async autoAssignClassroom(
+    tx: Prisma.TransactionClient,
+    childId: string,
+    centerId: string,
+    dateOfBirth: Date,
+    createdById?: string,
+  ): Promise<string | null> {
+    const grade = ClassroomsService.gradeFromDob(dateOfBirth);
+    const classroom = await tx.classroom.findUnique({
+      where: { centerId_grade: { centerId, grade } },
+    });
+    if (!classroom) return null;
+
+    await tx.child.update({
+      where: { id: childId },
+      data: { classroomId: classroom.id },
+    });
+
+    await tx.classroomAssignmentHistory.create({
+      data: {
+        id: randomUUID(),
+        childId,
+        fromClassroomId: null,
+        toClassroomId: classroom.id,
+        reason: ClassroomAssignmentReason.initial_enrollment,
+        effectiveDate: new Date(),
+        createdById: createdById ?? null,
+      },
+    });
+
+    return classroom.id;
+  }
+
+  /**
    * Create the 3 fixed classrooms for a center within a transaction.
    */
   static async seedClassroomsForCenter(

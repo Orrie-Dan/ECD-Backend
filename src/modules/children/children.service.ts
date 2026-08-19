@@ -36,6 +36,7 @@ import {
   ChildWithRelations,
   childMapper,
 } from './mappers/child.mapper';
+import { ClassroomsService } from '../classrooms/classrooms.service';
 
 @Injectable()
 export class ChildrenService {
@@ -102,27 +103,46 @@ export class ChildrenService {
         include: this.defaultInclude(),
       });
 
+      // Auto-assign classroom from DOB when none was explicitly provided
+      if (!dto.classroomId && created.dateOfBirth) {
+        await ClassroomsService.autoAssignClassroom(
+          tx,
+          created.id,
+          created.centerId,
+          created.dateOfBirth,
+          user.id,
+        );
+      }
+
+      // Re-fetch to pick up the classroom assignment
+      const final = !dto.classroomId
+        ? await tx.child.findUniqueOrThrow({
+            where: { id: created.id },
+            include: this.defaultInclude(),
+          })
+        : created;
+
       await this.writeSyncOperation(tx, {
         deviceId,
         entityType: 'child',
-        entityId: created.id,
+        entityId: final.id,
         operation: PrismaAuditAction.create,
-        payload: created as unknown as Prisma.InputJsonValue,
+        payload: final as unknown as Prisma.InputJsonValue,
       });
 
       await this.audit.log({
         tx,
         entityType: 'child',
-        entityId: created.id,
+        entityId: final.id,
         action: AuditAction.CREATE,
         userId: user.id,
         deviceId,
         oldValues: null,
-        newValues: toAuditJson(this.plainChild(created)),
+        newValues: toAuditJson(this.plainChild(final)),
         changedAt: now,
       });
 
-      return created;
+      return final;
     });
 
     return childMapper.toDetailDto(child as ChildWithRelations);

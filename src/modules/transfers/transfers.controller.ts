@@ -39,12 +39,7 @@ import { TransfersService } from './transfers.service';
 @ApiTags('transfers')
 @ApiBearerAuth()
 @Controller('transfers')
-@Roles(
-  UserRole.caregiver,
-  UserRole.ecd_director,
-  UserRole.district_focal_person,
-  UserRole.ncda_admin,
-)
+@Roles(UserRole.ecd_director)
 export class TransfersController {
   constructor(private readonly transfersService: TransfersService) {}
 
