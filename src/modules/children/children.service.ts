@@ -57,7 +57,7 @@ export class ChildrenService {
       throw new BadRequestException('Either fullName or firstName is required');
     }
 
-    const ninGenderDigit = dto.nationalId.charAt(4);
+    const ninGenderDigit = dto.nationalId.charAt(5);
     const expectedDigit = dto.gender === 'Umuhungu' ? '8' : '7';
     if (ninGenderDigit !== expectedDigit) {
       throw new BadRequestException(

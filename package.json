@@ -53,7 +53,8 @@
     "test:sprint-3.3": "npm run test:audit && npm run test:children && npm run test:attendance && npm run test:transfers && npm run test:referrals && npm run test:feeding && npm run test:nutrition && npm run test:sted && npm run test:sync-idempotency",
     "seed:admin": "ts-node prisma/seed.ts",
     "report:orphaned-transfers": "ts-node scripts/report-orphaned-child-transfers.ts",
-    "migrate:assign-classrooms": "ts-node scripts/assign-classrooms.ts"
+    "migrate:assign-classrooms": "ts-node scripts/assign-classrooms.ts",
+    "migrate:national-ids": "ts-node scripts/migrate-national-ids.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

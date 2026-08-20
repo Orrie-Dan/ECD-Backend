@@ -30,7 +30,10 @@ import {
   resolveFeedingRecordedByIdFromPayload,
   resolveFeedingRecordedDateFromPayload,
 } from '../feeding/mappers/feeding.mapper';
-import { resolveChildGenderFromPayload } from '../children/mappers/child.mapper';
+import {
+  resolveChildGenderFromPayload,
+  resolveChildNationalIdFromPayload,
+} from '../children/mappers/child.mapper';
 import {
   CHILD_SCOPED_ENTITY_TYPES,
   SyncableEntityType,
@@ -1317,7 +1320,7 @@ export class SyncApplyService {
         await db.child.create({
           data: {
             id,
-            nationalId: String(payload.nationalId),
+            nationalId: resolveChildNationalIdFromPayload(payload),
             firstName: String(payload.firstName),
             middleName: (payload.middleName as string) ?? null,
             lastName: (payload.lastName as string) ?? null,

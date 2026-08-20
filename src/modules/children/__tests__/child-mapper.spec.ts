@@ -2,6 +2,7 @@ import { ChildGender, ChildStatus } from '@prisma/client';
 import {
   childMapper,
   resolveChildGenderFromPayload,
+  resolveChildNationalIdFromPayload,
 } from '../mappers/child.mapper';
 
 /**
@@ -69,6 +70,33 @@ async function run() {
     eq(resolveChildGenderFromPayload({ gender: 'Umukobwa' }), ChildGender.female);
     eq(resolveChildGenderFromPayload({ gender: 'male' }), ChildGender.male);
     eq(resolveChildGenderFromPayload({ gender: 'female' }), ChildGender.female);
+  });
+
+  await assert('resolveChildNationalIdFromPayload accepts nationalId and legacy registrationNumber', () => {
+    const valid = '1202480000001000';
+    eq(resolveChildNationalIdFromPayload({ nationalId: valid }), valid);
+    eq(
+      resolveChildNationalIdFromPayload({ registrationNumber: valid }),
+      valid,
+    );
+  });
+
+  await assert('resolveChildNationalIdFromPayload rejects missing and sentinel values', () => {
+    const rejects = (payload: Record<string, unknown>) => {
+      try {
+        resolveChildNationalIdFromPayload(payload);
+        throw new Error('expected throw');
+      } catch (err) {
+        if (err instanceof Error && err.message === 'expected throw') {
+          throw err;
+        }
+      }
+    };
+    rejects({});
+    rejects({ nationalId: 'undefined' });
+    rejects({ nationalId: 'null' });
+    rejects({ nationalId: 'ECD-2026-b633' });
+    rejects({ registrationNumber: '' });
   });
 
   await assert('pagination shape: items/pageSize (not data/meta)', () => {

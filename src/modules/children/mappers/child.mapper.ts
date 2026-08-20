@@ -6,7 +6,7 @@ import {
   ClassroomGrade,
 } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
-import { CreateChildDto } from '../dto/create-child.dto';
+import { CreateChildDto, RWANDA_NIN_REGEX } from '../dto/create-child.dto';
 import {
   ApiChildGender,
   ChildDetailResponseDto,
@@ -298,6 +298,53 @@ export const childMapper = new ChildMapper();
  * Resolve Prisma ChildGender from sync payload.
  * Accepts API labels (Umuhungu/Umukobwa) and DB/harness aliases (male/female).
  */
+/**
+ * Resolve nationalId for child sync CREATE.
+ * Accepts nationalId or legacy registrationNumber. Never coerces missing values
+ * to the string "undefined" (that caused invalid rows in national_id).
+ */
+export function resolveChildNationalIdFromPayload(
+  payload: Record<string, unknown>,
+): string {
+  const raw = payload.nationalId ?? payload.registrationNumber;
+  if (typeof raw !== 'string') {
+    throw new Error(
+      'child requires nationalId (or legacy registrationNumber)',
+    );
+  }
+  const trimmed = raw.trim();
+  if (
+    !trimmed ||
+    trimmed === 'undefined' ||
+    trimmed === 'null'
+  ) {
+    throw new Error(
+      'child requires nationalId (or legacy registrationNumber)',
+    );
+  }
+  if (!RWANDA_NIN_REGEX.test(trimmed)) {
+    throw new Error(
+      'child nationalId must be a valid 16-digit Rwanda NIN',
+    );
+  }
+  return trimmed;
+}
+
+/**
+ * Build a placeholder NIN for legacy/test rows during data migration.
+ * Sequence + checksum digits are synthetic — replace with real NIDA values in production.
+ */
+export function buildPlaceholderNationalId(
+  dateOfBirth: Date,
+  gender: ChildGender,
+  sequence: number,
+): string {
+  const year = dateOfBirth.getUTCFullYear();
+  const genderDigit = gender === ChildGender.male ? '8' : '7';
+  const seq = String(sequence).padStart(7, '0');
+  return `1${year}${genderDigit}${seq}000`;
+}
+
 export function resolveChildGenderFromPayload(
   payload: Record<string, unknown>,
 ): ChildGender {

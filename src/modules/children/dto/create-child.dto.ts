@@ -18,7 +18,7 @@ const API_GENDERS: ApiChildGender[] = ['Umuhungu', 'Umukobwa'];
 /**
  * Rwanda NIN: 16 digits — [status 1|2|3][YYYY birth year][gender 7|8][7-digit seq][issue freq][2-digit checksum]
  */
-export const RWANDA_NIN_REGEX = /^[123]\d{3}[78]\d{10}$/;
+export const RWANDA_NIN_REGEX = /^[123]\d{4}[78]\d{10}$/;
 
 export class CreateChildDto {
   @ApiProperty({
