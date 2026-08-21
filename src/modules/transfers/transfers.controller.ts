@@ -30,7 +30,9 @@ import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { AcceptTransferDto } from './dto/accept-transfer.dto';
 import { CancelTransferDto } from './dto/cancel-transfer.dto';
 import { CreateTransferDto } from './dto/create-transfer.dto';
+import { ListCenterTransferHistoryQueryDto } from './dto/list-center-transfer-history-query.dto';
 import {
+  CenterTransferHistoryResponseDto,
   PaginatedTransfersResponseDto,
   TransferHistoryResponseDto,
   TransferResponseDto,
@@ -111,6 +113,24 @@ export class TransfersController {
     @Query() query: ListPaginationQueryDto,
   ) {
     return this.transfersService.getChildHistory(user, childId, query);
+  }
+
+  @Get('centers/:id/transfer-history')
+  @ApiOperation({
+    summary: 'Get ECD center transfer history',
+    description:
+      'Paginated transfers where the center is source or destination (all statuses by default), newest first. Each item includes direction (incoming|outgoing) relative to the center.',
+  })
+  @ApiParam({ name: 'id', format: 'uuid', description: 'ECD center ID' })
+  @ApiOkResponse({ type: CenterTransferHistoryResponseDto })
+  @ApiNotFoundError('Center')
+  @ApiStandardClientErrors()
+  getCenterHistory(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) centerId: string,
+    @Query() query: ListCenterTransferHistoryQueryDto,
+  ) {
+    return this.transfersService.getCenterHistory(user, centerId, query);
   }
 
   @Get('transfers/:id')

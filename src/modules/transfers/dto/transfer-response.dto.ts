@@ -88,3 +88,33 @@ export class TransferHistoryResponseDto {
   @ApiPropertyOptional({ example: 1 })
   totalPages?: number;
 }
+
+export class CenterTransferHistoryItemDto extends TransferResponseDto {
+  @ApiProperty({
+    enum: ['incoming', 'outgoing'],
+    description:
+      'Relative to the requested center: incoming when toCenterId matches, outgoing when fromCenterId matches.',
+    example: 'incoming',
+  })
+  direction: 'incoming' | 'outgoing';
+}
+
+export class CenterTransferHistoryResponseDto {
+  @ApiProperty({ format: 'uuid' })
+  centerId: string;
+
+  @ApiProperty({ type: () => [CenterTransferHistoryItemDto] })
+  items: CenterTransferHistoryItemDto[];
+
+  @ApiProperty({ example: 12 })
+  total: number;
+
+  @ApiPropertyOptional({ example: 1 })
+  page?: number;
+
+  @ApiPropertyOptional({ example: 50 })
+  pageSize?: number;
+
+  @ApiPropertyOptional({ example: 1 })
+  totalPages?: number;
+}

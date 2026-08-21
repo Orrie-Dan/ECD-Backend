@@ -24,6 +24,11 @@ import { AcceptTransferDto } from './dto/accept-transfer.dto';
 import { CancelTransferDto } from './dto/cancel-transfer.dto';
 import { CreateTransferDto } from './dto/create-transfer.dto';
 import {
+  ListCenterTransferHistoryQueryDto,
+  TransferDirection,
+} from './dto/list-center-transfer-history-query.dto';
+import {
+  CenterTransferHistoryResponseDto,
   TransferHistoryResponseDto,
   TransferResponseDto,
 } from './dto/transfer-response.dto';
@@ -354,6 +359,84 @@ export class TransfersService {
       pageSize,
       totalPages: Math.ceil(total / pageSize) || 1,
     };
+  }
+
+  async getCenterHistory(
+    user: AuthUser,
+    centerId: string,
+    query: ListCenterTransferHistoryQueryDto = {},
+  ): Promise<CenterTransferHistoryResponseDto> {
+    const center = await this.prisma.ecdCenter.findFirst({
+      where: { id: centerId, deletedAt: null },
+      select: { id: true, districtId: true },
+    });
+
+    if (!center) {
+      throw new NotFoundException('Center not found');
+    }
+
+    assertCenterAccess(user, center.id, center.districtId);
+
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 50;
+    const skip = (page - 1) * pageSize;
+
+    const directionFilter = this.centerDirectionWhere(
+      centerId,
+      query.direction,
+    );
+    const where = {
+      deletedAt: null,
+      ...(query.status ? { status: query.status } : {}),
+      ...directionFilter,
+    };
+
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.childTransfer.findMany({
+        where,
+        orderBy: [{ transferDate: 'desc' }, { createdAt: 'desc' }],
+        skip,
+        take: pageSize,
+      }),
+      this.prisma.childTransfer.count({ where }),
+    ]);
+
+    return {
+      centerId,
+      items: rows.map((row) => ({
+        ...transferMapper.toDto(row),
+        direction: this.resolveDirection(centerId, row),
+      })),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize) || 1,
+    };
+  }
+
+  private centerDirectionWhere(
+    centerId: string,
+    direction?: TransferDirection,
+  ):
+    | { toCenterId: string }
+    | { fromCenterId: string }
+    | { OR: Array<{ toCenterId: string } | { fromCenterId: string }> } {
+    if (direction === 'incoming') {
+      return { toCenterId: centerId };
+    }
+    if (direction === 'outgoing') {
+      return { fromCenterId: centerId };
+    }
+    return {
+      OR: [{ toCenterId: centerId }, { fromCenterId: centerId }],
+    };
+  }
+
+  private resolveDirection(
+    centerId: string,
+    row: { fromCenterId: string; toCenterId: string },
+  ): TransferDirection {
+    return row.toCenterId === centerId ? 'incoming' : 'outgoing';
   }
 
   /**
