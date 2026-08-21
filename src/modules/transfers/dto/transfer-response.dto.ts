@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TransferStatus } from '@prisma/client';
 
 export class TransferResponseDto {
@@ -67,4 +67,24 @@ export class PaginatedTransfersResponseDto {
 
   @ApiProperty({ example: 3 })
   totalPages: number;
+}
+
+export class TransferHistoryResponseDto {
+  @ApiProperty({ format: 'uuid' })
+  childId: string;
+
+  @ApiProperty({ type: () => [TransferResponseDto] })
+  items: TransferResponseDto[];
+
+  @ApiProperty({ example: 5 })
+  total: number;
+
+  @ApiPropertyOptional({ example: 1 })
+  page?: number;
+
+  @ApiPropertyOptional({ example: 50 })
+  pageSize?: number;
+
+  @ApiPropertyOptional({ example: 1 })
+  totalPages?: number;
 }

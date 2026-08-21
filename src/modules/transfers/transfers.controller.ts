@@ -32,18 +32,19 @@ import { CancelTransferDto } from './dto/cancel-transfer.dto';
 import { CreateTransferDto } from './dto/create-transfer.dto';
 import {
   PaginatedTransfersResponseDto,
+  TransferHistoryResponseDto,
   TransferResponseDto,
 } from './dto/transfer-response.dto';
 import { TransfersService } from './transfers.service';
 
 @ApiTags('transfers')
 @ApiBearerAuth()
-@Controller('transfers')
+@Controller()
 @Roles(UserRole.ecd_director)
 export class TransfersController {
   constructor(private readonly transfersService: TransfersService) {}
 
-  @Post()
+  @Post('transfers')
   @ApiOperation({
     summary: 'Initiate child transfer',
     description:
@@ -64,11 +65,11 @@ export class TransfersController {
     });
   }
 
-  @Get('incoming')
+  @Get('transfers/incoming')
   @ApiOperation({
     summary: 'List incoming transfers',
     description:
-      'Paginated transfers into centers visible to the caller (pending and historical).',
+      'Paginated pending transfers into centers visible to the caller.',
   })
   @ApiOkResponse({ type: PaginatedTransfersResponseDto })
   @ApiStandardClientErrors()
@@ -79,11 +80,11 @@ export class TransfersController {
     return this.transfersService.findIncoming(user, query);
   }
 
-  @Get('outgoing')
+  @Get('transfers/outgoing')
   @ApiOperation({
     summary: 'List outgoing transfers',
     description:
-      'Paginated transfers out of centers visible to the caller (pending and historical).',
+      'Paginated pending transfers out of centers visible to the caller.',
   })
   @ApiOkResponse({ type: PaginatedTransfersResponseDto })
   @ApiStandardClientErrors()
@@ -94,7 +95,25 @@ export class TransfersController {
     return this.transfersService.findOutgoing(user, query);
   }
 
-  @Get(':id')
+  @Get('children/:id/transfer-history')
+  @ApiOperation({
+    summary: 'Get child transfer history',
+    description:
+      'Paginated transfers for a child (pending, accepted, and cancelled), newest first. Accessible when the caller can see the child\'s current center or any from/to center on the child\'s transfers.',
+  })
+  @ApiParam({ name: 'id', format: 'uuid', description: 'Child ID' })
+  @ApiOkResponse({ type: TransferHistoryResponseDto })
+  @ApiNotFoundError('Child')
+  @ApiStandardClientErrors()
+  getChildHistory(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) childId: string,
+    @Query() query: ListPaginationQueryDto,
+  ) {
+    return this.transfersService.getChildHistory(user, childId, query);
+  }
+
+  @Get('transfers/:id')
   @ApiOperation({
     summary: 'Get transfer by ID',
     description: 'Returns a single transfer visible in the caller scope.',
@@ -110,7 +129,7 @@ export class TransfersController {
     return this.transfersService.findOne(user, id);
   }
 
-  @Post(':id/accept')
+  @Post('transfers/:id/accept')
   @ApiOperation({
     summary: 'Accept pending transfer',
     description:
@@ -134,7 +153,7 @@ export class TransfersController {
     });
   }
 
-  @Post(':id/cancel')
+  @Post('transfers/:id/cancel')
   @ApiOperation({
     summary: 'Cancel pending transfer',
     description:

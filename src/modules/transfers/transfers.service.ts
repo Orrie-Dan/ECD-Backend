@@ -11,7 +11,10 @@ import {
   UserRole,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { assertCenterAccess } from '../../common/auth/scope.util';
+import {
+  assertCenterAccess,
+  canAccessCenter,
+} from '../../common/auth/scope.util';
 import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -20,7 +23,10 @@ import { SyncAccessService } from '../sync/sync-access.service';
 import { AcceptTransferDto } from './dto/accept-transfer.dto';
 import { CancelTransferDto } from './dto/cancel-transfer.dto';
 import { CreateTransferDto } from './dto/create-transfer.dto';
-import { TransferResponseDto } from './dto/transfer-response.dto';
+import {
+  TransferHistoryResponseDto,
+  TransferResponseDto,
+} from './dto/transfer-response.dto';
 import { transferMapper } from './mappers/transfer.mapper';
 import { TransferLifecycleService } from './transfer-lifecycle.service';
 
@@ -316,6 +322,88 @@ export class TransfersService {
     }
 
     return transferMapper.toDto(transfer);
+  }
+
+  async getChildHistory(
+    user: AuthUser,
+    childId: string,
+    query: { page?: number; pageSize?: number } = {},
+  ): Promise<TransferHistoryResponseDto> {
+    await this.assertChildTransferHistoryAccess(user, childId);
+
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 50;
+    const skip = (page - 1) * pageSize;
+    const where = { childId, deletedAt: null };
+
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.childTransfer.findMany({
+        where,
+        orderBy: [{ transferDate: 'desc' }, { createdAt: 'desc' }],
+        skip,
+        take: pageSize,
+      }),
+      this.prisma.childTransfer.count({ where }),
+    ]);
+
+    return {
+      childId,
+      items: rows.map((row) => transferMapper.toDto(row)),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize) || 1,
+    };
+  }
+
+  /**
+   * Allow history when the caller can access the child's current center,
+   * or any from/to center on the child's transfers (so source centers retain
+   * visibility after an accepted move).
+   */
+  private async assertChildTransferHistoryAccess(
+    user: AuthUser,
+    childId: string,
+  ): Promise<void> {
+    const child = await this.prisma.child.findFirst({
+      where: { id: childId, deletedAt: null },
+      select: {
+        id: true,
+        centerId: true,
+        center: { select: { id: true, districtId: true } },
+      },
+    });
+
+    if (!child) {
+      throw new NotFoundException('Child not found');
+    }
+
+    if (canAccessCenter(user, child.centerId, child.center.districtId)) {
+      return;
+    }
+
+    const scope = await this.syncAccess.resolveScope(user);
+    if (scope.centerIds === 'all') {
+      return;
+    }
+
+    const related = await this.prisma.childTransfer.findFirst({
+      where: {
+        childId,
+        deletedAt: null,
+        OR: [
+          { fromCenterId: { in: scope.centerIds } },
+          { toCenterId: { in: scope.centerIds } },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (!related) {
+      throw new ForbiddenException(
+        'You do not have access to this child transfer history',
+      );
+    }
   }
 
   private async getTransferOrThrow(id: string) {
