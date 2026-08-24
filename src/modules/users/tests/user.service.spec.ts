@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserAccountStatus, UserRole } from '@prisma/client';
 import { AuthService } from '../../auth/auth.service';
@@ -57,6 +53,8 @@ function createdUserRow(data: Record<string, unknown>) {
     fullName: data.fullName,
     phone: data.phone ?? null,
     email: null,
+    gender: data.gender ?? null,
+    educationLevel: data.educationLevel ?? null,
     role: data.role,
     districtId: data.districtId ?? null,
     centerId: data.centerId ?? null,
@@ -69,12 +67,8 @@ function createdUserRow(data: Record<string, unknown>) {
     createdById: data.createdById,
     updatedAt: now,
     updatedById: data.updatedById,
-    district: data.districtId
-      ? { id: data.districtId, name: 'District' }
-      : null,
-    center: data.centerId
-      ? { id: data.centerId, code: 'C1', name: 'Center' }
-      : null,
+    district: data.districtId ? { id: data.districtId, name: 'District' } : null,
+    center: data.centerId ? { id: data.centerId, code: 'C1', name: 'Center' } : null,
     createdBy: {
       id: data.createdById,
       username: 'actor',
@@ -101,9 +95,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 

@@ -102,10 +102,7 @@ async function main() {
         count: async () => 0,
       },
     };
-    const service = new WashService(
-      prisma as never,
-      { log: async () => undefined } as never,
-    );
+    const service = new WashService(prisma as never, { log: async () => undefined } as never);
 
     await service.listIndicators(
       user({ role: UserRole.district_focal_person, districtId: 'district-1' }),
@@ -169,18 +166,14 @@ async function main() {
         return fn(tx);
       },
     };
-    const service = new WashService(
-      prisma as never,
-      { log: async () => undefined } as never,
-    );
+    const service = new WashService(prisma as never, { log: async () => undefined } as never);
 
     let threw = false;
     try {
-      await service.updateIndicator(
-        user({ role: UserRole.ncda_admin }),
-        'wash-1',
-        { version: 1, waterSourceAvailable: false },
-      );
+      await service.updateIndicator(user({ role: UserRole.ncda_admin }), 'wash-1', {
+        version: 1,
+        waterSourceAvailable: false,
+      });
     } catch (e) {
       threw = e instanceof OptimisticLockConflictException;
     }
@@ -196,10 +189,7 @@ async function main() {
           }),
       },
     };
-    const service = new WashService(
-      prisma as never,
-      { log: async () => undefined } as never,
-    );
+    const service = new WashService(prisma as never, { log: async () => undefined } as never);
 
     let threw = false;
     try {

@@ -28,9 +28,7 @@ function buildSyncCreateData(
   contextDeviceId: string,
   resolvedCenterId: string,
 ) {
-  const status = resolveAttendanceStatusFromPayload(
-    payload as unknown as Record<string, unknown>,
-  );
+  const status = resolveAttendanceStatusFromPayload(payload as unknown as Record<string, unknown>);
   const absentReason = resolveAbsentReasonFromPayload(
     payload as unknown as Record<string, unknown>,
     status,
@@ -64,9 +62,7 @@ function buildSyncUpdateData(
   };
 
   if (typeof payload.present === 'boolean' || payload.status != null) {
-    next.status = resolveAttendanceStatusFromPayload(
-      payload as unknown as Record<string, unknown>,
-    );
+    next.status = resolveAttendanceStatusFromPayload(payload as unknown as Record<string, unknown>);
     next.absentReason = resolveAbsentReasonFromPayload(
       payload as unknown as Record<string, unknown>,
       next.status,
@@ -102,9 +98,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 

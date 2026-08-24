@@ -290,10 +290,7 @@ export class ReferralsService {
     });
 
     this.notifications
-      .findUserIdsByRoleAndCenter(referral.centerId, [
-        UserRole.ecd_director,
-        UserRole.caregiver,
-      ])
+      .findUserIdsByRoleAndCenter(referral.centerId, [UserRole.ecd_director, UserRole.caregiver])
       .then((ids) => {
         this.notifications.notifyAsync(ids, {
           type: 'referral_updated',

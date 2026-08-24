@@ -2,11 +2,7 @@
  * Compliance module tests.
  * Run: npx ts-node src/modules/compliance/__tests__/compliance.service.spec.ts
  */
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { AssessmentStatus, AssessmentType, UserRole } from '@prisma/client';
 import { OptimisticLockConflictException } from '../../../common/concurrency/optimistic-lock.exception';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
@@ -168,15 +164,12 @@ async function main() {
     } as any;
     const service = new ComplianceService(prisma as never, audit as never, mockNotifications);
 
-    const result = await service.createAssessment(
-      user({ role: UserRole.ncda_admin }),
-      {
-        centerId: 'center-1',
-        standardsVersion: '2024',
-        assessmentType: AssessmentType.self_assessment,
-        assessmentDate: '2026-01-15',
-      },
-    );
+    const result = await service.createAssessment(user({ role: UserRole.ncda_admin }), {
+      centerId: 'center-1',
+      standardsVersion: '2024',
+      assessmentType: AssessmentType.self_assessment,
+      assessmentDate: '2026-01-15',
+    });
 
     eq(result.status, AssessmentStatus.draft);
     eq(auditLogs.length >= 1, true);
@@ -238,11 +231,10 @@ async function main() {
 
     let threw = false;
     try {
-      await service.updateAssessment(
-        user({ role: UserRole.ncda_admin }),
-        'assessment-1',
-        { version: 1, status: AssessmentStatus.draft },
-      );
+      await service.updateAssessment(user({ role: UserRole.ncda_admin }), 'assessment-1', {
+        version: 1,
+        status: AssessmentStatus.draft,
+      });
     } catch (e) {
       threw = e instanceof BadRequestException;
     }
@@ -278,11 +270,10 @@ async function main() {
 
     let threw = false;
     try {
-      await service.updateAssessment(
-        user({ role: UserRole.ncda_admin }),
-        'assessment-1',
-        { version: 1, status: AssessmentStatus.submitted },
-      );
+      await service.updateAssessment(user({ role: UserRole.ncda_admin }), 'assessment-1', {
+        version: 1,
+        status: AssessmentStatus.submitted,
+      });
     } catch (e) {
       threw = e instanceof OptimisticLockConflictException;
     }

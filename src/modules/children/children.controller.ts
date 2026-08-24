@@ -32,10 +32,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { ChildrenService } from './children.service';
 import { ArchiveChildDto } from './dto/archive-child.dto';
-import {
-  ChildDetailResponseDto,
-  PaginatedChildrenResponseDto,
-} from './dto/child-response.dto';
+import { ChildDetailResponseDto, PaginatedChildrenResponseDto } from './dto/child-response.dto';
 import { CreateChildDto } from './dto/create-child.dto';
 import { ListChildrenQueryDto } from './dto/list-children-query.dto';
 import { ReactivateChildDto } from './dto/reactivate-child.dto';
@@ -98,10 +95,7 @@ export class ChildrenController {
   @ApiOkResponse({ type: ChildDetailResponseDto })
   @ApiStandardClientErrors()
   @ApiNotFoundError('Child')
-  findOne(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  findOne(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.childrenService.findOne(user, id);
   }
 
@@ -198,8 +192,7 @@ export class ChildrenController {
     name: 'deviceId',
     required: false,
     type: String,
-    description:
-      'Optional Device registry UUID; used when `x-device-id` header is absent',
+    description: 'Optional Device registry UUID; used when `x-device-id` header is absent',
   })
   @ApiOkResponse({ type: ChildDetailResponseDto })
   @ApiDeviceIdHeader()
@@ -215,16 +208,8 @@ export class ChildrenController {
   ) {
     const version = Number(versionRaw);
     if (!Number.isInteger(version) || version < 0) {
-      throw new BadRequestException(
-        'Query parameter version (non-negative integer) is required',
-      );
+      throw new BadRequestException('Query parameter version (non-negative integer) is required');
     }
-    return this.childrenService.softDelete(
-      user,
-      id,
-      version,
-      deviceHeader ?? deviceQuery,
-    );
+    return this.childrenService.softDelete(user, id, version, deviceHeader ?? deviceQuery);
   }
-
 }

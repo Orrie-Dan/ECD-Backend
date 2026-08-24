@@ -52,8 +52,7 @@ export class ReferralsController {
   @Post('referrals')
   @ApiOperation({
     summary: 'Create referral',
-    description:
-      'Creates a referral linked to a nutrition screening or STED assessment source.',
+    description: 'Creates a referral linked to a nutrition screening or STED assessment source.',
   })
   @ApiDeviceIdHeader()
   @ApiCreatedResponse({ type: ReferralResponseDto })
@@ -76,10 +75,7 @@ export class ReferralsController {
   })
   @ApiOkResponse({ type: PaginatedReferralsResponseDto })
   @ApiStandardClientErrors()
-  findAll(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListReferralsQueryDto,
-  ) {
+  findAll(@CurrentUser() user: AuthUser, @Query() query: ListReferralsQueryDto) {
     return this.referralsService.findAll(user, query);
   }
 
@@ -92,10 +88,7 @@ export class ReferralsController {
   @ApiOkResponse({ type: ReferralHistoryResponseDto })
   @ApiNotFoundError('Child')
   @ApiStandardClientErrors()
-  getChildHistory(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseUUIDPipe) childId: string,
-  ) {
+  getChildHistory(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) childId: string) {
     return this.referralsService.getChildHistory(user, childId);
   }
 

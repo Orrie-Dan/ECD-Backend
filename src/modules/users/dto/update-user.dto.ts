@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { EducationLevel, PersonSex } from '@prisma/client';
+import { IsEnum, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ApiUserStatus } from './user-response.dto';
 
 const API_STATUSES: ApiUserStatus[] = ['ACTIVE', 'SUSPENDED'];
@@ -25,6 +26,24 @@ export class UpdateUserDto {
   @IsString()
   @MaxLength(50)
   phone?: string | null;
+
+  @ApiPropertyOptional({
+    enum: PersonSex,
+    enumName: 'PersonSex',
+    nullable: true,
+  })
+  @IsOptional()
+  @IsEnum(PersonSex)
+  gender?: PersonSex | null;
+
+  @ApiPropertyOptional({
+    enum: EducationLevel,
+    enumName: 'EducationLevel',
+    nullable: true,
+  })
+  @IsOptional()
+  @IsEnum(EducationLevel)
+  educationLevel?: EducationLevel | null;
 
   @ApiPropertyOptional({
     enum: API_STATUSES,

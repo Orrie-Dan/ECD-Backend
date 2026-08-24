@@ -60,8 +60,7 @@ function createPrisma(counts: {
   return {
     ecdCenter: {
       count: async () => counts.centers?.length ?? 2,
-      findMany: async () =>
-        (counts.centers ?? ['c1', 'c2']).map((id) => ({ id })),
+      findMany: async () => (counts.centers ?? ['c1', 'c2']).map((id) => ({ id })),
       findFirst: async ({ where }: { where: { id: string } }) => ({
         id: where.id,
         districtId: 'd1',
@@ -103,8 +102,8 @@ function createPrisma(counts: {
       // Alternating attendance then feeding distinct-center counts
       const list =
         distinctCalls === 0
-          ? counts.attendanceCenters ?? ['c1']
-          : counts.feedingCenters ?? ['c1'];
+          ? (counts.attendanceCenters ?? ['c1'])
+          : (counts.feedingCenters ?? ['c1']);
       distinctCalls += 1;
       return [{ cnt: list.length }];
     },
@@ -155,10 +154,9 @@ async function main() {
     const service = new AnalyticsService(createPrisma({}) as never);
     let threw = false;
     try {
-      await service.getDashboard(
-        user({ role: UserRole.caregiver, centerId: 'c1' }),
-        { centerId: 'c2' },
-      );
+      await service.getDashboard(user({ role: UserRole.caregiver, centerId: 'c1' }), {
+        centerId: 'c2',
+      });
     } catch (e) {
       threw = e instanceof ForbiddenException;
     }
@@ -169,13 +167,10 @@ async function main() {
     const service = new AnalyticsService(createPrisma({ centers: ['c1'] }) as never);
     let threw = false;
     try {
-      await service.getDashboard(
-        user({ role: UserRole.ncda_admin }),
-        {
-          from: new Date('2026-08-10'),
-          to: new Date('2026-08-01'),
-        },
-      );
+      await service.getDashboard(user({ role: UserRole.ncda_admin }), {
+        from: new Date('2026-08-10'),
+        to: new Date('2026-08-01'),
+      });
     } catch (e) {
       threw = e instanceof BadRequestException;
     }

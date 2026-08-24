@@ -1,8 +1,4 @@
-import {
-  ChildStatus,
-  TransferStatus,
-  UserRole,
-} from '@prisma/client';
+import { ChildStatus, TransferStatus, UserRole } from '@prisma/client';
 import { assertCenterAccess, canAccessCenter } from '../../../common/auth/scope.util';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { transferMapper } from '../mappers/transfer.mapper';
@@ -55,10 +51,7 @@ type MockTransfer = {
   lastModifiedAt: Date;
 };
 
-function createMockTx(state: {
-  child: MockChild;
-  transfers: MockTransfer[];
-}) {
+function createMockTx(state: { child: MockChild; transfers: MockTransfer[] }) {
   return {
     childTransfer: {
       findFirst: async (args: {
@@ -66,9 +59,7 @@ function createMockTx(state: {
       }) => {
         if (args.where.id) {
           return (
-            state.transfers.find(
-              (t) => t.id === args.where.id && t.deletedAt === null,
-            ) ?? null
+            state.transfers.find((t) => t.id === args.where.id && t.deletedAt === null) ?? null
           );
         }
         return (
@@ -105,8 +96,7 @@ function createMockTx(state: {
           updatedAt: new Date(),
           deletedAt: null,
           syncStatus: String(args.data.syncStatus ?? 'synced'),
-          lastModifiedByDeviceId:
-            (args.data.lastModifiedByDeviceId as string | null) ?? null,
+          lastModifiedByDeviceId: (args.data.lastModifiedByDeviceId as string | null) ?? null,
           lastModifiedAt: (args.data.lastModifiedAt as Date) ?? new Date(),
         };
         state.transfers.push(row);
@@ -190,9 +180,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 

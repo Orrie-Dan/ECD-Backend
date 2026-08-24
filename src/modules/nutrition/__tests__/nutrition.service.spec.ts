@@ -49,9 +49,14 @@ function createService(prisma: object, syncAccess?: SyncAccessService) {
     create: async () => ({}),
     createForMultipleUsers: async () => 0,
   } as any;
-  return new NutritionService(prisma as never, access, {
-    log: async () => {},
-  } as never, mockNotifications);
+  return new NutritionService(
+    prisma as never,
+    access,
+    {
+      log: async () => {},
+    } as never,
+    mockNotifications,
+  );
 }
 
 async function run() {

@@ -1,10 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -24,8 +19,7 @@ export class AuditLogsController {
   @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'List audit logs',
-    description:
-      'Paginated audit trail filtered by entity type/id, actor, action, and date range.',
+    description: 'Paginated audit trail filtered by entity type/id, actor, action, and date range.',
   })
   @ApiOkResponse({ type: PaginatedAuditLogsResponseDto })
   @ApiStandardClientErrors()

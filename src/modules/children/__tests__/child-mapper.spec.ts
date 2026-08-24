@@ -28,9 +28,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -72,14 +70,14 @@ async function run() {
     eq(resolveChildGenderFromPayload({ gender: 'female' }), ChildGender.female);
   });
 
-  await assert('resolveChildNationalIdFromPayload accepts nationalId and legacy registrationNumber', () => {
-    const valid = '1202480000001000';
-    eq(resolveChildNationalIdFromPayload({ nationalId: valid }), valid);
-    eq(
-      resolveChildNationalIdFromPayload({ registrationNumber: valid }),
-      valid,
-    );
-  });
+  await assert(
+    'resolveChildNationalIdFromPayload accepts nationalId and legacy registrationNumber',
+    () => {
+      const valid = '1202480000001000';
+      eq(resolveChildNationalIdFromPayload({ nationalId: valid }), valid);
+      eq(resolveChildNationalIdFromPayload({ registrationNumber: valid }), valid);
+    },
+  );
 
   await assert('resolveChildNationalIdFromPayload rejects missing and sentinel values', () => {
     const rejects = (payload: Record<string, unknown>) => {

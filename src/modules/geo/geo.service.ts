@@ -1,10 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import {
-  AdministrativeLevel,
-  EcdCenterStatus,
-  Prisma,
-  UserRole,
-} from '@prisma/client';
+import { AdministrativeLevel, EcdCenterStatus, Prisma, UserRole } from '@prisma/client';
 import { assertDistrictAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -105,14 +100,8 @@ export class GeoService {
     };
   }
 
-  async getDistrict(
-    user: AuthUser,
-    districtId: string,
-  ): Promise<DistrictResponseDto> {
-    if (
-      user.role === UserRole.district_focal_person ||
-      isCenterStaffRole(user.role)
-    ) {
+  async getDistrict(user: AuthUser, districtId: string): Promise<DistrictResponseDto> {
+    if (user.role === UserRole.district_focal_person || isCenterStaffRole(user.role)) {
       if (!user.districtId) {
         throw new ForbiddenException('District scope is required');
       }

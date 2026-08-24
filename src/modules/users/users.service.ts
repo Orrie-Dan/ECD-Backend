@@ -7,11 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  Prisma,
-  UserAccountStatus,
-  UserRole,
-} from '@prisma/client';
+import { Prisma, UserAccountStatus, UserRole } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
 import {
   assertCenterAccess,
@@ -37,8 +33,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 /** Readable temp password length (unambiguous alphabet → ~59 bits at 10 chars). */
 const TEMP_PASSWORD_LENGTH = 10;
-const TEMP_PASSWORD_ALPHABET =
-  'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+const TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
 
 @Injectable()
 export class UsersService {
@@ -51,10 +46,7 @@ export class UsersService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  async create(
-    actor: AuthUser,
-    dto: CreateUserDto,
-  ): Promise<CreateUserResponseDto> {
+  async create(actor: AuthUser, dto: CreateUserDto): Promise<CreateUserResponseDto> {
     this.assertCanManageUsers(actor);
     this.assertCanCreateRole(actor, dto.role);
 
@@ -85,6 +77,8 @@ export class UsersService {
           username: mapped.username,
           fullName: mapped.fullName,
           phone: mapped.phone,
+          gender: mapped.gender,
+          educationLevel: mapped.educationLevel,
           role: mapped.role,
           districtId,
           centerId,
@@ -133,10 +127,7 @@ export class UsersService {
     };
   }
 
-  async findAll(
-    actor: AuthUser,
-    query: ListUsersQueryDto,
-  ): Promise<PaginatedUsersResponseDto> {
+  async findAll(actor: AuthUser, query: ListUsersQueryDto): Promise<PaginatedUsersResponseDto> {
     this.assertCanManageUsers(actor);
 
     const page = query.page ?? 1;
@@ -173,11 +164,7 @@ export class UsersService {
     return userMapper.toDto(user);
   }
 
-  async update(
-    actor: AuthUser,
-    id: string,
-    dto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
+  async update(actor: AuthUser, id: string, dto: UpdateUserDto): Promise<UserResponseDto> {
     this.assertCanManageUsers(actor);
     await this.requireVisibleUser(actor, id);
 
@@ -265,10 +252,7 @@ export class UsersService {
       );
     }
     if (actor.role === UserRole.district_focal_person) {
-      return (
-        targetRole === UserRole.ecd_director ||
-        targetRole === UserRole.caregiver
-      );
+      return targetRole === UserRole.ecd_director || targetRole === UserRole.caregiver;
     }
     if (actor.role === UserRole.ecd_director) {
       return targetRole === UserRole.caregiver;
@@ -292,8 +276,7 @@ export class UsersService {
     }
     if (actor.role === UserRole.district_focal_person) {
       return (
-        (target.role === UserRole.caregiver ||
-          target.role === UserRole.ecd_director) &&
+        (target.role === UserRole.caregiver || target.role === UserRole.ecd_director) &&
         target.districtId != null &&
         actor.districtId != null &&
         target.districtId === actor.districtId
@@ -328,14 +311,9 @@ export class UsersService {
     }
   }
 
-  private assertCanResetPassword(
-    actor: AuthUser,
-    target: UserWithRelations,
-  ): void {
+  private assertCanResetPassword(actor: AuthUser, target: UserWithRelations): void {
     if (!this.canResetPassword(actor, target)) {
-      throw new ForbiddenException(
-        'You are not allowed to reset this user password',
-      );
+      throw new ForbiddenException('You are not allowed to reset this user password');
     }
   }
 
@@ -347,23 +325,17 @@ export class UsersService {
   ): Promise<{ districtId: string | null; centerId: string | null }> {
     if (role === UserRole.ncda_admin) {
       if (districtId || centerId) {
-        throw new BadRequestException(
-          'ncda_admin must not have districtId or centerId',
-        );
+        throw new BadRequestException('ncda_admin must not have districtId or centerId');
       }
       return { districtId: null, centerId: null };
     }
 
     if (role === UserRole.district_focal_person) {
       if (!districtId) {
-        throw new BadRequestException(
-          'districtId is required for district_focal_person',
-        );
+        throw new BadRequestException('districtId is required for district_focal_person');
       }
       if (centerId) {
-        throw new BadRequestException(
-          'centerId must be null for district_focal_person',
-        );
+        throw new BadRequestException('centerId must be null for district_focal_person');
       }
       assertDistrictAccess(actor, districtId);
       await this.requireDistrict(districtId);
@@ -391,9 +363,7 @@ export class UsersService {
     }
 
     if (districtId && districtId !== center.districtId) {
-      throw new BadRequestException(
-        'districtId does not match the selected center district',
-      );
+      throw new BadRequestException('districtId does not match the selected center district');
     }
 
     assertCenterAccess(actor, center.id, center.districtId);
@@ -402,27 +372,17 @@ export class UsersService {
       actor.role === UserRole.district_focal_person &&
       (!actor.districtId || actor.districtId !== center.districtId)
     ) {
-      throw new ForbiddenException(
-        'Assigned center must belong to your district',
-      );
+      throw new ForbiddenException('Assigned center must belong to your district');
     }
 
-    if (
-      actor.role === UserRole.ecd_director &&
-      (!actor.centerId || actor.centerId !== center.id)
-    ) {
-      throw new ForbiddenException(
-        'Caregivers must be assigned to your center',
-      );
+    if (actor.role === UserRole.ecd_director && (!actor.centerId || actor.centerId !== center.id)) {
+      throw new ForbiddenException('Caregivers must be assigned to your center');
     }
 
     return { districtId: center.districtId, centerId: center.id };
   }
 
-  private buildListWhere(
-    actor: AuthUser,
-    query: ListUsersQueryDto,
-  ): Prisma.UserAccountWhereInput {
+  private buildListWhere(actor: AuthUser, query: ListUsersQueryDto): Prisma.UserAccountWhereInput {
     const and: Prisma.UserAccountWhereInput[] = [];
 
     if (actor.role === UserRole.district_focal_person) {
@@ -441,9 +401,7 @@ export class UsersService {
         throw new ForbiddenException('ECD directors can only manage caregivers');
       }
       if (query.centerId && query.centerId !== actor.centerId) {
-        throw new ForbiddenException(
-          `You do not have access to center ${query.centerId}`,
-        );
+        throw new ForbiddenException(`You do not have access to center ${query.centerId}`);
       }
     }
 
@@ -458,9 +416,7 @@ export class UsersService {
         actor.role === UserRole.district_focal_person &&
         !canAccessDistrict(actor, query.districtId)
       ) {
-        throw new ForbiddenException(
-          `You do not have access to district ${query.districtId}`,
-        );
+        throw new ForbiddenException(`You do not have access to district ${query.districtId}`);
       }
       and.push({ districtId: query.districtId });
     }
@@ -481,10 +437,7 @@ export class UsersService {
     return and.length > 0 ? { AND: and } : {};
   }
 
-  private async requireVisibleUser(
-    actor: AuthUser,
-    id: string,
-  ): Promise<UserWithRelations> {
+  private async requireVisibleUser(actor: AuthUser, id: string): Promise<UserWithRelations> {
     const user = await this.prisma.userAccount.findUnique({
       where: { id },
       include: this.defaultInclude(),
@@ -495,14 +448,8 @@ export class UsersService {
     }
 
     if (actor.role === UserRole.district_focal_person) {
-      if (
-        !user.districtId ||
-        !actor.districtId ||
-        user.districtId !== actor.districtId
-      ) {
-        throw new ForbiddenException(
-          `You do not have access to user ${id}`,
-        );
+      if (!user.districtId || !actor.districtId || user.districtId !== actor.districtId) {
+        throw new ForbiddenException(`You do not have access to user ${id}`);
       }
     }
 
@@ -513,9 +460,7 @@ export class UsersService {
         !actor.centerId ||
         user.centerId !== actor.centerId
       ) {
-        throw new ForbiddenException(
-          `You do not have access to user ${id}`,
-        );
+        throw new ForbiddenException(`You do not have access to user ${id}`);
       }
     }
 
@@ -544,8 +489,7 @@ export class UsersService {
     const bytes = randomBytes(TEMP_PASSWORD_LENGTH);
     let password = '';
     for (let i = 0; i < TEMP_PASSWORD_LENGTH; i += 1) {
-      password +=
-        TEMP_PASSWORD_ALPHABET[bytes[i]! % TEMP_PASSWORD_ALPHABET.length];
+      password += TEMP_PASSWORD_ALPHABET[bytes[i]! % TEMP_PASSWORD_ALPHABET.length];
     }
     return password;
   }

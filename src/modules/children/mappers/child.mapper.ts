@@ -42,19 +42,13 @@ export type ChildWithRelations = Child & {
   classroom?: { id: string; grade: ClassroomGrade } | null;
 };
 
-export class ChildMapper
-  implements Mapper<ChildWithRelations, ChildResponseDto>
-{
+export class ChildMapper implements Mapper<ChildWithRelations, ChildResponseDto> {
   toDto(entity: ChildWithRelations): ChildResponseDto {
     const geo = this.resolveGeoNames(entity.homeVillage, entity.center);
 
     return {
       id: entity.id,
-      fullName: this.toFullName(
-        entity.firstName,
-        entity.middleName,
-        entity.lastName,
-      ),
+      fullName: this.toFullName(entity.firstName, entity.middleName, entity.lastName),
       gender: this.toApiGender(entity.gender),
       dateOfBirth: entity.dateOfBirth,
       status: entity.status,
@@ -80,9 +74,7 @@ export class ChildMapper
   toDetailDto(entity: ChildWithRelations): ChildDetailResponseDto {
     return {
       ...this.toDto(entity),
-      classroomLabel: entity.classroom
-        ? this.gradeLabel(entity.classroom.grade)
-        : null,
+      classroomLabel: entity.classroom ? this.gradeLabel(entity.classroom.grade) : null,
       firstName: entity.firstName,
       middleName: entity.middleName,
       lastName: entity.lastName,
@@ -98,11 +90,7 @@ export class ChildMapper
     };
   }
 
-  toFullName(
-    firstName: string,
-    middleName?: string | null,
-    lastName?: string | null,
-  ): string {
+  toFullName(firstName: string, middleName?: string | null, lastName?: string | null): string {
     return [firstName, middleName, lastName]
       .map((part) => part?.trim())
       .filter((part): part is string => !!part)
@@ -303,29 +291,17 @@ export const childMapper = new ChildMapper();
  * Accepts nationalId or legacy registrationNumber. Never coerces missing values
  * to the string "undefined" (that caused invalid rows in national_id).
  */
-export function resolveChildNationalIdFromPayload(
-  payload: Record<string, unknown>,
-): string {
+export function resolveChildNationalIdFromPayload(payload: Record<string, unknown>): string {
   const raw = payload.nationalId ?? payload.registrationNumber;
   if (typeof raw !== 'string') {
-    throw new Error(
-      'child requires nationalId (or legacy registrationNumber)',
-    );
+    throw new Error('child requires nationalId (or legacy registrationNumber)');
   }
   const trimmed = raw.trim();
-  if (
-    !trimmed ||
-    trimmed === 'undefined' ||
-    trimmed === 'null'
-  ) {
-    throw new Error(
-      'child requires nationalId (or legacy registrationNumber)',
-    );
+  if (!trimmed || trimmed === 'undefined' || trimmed === 'null') {
+    throw new Error('child requires nationalId (or legacy registrationNumber)');
   }
   if (!RWANDA_NIN_REGEX.test(trimmed)) {
-    throw new Error(
-      'child nationalId must be a valid 16-digit Rwanda NIN',
-    );
+    throw new Error('child nationalId must be a valid 16-digit Rwanda NIN');
   }
   return trimmed;
 }
@@ -345,25 +321,13 @@ export function buildPlaceholderNationalId(
   return `1${year}${genderDigit}${seq}000`;
 }
 
-export function resolveChildGenderFromPayload(
-  payload: Record<string, unknown>,
-): ChildGender {
+export function resolveChildGenderFromPayload(payload: Record<string, unknown>): ChildGender {
   const raw = payload.gender;
-  if (
-    raw === 'Umuhungu' ||
-    raw === ChildGender.male ||
-    raw === 'male'
-  ) {
+  if (raw === 'Umuhungu' || raw === ChildGender.male || raw === 'male') {
     return ChildGender.male;
   }
-  if (
-    raw === 'Umukobwa' ||
-    raw === ChildGender.female ||
-    raw === 'female'
-  ) {
+  if (raw === 'Umukobwa' || raw === ChildGender.female || raw === 'female') {
     return ChildGender.female;
   }
-  throw new Error(
-    'child requires gender of Umuhungu/Umukobwa (or male/female)',
-  );
+  throw new Error('child requires gender of Umuhungu/Umukobwa (or male/female)');
 }

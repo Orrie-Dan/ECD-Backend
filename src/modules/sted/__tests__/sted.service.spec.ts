@@ -23,9 +23,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
   };
 }
 
-function baseDto(
-  overrides: Partial<CreateStedAssessmentDto> = {},
-): CreateStedAssessmentDto {
+function baseDto(overrides: Partial<CreateStedAssessmentDto> = {}): CreateStedAssessmentDto {
   return {
     childId: 'child-1',
     centerId: 'center-a',
@@ -58,9 +56,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -115,10 +111,11 @@ async function run() {
         fn({ stedAssessment: stedApi }),
     };
 
-    const result = await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
-      caregiver,
-      baseDto(),
-    );
+    const result = await new StedService(
+      prisma as never,
+      { log: async () => {} } as never,
+      mockNotifications,
+    ).create(caregiver, baseDto());
     eq(creates.length, 1);
     eq(creates[0].ageBand, StedAgeBand.band_1_3);
     eq(creates[0].assessedById, 'cg-1');
@@ -138,11 +135,7 @@ async function run() {
         }),
       },
       stedAssessment: {
-        findMany: async ({
-          orderBy,
-        }: {
-          orderBy: Array<Record<string, string>>;
-        }) => {
+        findMany: async ({ orderBy }: { orderBy: Array<Record<string, string>> }) => {
           eq(orderBy[0].assessmentDate, 'desc');
           eq(orderBy[1].createdAt, 'desc');
           const now = new Date();
@@ -196,10 +189,11 @@ async function run() {
       },
     };
 
-    const history = await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).getHistory(
-      caregiver,
-      'child-1',
-    );
+    const history = await new StedService(
+      prisma as never,
+      { log: async () => {} } as never,
+      mockNotifications,
+    ).getHistory(caregiver, 'child-1');
     eq(history.items[0].id, 's2');
     eq(history.items[1].id, 's1');
     eq(history.total, 2);
@@ -225,10 +219,11 @@ async function run() {
     };
     let caught: unknown;
     try {
-      await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
-        caregiver,
-        baseDto({ childId: 'child-x', centerId: 'center-b' }),
-      );
+      await new StedService(
+        prisma as never,
+        { log: async () => {} } as never,
+        mockNotifications,
+      ).create(caregiver, baseDto({ childId: 'child-x', centerId: 'center-b' }));
     } catch (err) {
       caught = err;
     }
@@ -249,10 +244,11 @@ async function run() {
     };
     let caught: unknown;
     try {
-      await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
-        focal,
-        baseDto({ childId: 'child-z', centerId: 'center-z' }),
-      );
+      await new StedService(
+        prisma as never,
+        { log: async () => {} } as never,
+        mockNotifications,
+      ).create(focal, baseDto({ childId: 'child-z', centerId: 'center-z' }));
     } catch (err) {
       caught = err;
     }
@@ -289,7 +285,11 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({ stedAssessment: stedApi }),
     };
-    await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
+    await new StedService(
+      prisma as never,
+      { log: async () => {} } as never,
+      mockNotifications,
+    ).create(
       ncda,
       baseDto({
         childId: 'child-z',
@@ -313,10 +313,11 @@ async function run() {
     };
     let caught: unknown;
     try {
-      await new StedService(prisma as never, { log: async () => {} } as never, mockNotifications).create(
-        caregiver,
-        baseDto({ consentObtained: false }),
-      );
+      await new StedService(
+        prisma as never,
+        { log: async () => {} } as never,
+        mockNotifications,
+      ).create(caregiver, baseDto({ consentObtained: false }));
     } catch (err) {
       caught = err;
     }
@@ -353,7 +354,11 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({ stedAssessment: stedApi }),
     };
-    const svc = new StedService(prisma as never, { log: async () => {} } as never, mockNotifications);
+    const svc = new StedService(
+      prisma as never,
+      { log: async () => {} } as never,
+      mockNotifications,
+    );
     await svc.create(caregiver, baseDto({ assessmentDate: '2026-08-01' }));
     await svc.create(caregiver, baseDto({ assessmentDate: '2026-08-15' }));
     eq(creates.length, 2);

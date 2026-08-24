@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { toPrismaAuditAction } from './audit-action';
-import {
-  AuditActorType,
-  AuditContext,
-  AuditMetadata,
-} from './audit-context';
+import { AuditActorType, AuditContext, AuditMetadata } from './audit-context';
 
 /**
  * Central domain audit writer.
@@ -58,10 +54,7 @@ function resolveActorType(context: AuditContext): AuditActorType {
   return 'system';
 }
 
-function buildMetadata(
-  context: AuditContext,
-  actorType: AuditActorType,
-): AuditMetadata {
+function buildMetadata(context: AuditContext, actorType: AuditActorType): AuditMetadata {
   const metadata: AuditMetadata = {
     domainAction: context.action,
     actorType,

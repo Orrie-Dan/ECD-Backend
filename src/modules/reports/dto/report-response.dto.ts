@@ -29,14 +29,12 @@ export class EnrollmentSummaryDto {
 
 export class DropoutInterpretationDto {
   @ApiProperty({
-    example:
-      'Children with status=archived and archivedAt within the date range',
+    example: 'Children with status=archived and archivedAt within the date range',
   })
   dropoutDefinition: string;
 
   @ApiProperty({
-    example:
-      'Transferred children (status=transferred) are reported as transfersOut, not dropouts',
+    example: 'Transferred children (status=transferred) are reported as transfersOut, not dropouts',
   })
   excluded: string;
 

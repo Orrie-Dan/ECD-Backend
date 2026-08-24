@@ -4,34 +4,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  DeviceStatus,
-  Prisma,
-  RecordSyncStatus,
-  SyncOperationStatus,
-} from '@prisma/client';
+import { DeviceStatus, Prisma, RecordSyncStatus, SyncOperationStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import {
-  AuditAction,
-  AuditService,
-  toAuditJson,
-  toPrismaAuditAction,
-} from '../../common/audit';
-import {
-  assertCenterAccess,
-  canAccessCenter,
-} from '../../common/auth/scope.util';
-import {
-  assertCasApplied,
-  classifyCasMiss,
-} from '../../common/concurrency/cas.util';
+import { AuditAction, AuditService, toAuditJson, toPrismaAuditAction } from '../../common/audit';
+import { assertCenterAccess, canAccessCenter } from '../../common/auth/scope.util';
+import { assertCasApplied, classifyCasMiss } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from '../sync/sync-access.service';
-import {
-  AttendanceBatchDto,
-  AttendanceBatchRecordDto,
-} from './dto/attendance-batch.dto';
+import { AttendanceBatchDto, AttendanceBatchRecordDto } from './dto/attendance-batch.dto';
 import {
   AttendanceBatchResultDto,
   AttendanceBatchResultItemDto,
@@ -53,10 +34,7 @@ export class AttendanceService {
     private readonly audit: AuditService,
   ) {}
 
-  async createBatch(
-    user: AuthUser,
-    dto: AttendanceBatchDto,
-  ): Promise<AttendanceBatchResultDto> {
+  async createBatch(user: AuthUser, dto: AttendanceBatchDto): Promise<AttendanceBatchResultDto> {
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
     const now = new Date();
 
@@ -80,10 +58,7 @@ export class AttendanceService {
       },
     });
     const existingMap = new Map(
-      existing.map((e) => [
-        `${e.childId}|${toAttendanceDateKey(e.attendanceDate)}`,
-        e,
-      ]),
+      existing.map((e) => [`${e.childId}|${toAttendanceDateKey(e.attendanceDate)}`, e]),
     );
 
     type Planned =
@@ -131,9 +106,7 @@ export class AttendanceService {
         continue;
       }
 
-      if (
-        !canAccessCenter(user, child.centerId, child.center.districtId)
-      ) {
+      if (!canAccessCenter(user, child.centerId, child.center.districtId)) {
         items.push({
           childId: record.childId,
           date: dateKey,
@@ -282,9 +255,7 @@ export class AttendanceService {
                   miss.kind === 'not_found'
                     ? 'Attendance record not found'
                     : 'Record was modified by another device',
-                ...(miss.kind === 'version_mismatch'
-                  ? { currentVersion: miss.serverVersion }
-                  : {}),
+                ...(miss.kind === 'version_mismatch' ? { currentVersion: miss.serverVersion } : {}),
               });
               continue;
             }
@@ -317,9 +288,7 @@ export class AttendanceService {
       });
     }
 
-    const failed = items.filter(
-      (i) => !['created', 'updated'].includes(i.outcome),
-    ).length;
+    const failed = items.filter((i) => !['created', 'updated'].includes(i.outcome)).length;
 
     return { created, updated, failed, items };
   }
@@ -373,9 +342,7 @@ export class AttendanceService {
     ]);
 
     return {
-      items: rows.map((row) =>
-        attendanceMapper.toDto(row as AttendanceEntity),
-      ),
+      items: rows.map((row) => attendanceMapper.toDto(row as AttendanceEntity)),
       total,
       page,
       pageSize,
@@ -505,10 +472,7 @@ export class AttendanceService {
     return date;
   }
 
-  private async resolveDeviceId(
-    user: AuthUser,
-    deviceId?: string,
-  ): Promise<string | null> {
+  private async resolveDeviceId(user: AuthUser, deviceId?: string): Promise<string | null> {
     if (!deviceId) {
       return null;
     }
@@ -518,9 +482,7 @@ export class AttendanceService {
     });
 
     if (!device || device.userId !== user.id) {
-      throw new ForbiddenException(
-        'Device does not belong to the authenticated user',
-      );
+      throw new ForbiddenException('Device does not belong to the authenticated user');
     }
 
     if (device.status !== DeviceStatus.active) {

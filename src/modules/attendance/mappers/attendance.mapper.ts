@@ -1,8 +1,4 @@
-import {
-  AbsentReason,
-  AttendanceRecord,
-  AttendanceStatus,
-} from '@prisma/client';
+import { AbsentReason, AttendanceRecord, AttendanceStatus } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { AttendanceBatchRecordDto } from '../dto/attendance-batch.dto';
 import { AttendanceResponseDto } from '../dto/attendance-response.dto';
@@ -48,10 +44,7 @@ export function resolveAttendanceStatusFromPayload(
   if (typeof payload.present === 'boolean') {
     return presentToStatus(payload.present);
   }
-  if (
-    payload.status === AttendanceStatus.present ||
-    payload.status === AttendanceStatus.absent
-  ) {
+  if (payload.status === AttendanceStatus.present || payload.status === AttendanceStatus.absent) {
     return payload.status;
   }
   throw new Error('Attendance payload requires present (boolean) or status');
@@ -77,9 +70,7 @@ export function toAttendanceDateKey(value: string | Date): string {
   return value.slice(0, 10);
 }
 
-export class AttendanceMapper
-  implements Mapper<AttendanceEntity, AttendanceResponseDto>
-{
+export class AttendanceMapper implements Mapper<AttendanceEntity, AttendanceResponseDto> {
   toDto(entity: AttendanceEntity): AttendanceResponseDto {
     return {
       id: entity.id,
@@ -100,10 +91,7 @@ export class AttendanceMapper
     const status = presentToStatus(dto.present);
     return {
       status,
-      absentReason:
-        status === AttendanceStatus.present
-          ? null
-          : (dto.absentReason ?? null),
+      absentReason: status === AttendanceStatus.present ? null : (dto.absentReason ?? null),
       notes: dto.notes?.trim() || null,
     };
   }

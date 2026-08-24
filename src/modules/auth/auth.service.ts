@@ -12,10 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthTokensResponseDto } from './dto/auth-tokens-response.dto';
-import {
-  AuthMeResponseDto,
-  AuthUserResponseDto,
-} from './dto/auth-user-response.dto';
+import { AuthMeResponseDto, AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { PasswordResetConfirmDto } from './dto/password-reset-confirm.dto';
 import { PasswordResetRequestDto } from './dto/password-reset-request.dto';
@@ -161,9 +158,7 @@ export class AuthService {
    * Secure stub: always returns accepted:true without revealing whether the user exists.
    * Creates a hashed PasswordResetToken when a matching account is found.
    */
-  async requestPasswordReset(
-    dto: PasswordResetRequestDto,
-  ): Promise<{ accepted: true }> {
+  async requestPasswordReset(dto: PasswordResetRequestDto): Promise<{ accepted: true }> {
     if (!dto.username && !dto.email) {
       throw new BadRequestException('username or email is required');
     }
@@ -201,9 +196,7 @@ export class AuthService {
     return { accepted: true };
   }
 
-  async confirmPasswordReset(
-    dto: PasswordResetConfirmDto,
-  ): Promise<{ success: true }> {
+  async confirmPasswordReset(dto: PasswordResetConfirmDto): Promise<{ success: true }> {
     const tokenHash = this.hashResetToken(dto.token);
     const now = new Date();
 

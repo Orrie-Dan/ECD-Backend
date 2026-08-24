@@ -230,6 +230,52 @@ enum ClassroomAssignmentReason {
   @@map("classroom_assignment_reason")
 }
 
+enum PersonSex {
+  male
+  female
+
+  @@map("person_sex")
+}
+
+enum EducationLevel {
+  none
+  primary
+  secondary
+  vocational
+  diploma
+  bachelor
+  postgraduate
+  other
+
+  @@map("education_level")
+}
+
+enum ParentContributionType {
+  cash
+  in_kind
+
+  @@map("parent_contribution_type")
+}
+
+enum InKindItemType {
+  flour
+  potatoes
+  maize
+  milk
+  firewood
+  other
+
+  @@map("in_kind_item_type")
+}
+
+enum CenterSupportCategory {
+  food
+  equipment
+  other
+
+  @@map("center_support_category")
+}
+
 //////////////////////////////////////////////
 // GIS / ADMINISTRATIVE HIERARCHY
 //////////////////////////////////////////////
@@ -305,16 +351,22 @@ model EcdCenter {
   lastModifiedByDeviceId      String?                   @map("last_modified_by_device_id")
   lastModifiedAt              DateTime                  @default(now()) @map("last_modified_at")
 
-  district              District               @relation(fields: [districtId], references: [id])
-  village               AdministrativeUnit     @relation("EcdCenterVillage", fields: [villageId], references: [id])
-  createdBy             UserAccount?           @relation("EcdCenterCreatedBy", fields: [createdById], references: [id])
-  updatedBy             UserAccount?           @relation("EcdCenterUpdatedBy", fields: [updatedById], references: [id])
-  lastModifiedByDevice  Device?                @relation("EcdCenterLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+  district              District                    @relation(fields: [districtId], references: [id])
+  village               AdministrativeUnit          @relation("EcdCenterVillage", fields: [villageId], references: [id])
+  createdBy             UserAccount?                @relation("EcdCenterCreatedBy", fields: [createdById], references: [id])
+  updatedBy             UserAccount?                @relation("EcdCenterUpdatedBy", fields: [updatedById], references: [id])
+  lastModifiedByDevice  Device?                     @relation("EcdCenterLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
   userAccounts          UserAccount[]
   children              Child[]
   classrooms            Classroom[]
-  transfersFrom         ChildTransfer[]        @relation("ChildTransferFromCenter")
-  transfersTo           ChildTransfer[]        @relation("ChildTransferToCenter")
+  parentContributions   ParentContribution[]
+  parentingSessions     ParentingSession[]
+  committeeMembers      EcdCommitteeMember[]
+  centerSupports        CenterSupport[]
+  centerVisits          CenterVisit[]
+  staffTrainings        StaffTraining[]
+  transfersFrom         ChildTransfer[]             @relation("ChildTransferFromCenter")
+  transfersTo           ChildTransfer[]             @relation("ChildTransferToCenter")
   attendanceRecords     AttendanceRecord[]
   complianceAssessments ComplianceAssessment[]
   washIndicators        WashIndicator[]
@@ -345,8 +397,8 @@ model Classroom {
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @default(now()) @map("updated_at")
 
-  center   EcdCenter @relation(fields: [centerId], references: [id])
-  children Child[]
+  center                EcdCenter                    @relation(fields: [centerId], references: [id])
+  children              Child[]
   assignmentHistoryFrom ClassroomAssignmentHistory[] @relation("AssignmentFromClassroom")
   assignmentHistoryTo   ClassroomAssignmentHistory[] @relation("AssignmentToClassroom")
 
@@ -387,6 +439,8 @@ model UserAccount {
   fullName            String            @map("full_name")
   phone               String?
   email               String?
+  gender              PersonSex?
+  educationLevel      EducationLevel?   @map("education_level")
   role                UserRole
   districtId          String?           @map("district_id")
   centerId            String?           @map("center_id")
@@ -411,26 +465,37 @@ model UserAccount {
   passwordResetTokens PasswordResetToken[]
   devices             Device[]
 
-  createdCenters                 EcdCenter[]               @relation("EcdCenterCreatedBy")
-  updatedCenters                 EcdCenter[]               @relation("EcdCenterUpdatedBy")
-  createdChildren                Child[]                   @relation("ChildCreatedBy")
-  updatedChildren                Child[]                   @relation("ChildUpdatedBy")
-  initiatedTransfers             ChildTransfer[]           @relation("ChildTransferInitiatedBy")
-  acceptedTransfers              ChildTransfer[]           @relation("ChildTransferAcceptedBy")
-  recordedAttendanceRecords      AttendanceRecord[]        @relation("AttendanceRecordRecordedBy")
-  updatedAttendanceRecords       AttendanceRecord[]        @relation("AttendanceRecordUpdatedBy")
-  recordedNutritionScreenings    ChildNutritionScreening[] @relation("ChildNutritionScreeningRecordedBy")
-  recordedCenterFeedingDays      CenterFeedingDay[]        @relation("CenterFeedingDayRecordedBy")
-  updatedFeedingMonthSummaries   CenterFeedingMonthSummary[] @relation("CenterFeedingMonthSummaryUpdatedBy")
-  assessedStedAssessments        StedAssessment[]          @relation("StedAssessmentAssessedBy")
-  recordedReferrals              Referral[]                @relation("ReferralRecordedBy")
-  submittedComplianceAssessments ComplianceAssessment[]    @relation("ComplianceAssessmentSubmittedBy")
-  verifiedComplianceAssessments  ComplianceAssessment[]    @relation("ComplianceAssessmentVerifiedBy")
-  recordedWashIndicators         WashIndicator[]           @relation("WashIndicatorRecordedBy")
-  updatedAppSettings             AppSetting[]              @relation("AppSettingUpdatedBy")
-  auditLogs                      AuditLog[]                @relation("AuditLogChangedBy")
+  createdCenters                 EcdCenter[]                  @relation("EcdCenterCreatedBy")
+  updatedCenters                 EcdCenter[]                  @relation("EcdCenterUpdatedBy")
+  createdChildren                Child[]                      @relation("ChildCreatedBy")
+  updatedChildren                Child[]                      @relation("ChildUpdatedBy")
+  initiatedTransfers             ChildTransfer[]              @relation("ChildTransferInitiatedBy")
+  acceptedTransfers              ChildTransfer[]              @relation("ChildTransferAcceptedBy")
+  recordedAttendanceRecords      AttendanceRecord[]           @relation("AttendanceRecordRecordedBy")
+  updatedAttendanceRecords       AttendanceRecord[]           @relation("AttendanceRecordUpdatedBy")
+  recordedNutritionScreenings    ChildNutritionScreening[]    @relation("ChildNutritionScreeningRecordedBy")
+  recordedCenterFeedingDays      CenterFeedingDay[]           @relation("CenterFeedingDayRecordedBy")
+  updatedFeedingMonthSummaries   CenterFeedingMonthSummary[]  @relation("CenterFeedingMonthSummaryUpdatedBy")
+  assessedStedAssessments        StedAssessment[]             @relation("StedAssessmentAssessedBy")
+  recordedReferrals              Referral[]                   @relation("ReferralRecordedBy")
+  submittedComplianceAssessments ComplianceAssessment[]       @relation("ComplianceAssessmentSubmittedBy")
+  verifiedComplianceAssessments  ComplianceAssessment[]       @relation("ComplianceAssessmentVerifiedBy")
+  recordedWashIndicators         WashIndicator[]              @relation("WashIndicatorRecordedBy")
+  updatedAppSettings             AppSetting[]                 @relation("AppSettingUpdatedBy")
+  auditLogs                      AuditLog[]                   @relation("AuditLogChangedBy")
   createdClassroomAssignments    ClassroomAssignmentHistory[] @relation("ClassroomAssignmentCreatedBy")
-  notifications                  Notification[]              @relation("NotificationUser")
+  notifications                  Notification[]               @relation("NotificationUser")
+  recordedParentContributions    ParentContribution[]         @relation("ParentContributionRecordedBy")
+  recordedParentingSessions      ParentingSession[]           @relation("ParentingSessionRecordedBy")
+  facilitatedParentingSessions   ParentingSession[]           @relation("ParentingSessionFacilitatorUser")
+  committeeMemberships           EcdCommitteeMember[]         @relation("EcdCommitteeMemberUser")
+  recordedCommitteeMembers       EcdCommitteeMember[]         @relation("EcdCommitteeMemberRecordedBy")
+  recordedCenterSupports         CenterSupport[]              @relation("CenterSupportRecordedBy")
+  receivedCenterSupports         CenterSupport[]              @relation("CenterSupportReceivedBy")
+  recordedCenterVisits           CenterVisit[]                @relation("CenterVisitRecordedBy")
+  hostedCenterVisits             CenterVisit[]                @relation("CenterVisitHostedBy")
+  recordedStaffTrainings         StaffTraining[]              @relation("StaffTrainingRecordedBy")
+  traineeStaffTrainings          StaffTraining[]              @relation("StaffTrainingTraineeUser")
 
   @@index([username])
   @@index([role])
@@ -469,18 +534,24 @@ model Device {
   syncOperations SyncOperation[]
   syncSessions   SyncSession[]
 
-  lastModifiedCenters                   EcdCenter[]                @relation("EcdCenterLastModifiedByDevice")
-  lastModifiedChildren                  Child[]                    @relation("ChildLastModifiedByDevice")
-  lastModifiedChildTransfers            ChildTransfer[]            @relation("ChildTransferLastModifiedByDevice")
-  lastModifiedAttendanceRecords         AttendanceRecord[]         @relation("AttendanceRecordLastModifiedByDevice")
-  lastModifiedNutritionScreenings       ChildNutritionScreening[]  @relation("ChildNutritionScreeningLastModifiedByDevice")
-  lastModifiedCenterFeedingDays         CenterFeedingDay[]         @relation("CenterFeedingDayLastModifiedByDevice")
+  lastModifiedCenters                   EcdCenter[]                 @relation("EcdCenterLastModifiedByDevice")
+  lastModifiedChildren                  Child[]                     @relation("ChildLastModifiedByDevice")
+  lastModifiedChildTransfers            ChildTransfer[]             @relation("ChildTransferLastModifiedByDevice")
+  lastModifiedAttendanceRecords         AttendanceRecord[]          @relation("AttendanceRecordLastModifiedByDevice")
+  lastModifiedNutritionScreenings       ChildNutritionScreening[]   @relation("ChildNutritionScreeningLastModifiedByDevice")
+  lastModifiedCenterFeedingDays         CenterFeedingDay[]          @relation("CenterFeedingDayLastModifiedByDevice")
   lastModifiedFeedingMonthSummaries     CenterFeedingMonthSummary[] @relation("CenterFeedingMonthSummaryLastModifiedByDevice")
-  lastModifiedStedAssessments           StedAssessment[]           @relation("StedAssessmentLastModifiedByDevice")
-  lastModifiedReferrals                 Referral[]                 @relation("ReferralLastModifiedByDevice")
-  lastModifiedComplianceAssessments     ComplianceAssessment[]     @relation("ComplianceAssessmentLastModifiedByDevice")
-  lastModifiedComplianceAssessmentItems ComplianceAssessmentItem[] @relation("ComplianceAssessmentItemLastModifiedByDevice")
-  lastModifiedWashIndicators            WashIndicator[]            @relation("WashIndicatorLastModifiedByDevice")
+  lastModifiedStedAssessments           StedAssessment[]            @relation("StedAssessmentLastModifiedByDevice")
+  lastModifiedReferrals                 Referral[]                  @relation("ReferralLastModifiedByDevice")
+  lastModifiedComplianceAssessments     ComplianceAssessment[]      @relation("ComplianceAssessmentLastModifiedByDevice")
+  lastModifiedComplianceAssessmentItems ComplianceAssessmentItem[]  @relation("ComplianceAssessmentItemLastModifiedByDevice")
+  lastModifiedWashIndicators            WashIndicator[]             @relation("WashIndicatorLastModifiedByDevice")
+  lastModifiedParentContributions       ParentContribution[]        @relation("ParentContributionLastModifiedByDevice")
+  lastModifiedParentingSessions         ParentingSession[]          @relation("ParentingSessionLastModifiedByDevice")
+  lastModifiedCommitteeMembers          EcdCommitteeMember[]        @relation("EcdCommitteeMemberLastModifiedByDevice")
+  lastModifiedCenterSupports            CenterSupport[]             @relation("CenterSupportLastModifiedByDevice")
+  lastModifiedCenterVisits              CenterVisit[]               @relation("CenterVisitLastModifiedByDevice")
+  lastModifiedStaffTrainings            StaffTraining[]             @relation("StaffTrainingLastModifiedByDevice")
 
   @@index([userId])
   @@index([deviceUuid])
@@ -574,18 +645,19 @@ model Child {
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
-  center               EcdCenter                 @relation(fields: [centerId], references: [id])
-  classroom            Classroom?                @relation(fields: [classroomId], references: [id])
-  homeVillage          AdministrativeUnit        @relation("ChildHomeVillage", fields: [homeVillageId], references: [id])
-  createdBy            UserAccount?              @relation("ChildCreatedBy", fields: [createdById], references: [id])
-  updatedBy            UserAccount?              @relation("ChildUpdatedBy", fields: [updatedById], references: [id])
-  lastModifiedByDevice Device?                   @relation("ChildLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+  center               EcdCenter                    @relation(fields: [centerId], references: [id])
+  classroom            Classroom?                   @relation(fields: [classroomId], references: [id])
+  homeVillage          AdministrativeUnit           @relation("ChildHomeVillage", fields: [homeVillageId], references: [id])
+  createdBy            UserAccount?                 @relation("ChildCreatedBy", fields: [createdById], references: [id])
+  updatedBy            UserAccount?                 @relation("ChildUpdatedBy", fields: [updatedById], references: [id])
+  lastModifiedByDevice Device?                      @relation("ChildLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
   transfers            ChildTransfer[]
   attendanceRecords    AttendanceRecord[]
   nutritionScreenings  ChildNutritionScreening[]
   stedAssessments      StedAssessment[]
   referrals            Referral[]
   classroomAssignments ClassroomAssignmentHistory[]
+  parentContributions  ParentContribution[]
 
   @@index([centerId])
   @@index([classroomId])
@@ -1001,6 +1073,228 @@ model WashIndicator {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("wash_indicator")
+}
+
+//////////////////////////////////////////////
+// NCDA REGISTER — SECTIONS VIII–XIV
+//////////////////////////////////////////////
+
+model ParentContribution {
+  id                     String                 @id @default(uuid())
+  centerId               String                 @map("center_id")
+  childId                String?                @map("child_id")
+  contributorName        String                 @map("contributor_name")
+  contributorPhone       String?                @map("contributor_phone")
+  contributionDate       DateTime               @map("contribution_date") @db.Date
+  contributionType       ParentContributionType @map("contribution_type")
+  amount                 Decimal?               @db.Decimal(14, 2)
+  itemType               InKindItemType?        @map("item_type")
+  quantity               Decimal?               @db.Decimal(14, 3)
+  unit                   String?
+  description            String?                @db.Text
+  notes                  String?                @db.Text
+  recordedById           String                 @map("recorded_by")
+  createdAt              DateTime               @default(now()) @map("created_at")
+  updatedAt              DateTime               @default(now()) @map("updated_at")
+  deletedAt              DateTime?              @map("deleted_at")
+  version                Int                    @default(1)
+  syncStatus             RecordSyncStatus       @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?                @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime               @default(now()) @map("last_modified_at")
+
+  center               EcdCenter   @relation(fields: [centerId], references: [id])
+  child                Child?      @relation(fields: [childId], references: [id])
+  recordedBy           UserAccount @relation("ParentContributionRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?     @relation("ParentContributionLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([centerId, contributionDate])
+  @@index([centerId, contributionType])
+  @@index([childId])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("parent_contribution")
+}
+
+model ParentingSession {
+  id                     String           @id @default(uuid())
+  centerId               String           @map("center_id")
+  sessionDate            DateTime         @map("session_date") @db.Date
+  topic                  String
+  facilitatorName        String           @map("facilitator_name")
+  facilitatorRole        String?          @map("facilitator_role")
+  facilitatorUserId      String?          @map("facilitator_user_id")
+  messageSummary         String           @map("message_summary") @db.Text
+  maleAttendees          Int              @map("male_attendees")
+  femaleAttendees        Int              @map("female_attendees")
+  notes                  String?          @db.Text
+  recordedById           String           @map("recorded_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  center               EcdCenter    @relation(fields: [centerId], references: [id])
+  facilitatorUser      UserAccount? @relation("ParentingSessionFacilitatorUser", fields: [facilitatorUserId], references: [id])
+  recordedBy           UserAccount  @relation("ParentingSessionRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?      @relation("ParentingSessionLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([centerId, sessionDate])
+  @@index([facilitatorUserId])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("parenting_session")
+}
+
+model EcdCommitteeMember {
+  id                     String           @id @default(uuid())
+  centerId               String           @map("center_id")
+  userId                 String?          @map("user_id")
+  fullName               String           @map("full_name")
+  position               String
+  phone                  String?
+  startDate              DateTime?        @map("start_date") @db.Date
+  endDate                DateTime?        @map("end_date") @db.Date
+  isActive               Boolean          @default(true) @map("is_active")
+  notes                  String?          @db.Text
+  recordedById           String           @map("recorded_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  center               EcdCenter    @relation(fields: [centerId], references: [id])
+  user                 UserAccount? @relation("EcdCommitteeMemberUser", fields: [userId], references: [id])
+  recordedBy           UserAccount  @relation("EcdCommitteeMemberRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?      @relation("EcdCommitteeMemberLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([centerId, isActive])
+  @@index([userId])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("ecd_committee_member")
+}
+
+model CenterSupport {
+  id                     String                @id @default(uuid())
+  centerId               String                @map("center_id")
+  receivedDate           DateTime              @map("received_date") @db.Date
+  supportCategory        CenterSupportCategory @map("support_category")
+  description            String
+  quantity               Decimal?              @db.Decimal(14, 3)
+  unit                   String?
+  providerName           String                @map("provider_name")
+  providerOrganization   String?               @map("provider_organization")
+  receivedById           String?               @map("received_by")
+  receivedByName         String?               @map("received_by_name")
+  notes                  String?               @db.Text
+  recordedById           String                @map("recorded_by")
+  createdAt              DateTime              @default(now()) @map("created_at")
+  updatedAt              DateTime              @default(now()) @map("updated_at")
+  deletedAt              DateTime?             @map("deleted_at")
+  version                Int                   @default(1)
+  syncStatus             RecordSyncStatus      @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?               @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime              @default(now()) @map("last_modified_at")
+
+  center               EcdCenter    @relation(fields: [centerId], references: [id])
+  receivedBy           UserAccount? @relation("CenterSupportReceivedBy", fields: [receivedById], references: [id])
+  recordedBy           UserAccount  @relation("CenterSupportRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?      @relation("CenterSupportLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([centerId, receivedDate])
+  @@index([supportCategory])
+  @@index([recordedById])
+  @@index([receivedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("center_support")
+}
+
+model CenterVisit {
+  id                     String           @id @default(uuid())
+  centerId               String           @map("center_id")
+  visitDate              DateTime         @map("visit_date") @db.Date
+  visitorName            String           @map("visitor_name")
+  organization           String?
+  occupationOrRole       String?          @map("occupation_or_role")
+  purposeOrMessage       String           @map("purpose_or_message") @db.Text
+  hostedById             String?          @map("hosted_by")
+  notes                  String?          @db.Text
+  recordedById           String           @map("recorded_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  center               EcdCenter    @relation(fields: [centerId], references: [id])
+  hostedBy             UserAccount? @relation("CenterVisitHostedBy", fields: [hostedById], references: [id])
+  recordedBy           UserAccount  @relation("CenterVisitRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?      @relation("CenterVisitLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([centerId, visitDate])
+  @@index([hostedById])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("center_visit")
+}
+
+model StaffTraining {
+  id                     String           @id @default(uuid())
+  centerId               String           @map("center_id")
+  traineeUserId          String?          @map("trainee_user_id")
+  traineeName            String           @map("trainee_name")
+  traineeRole            String           @map("trainee_role")
+  trainingDate           DateTime         @map("training_date") @db.Date
+  trainingProvider       String           @map("training_provider")
+  topic                  String
+  durationDays           Int              @map("duration_days")
+  certificateReceived    Boolean          @default(false) @map("certificate_received")
+  notes                  String?          @db.Text
+  recordedById           String           @map("recorded_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @default(now()) @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+  version                Int              @default(1)
+  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
+  lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
+
+  center               EcdCenter    @relation(fields: [centerId], references: [id])
+  traineeUser          UserAccount? @relation("StaffTrainingTraineeUser", fields: [traineeUserId], references: [id])
+  recordedBy           UserAccount  @relation("StaffTrainingRecordedBy", fields: [recordedById], references: [id])
+  lastModifiedByDevice Device?      @relation("StaffTrainingLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+
+  @@index([centerId, trainingDate])
+  @@index([traineeUserId])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@index([syncStatus])
+  @@index([lastModifiedAt])
+  @@index([lastModifiedByDeviceId])
+  @@map("staff_training")
 }
 
 //////////////////////////////////////////////

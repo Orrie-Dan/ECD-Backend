@@ -1,14 +1,6 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { AdministrativeLevel, UserRole } from '@prisma/client';
-import {
-  assertCenterAccess,
-  assertDistrictAccess,
-  isCenterStaffRole,
-} from '../auth/scope.util';
+import { assertCenterAccess, assertDistrictAccess, isCenterStaffRole } from '../auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 
@@ -34,13 +26,7 @@ export function resolveInclusiveDateRange(
   const end = to ? startOfUtcDay(to) : startOfUtcDay(new Date());
   const start = from
     ? startOfUtcDay(from)
-    : new Date(
-        Date.UTC(
-          end.getUTCFullYear(),
-          end.getUTCMonth(),
-          end.getUTCDate() - defaultDays,
-        ),
-      );
+    : new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() - defaultDays));
   if (start.getTime() > end.getTime()) {
     throw new BadRequestException('`from` must be on or before `to`');
   }
@@ -48,9 +34,7 @@ export function resolveInclusiveDateRange(
 }
 
 export function startOfUtcDay(d: Date): Date {
-  return new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
-  );
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
 export function paginateParams(page?: number, pageSize?: number, max = 100) {
@@ -76,9 +60,7 @@ export async function resolveDistrictQueryScope(
       throw new ForbiddenException('Cannot query another center');
     }
     if (query.districtId || query.sectorId) {
-      throw new ForbiddenException(
-        'Center-scoped roles cannot filter by district or sector',
-      );
+      throw new ForbiddenException('Center-scoped roles cannot filter by district or sector');
     }
     return {
       centerIds: [user.centerId],
@@ -111,9 +93,7 @@ export async function resolveDistrictQueryScope(
     if (!center) throw new NotFoundException('Center not found');
     assertCenterAccess(user, center.id, center.districtId);
     if (districtId && center.districtId !== districtId) {
-      throw new BadRequestException(
-        'centerId does not belong to the given districtId',
-      );
+      throw new BadRequestException('centerId does not belong to the given districtId');
     }
     return {
       centerIds: [center.id],
@@ -176,10 +156,7 @@ export async function resolveDistrictQueryScope(
 }
 
 /** BFS: collect village-level units under a sector (or any admin unit). */
-async function collectVillageIdsUnder(
-  prisma: PrismaService,
-  rootId: string,
-): Promise<string[]> {
+async function collectVillageIdsUnder(prisma: PrismaService, rootId: string): Promise<string[]> {
   const root = await prisma.administrativeUnit.findUnique({
     where: { id: rootId },
     select: { id: true, level: true },
@@ -216,9 +193,7 @@ async function collectVillageIdsUnder(
   return villages;
 }
 
-export function centerIdWhere(
-  scope: DistrictQueryScope,
-): { centerId?: { in: string[] } } {
+export function centerIdWhere(scope: DistrictQueryScope): { centerId?: { in: string[] } } {
   if (scope.centerIds === 'all') return {};
   return { centerId: { in: scope.centerIds } };
 }

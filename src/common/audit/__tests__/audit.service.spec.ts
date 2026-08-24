@@ -1,9 +1,5 @@
 import { ChildStatus, TransferStatus, UserRole } from '@prisma/client';
-import {
-  AuditAction,
-  AuditService,
-  toPrismaAuditAction,
-} from '../index';
+import { AuditAction, AuditService, toPrismaAuditAction } from '../index';
 import { OptimisticLockConflictException } from '../../concurrency/optimistic-lock.exception';
 import { AuthUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ChildrenService } from '../../../modules/children/children.service';
@@ -156,9 +152,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -195,8 +189,7 @@ async function run() {
               txState.childUpdated = true;
               return { count: 1 };
             },
-            findFirstOrThrow: async () =>
-              childRow({ version: 6, firstName: 'Augusta' }),
+            findFirstOrThrow: async () => childRow({ version: 6, firstName: 'Augusta' }),
             findUnique: async () => ({ version: 6 }),
           },
           syncOperation: { create: async () => ({}) },
@@ -212,12 +205,13 @@ async function run() {
       },
     };
 
-    const children = new ChildrenService(
-      prisma as never,
-      syncAccess as never,
-      audit,
-      { findUserIdsByRoleAndCenter: async () => [], findUserIdsByRoleAndDistrict: async () => [], notifyAsync: () => {}, create: async () => ({}), createForMultipleUsers: async () => 0 } as any,
-    );
+    const children = new ChildrenService(prisma as never, syncAccess as never, audit, {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any);
 
     const updated = await children.update(caregiver, 'child-1', {
       version: 5,
@@ -274,12 +268,13 @@ async function run() {
       },
     };
 
-    const children = new ChildrenService(
-      prisma as never,
-      syncAccess as never,
-      audit,
-      { findUserIdsByRoleAndCenter: async () => [], findUserIdsByRoleAndDistrict: async () => [], notifyAsync: () => {}, create: async () => ({}), createForMultipleUsers: async () => 0 } as any,
-    );
+    const children = new ChildrenService(prisma as never, syncAccess as never, audit, {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any);
 
     let caught: unknown;
     try {
@@ -377,22 +372,16 @@ async function run() {
     eq(result.transfer.status, TransferStatus.accepted);
 
     const transferAudit = rows.find(
-      (r) =>
-        r.entityType === 'child_transfer' &&
-        r.action === AuditAction.TRANSFER_ACCEPT,
+      (r) => r.entityType === 'child_transfer' && r.action === AuditAction.TRANSFER_ACCEPT,
     );
     const childAudit = rows.find(
-      (r) =>
-        r.entityType === 'child' && r.action === AuditAction.TRANSFER_ACCEPT,
+      (r) => r.entityType === 'child' && r.action === AuditAction.TRANSFER_ACCEPT,
     );
     eq(!!transferAudit, true);
     eq(!!childAudit, true);
     eq(childAudit!.changedById, 'cg-2');
     eq((childAudit!.metadata as { deviceId?: string }).deviceId, 'device-1');
-    eq(
-      (childAudit!.metadata as { operationId?: string }).operationId,
-      'op-accept-1',
-    );
+    eq((childAudit!.metadata as { operationId?: string }).operationId, 'op-accept-1');
   });
 
   // ── Scenario 4: concurrent conflict → 409, no audit ────────────────────
@@ -435,12 +424,13 @@ async function run() {
       },
     };
 
-    const children = new ChildrenService(
-      prisma as never,
-      syncAccess as never,
-      audit,
-      { findUserIdsByRoleAndCenter: async () => [], findUserIdsByRoleAndDistrict: async () => [], notifyAsync: () => {}, create: async () => ({}), createForMultipleUsers: async () => 0 } as any,
-    );
+    const children = new ChildrenService(prisma as never, syncAccess as never, audit, {
+      findUserIdsByRoleAndCenter: async () => [],
+      findUserIdsByRoleAndDistrict: async () => [],
+      notifyAsync: () => {},
+      create: async () => ({}),
+      createForMultipleUsers: async () => 0,
+    } as any);
 
     let caught: unknown;
     try {
@@ -468,10 +458,7 @@ async function run() {
     };
 
     // Simulate sync processor: first apply → audit; idempotent replay → no apply.
-    async function processOp(opts: {
-      alreadyApplied: boolean;
-      clientOperationId: string;
-    }) {
+    async function processOp(opts: { alreadyApplied: boolean; clientOperationId: string }) {
       if (opts.alreadyApplied) {
         return { status: 'replayed' as const, audited: false };
       }
@@ -522,10 +509,7 @@ async function run() {
 
     eq(created.length, 1);
     eq(created[0].action, 'update'); // Prisma mapping
-    eq(
-      (created[0].metadata as { domainAction: string }).domainAction,
-      AuditAction.ARCHIVE,
-    );
+    eq((created[0].metadata as { domainAction: string }).domainAction, AuditAction.ARCHIVE);
     eq((created[0].metadata as { deviceId: string }).deviceId, 'd1');
     eq((created[0].metadata as { operationId: string }).operationId, 'op-1');
     eq((created[0].metadata as { actorType: string }).actorType, 'device');

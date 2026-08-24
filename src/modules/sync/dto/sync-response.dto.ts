@@ -1,9 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  AuditAction,
-  SyncOperationStatus,
-  SyncSessionStatus,
-} from '@prisma/client';
+import { AuditAction, SyncOperationStatus, SyncSessionStatus } from '@prisma/client';
 
 export class SyncPushOperationResultDto {
   @ApiProperty({ format: 'uuid' })

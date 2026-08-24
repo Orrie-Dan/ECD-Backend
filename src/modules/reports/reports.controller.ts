@@ -1,10 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -34,10 +29,7 @@ export class ReportsController {
   })
   @ApiOkResponse({ type: EnrollmentReportResponseDto })
   @ApiStandardClientErrors()
-  enrollment(
-    @CurrentUser() user: AuthUser,
-    @Query() query: MonitoringQueryDto,
-  ) {
+  enrollment(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
     return this.reports.enrollment(user, query);
   }
 
@@ -49,10 +41,7 @@ export class ReportsController {
   })
   @ApiOkResponse({ type: DropoutsReportResponseDto })
   @ApiStandardClientErrors()
-  dropouts(
-    @CurrentUser() user: AuthUser,
-    @Query() query: MonitoringQueryDto,
-  ) {
+  dropouts(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
     return this.reports.dropouts(user, query);
   }
 
@@ -64,10 +53,7 @@ export class ReportsController {
   })
   @ApiOkResponse({ type: CentersReportResponseDto })
   @ApiStandardClientErrors()
-  centers(
-    @CurrentUser() user: AuthUser,
-    @Query() query: MonitoringQueryDto,
-  ) {
+  centers(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
     return this.reports.centers(user, query);
   }
 
@@ -79,10 +65,7 @@ export class ReportsController {
   })
   @ApiOkResponse({ type: DistrictReportResponseDto })
   @ApiStandardClientErrors()
-  district(
-    @CurrentUser() user: AuthUser,
-    @Query() query: MonitoringQueryDto,
-  ) {
+  district(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
     return this.reports.district(user, query);
   }
 }

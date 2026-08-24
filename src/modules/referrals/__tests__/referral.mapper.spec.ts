@@ -1,7 +1,4 @@
-import {
-  ReferralSourceType,
-  ReferralStatus,
-} from '@prisma/client';
+import { ReferralSourceType, ReferralStatus } from '@prisma/client';
 import {
   canTransitionReferralStatus,
   referralMapper,
@@ -37,9 +34,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -89,57 +84,21 @@ async function run() {
   });
 
   await assert('State machine: pending → completed/cancelled', () => {
-    eq(
-      canTransitionReferralStatus(
-        ReferralStatus.pending,
-        ReferralStatus.completed,
-      ),
-      true,
-    );
-    eq(
-      canTransitionReferralStatus(
-        ReferralStatus.pending,
-        ReferralStatus.cancelled,
-      ),
-      true,
-    );
-    eq(
-      canTransitionReferralStatus(
-        ReferralStatus.completed,
-        ReferralStatus.cancelled,
-      ),
-      false,
-    );
-    eq(
-      canTransitionReferralStatus(
-        ReferralStatus.cancelled,
-        ReferralStatus.pending,
-      ),
-      false,
-    );
+    eq(canTransitionReferralStatus(ReferralStatus.pending, ReferralStatus.completed), true);
+    eq(canTransitionReferralStatus(ReferralStatus.pending, ReferralStatus.cancelled), true);
+    eq(canTransitionReferralStatus(ReferralStatus.completed, ReferralStatus.cancelled), false);
+    eq(canTransitionReferralStatus(ReferralStatus.cancelled, ReferralStatus.pending), false);
   });
 
   await assert('Sync payload resolves API or Prisma enums', () => {
-    eq(
-      resolveReferralSourceTypeFromPayload({ sourceType: 'sted' }),
-      ReferralSourceType.sted,
-    );
-    eq(
-      resolveReferralStatusFromPayload({ status: 'completed' }),
-      ReferralStatus.completed,
-    );
+    eq(resolveReferralSourceTypeFromPayload({ sourceType: 'sted' }), ReferralSourceType.sted);
+    eq(resolveReferralStatusFromPayload({ status: 'completed' }), ReferralStatus.completed);
   });
 
   await assert('Sync payload resolves recordedBy aliases', () => {
-    eq(
-      resolveReferralRecordedByIdFromPayload({ recordedById: 'u1' }),
-      'u1',
-    );
+    eq(resolveReferralRecordedByIdFromPayload({ recordedById: 'u1' }), 'u1');
     eq(resolveReferralRecordedByIdFromPayload({ recordedBy: 'u2' }), 'u2');
-    eq(
-      resolveReferralRecordedByIdFromPayload({ referredById: 'u3' }),
-      'u3',
-    );
+    eq(resolveReferralRecordedByIdFromPayload({ referredById: 'u3' }), 'u3');
   });
 
   await assert('Sync payload rejects missing/sentinel recordedBy', () => {

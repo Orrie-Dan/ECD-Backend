@@ -6,11 +6,7 @@ import { UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { SyncService } from '../sync.service';
-import {
-  andWhere,
-  buildKeysetWhere,
-  paginateMergedRows,
-} from '../sync-pull.util';
+import { andWhere, buildKeysetWhere, paginateMergedRows } from '../sync-pull.util';
 import { SYNC_PULL_DEFAULT_LIMIT } from '../sync.constants';
 
 function assert(name: string, fn: () => void | Promise<void>) {
@@ -60,9 +56,7 @@ function makeChildren(count: number, sharedTs?: Date): ChildRow[] {
   const rows: ChildRow[] = [];
   for (let i = 0; i < count; i++) {
     const id = `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`;
-    const ts = sharedTs
-      ? sharedTs
-      : new Date(base.getTime() + i * 1000);
+    const ts = sharedTs ? sharedTs : new Date(base.getTime() + i * 1000);
     rows.push({
       id,
       createdAt: ts,
@@ -127,18 +121,12 @@ function createPullHarness(children: ChildRow[]) {
     getJobs: async () => [],
   };
 
-  const service = new SyncService(
-    prisma as never,
-    syncAccess as never,
-    queue as never,
-  );
+  const service = new SyncService(prisma as never, syncAccess as never, queue as never);
 
   return { service, prisma };
 }
 
-function extractKeyset(
-  where: Record<string, unknown>,
-): { time: Date; id: string | null } | null {
+function extractKeyset(where: Record<string, unknown>): { time: Date; id: string | null } | null {
   const flatten = (w: Record<string, unknown>): Record<string, unknown>[] => {
     if (Array.isArray(w.AND)) {
       return (w.AND as Record<string, unknown>[]).flatMap((p) => flatten(p));
@@ -155,9 +143,7 @@ function extractKeyset(
       const gt = (part.OR as Array<Record<string, unknown>>).find(
         (o) => (o.lastModifiedAt as { gt?: Date })?.gt,
       );
-      const eq = (part.OR as Array<Record<string, unknown>>).find(
-        (o) => Array.isArray(o.AND),
-      );
+      const eq = (part.OR as Array<Record<string, unknown>>).find((o) => Array.isArray(o.AND));
       if (gt && eq) {
         const ands = eq.AND as Array<Record<string, unknown>>;
         const time = (
@@ -200,10 +186,7 @@ async function main() {
       OR: [
         { lastModifiedAt: { gt: t } },
         {
-          AND: [
-            { lastModifiedAt: { equals: t } },
-            { id: { gt: id } },
-          ],
+          AND: [{ lastModifiedAt: { equals: t } }, { id: { gt: id } }],
         },
       ],
     });
@@ -297,10 +280,7 @@ async function main() {
 
     const page1 = await service.pull(user, { limit: 1 });
     eq(page1.hasMore, true);
-    const first = [
-      ...page1.created.child,
-      ...page1.updated.child,
-    ] as ChildRow[];
+    const first = [...page1.created.child, ...page1.updated.child] as ChildRow[];
     eq(first.length, 1);
     eq(first[0].id, children[0].id);
 
@@ -309,10 +289,7 @@ async function main() {
       cursorId: page1.nextCursor!.id,
       limit: 1,
     });
-    const second = [
-      ...page2.created.child,
-      ...page2.updated.child,
-    ] as ChildRow[];
+    const second = [...page2.created.child, ...page2.updated.child] as ChildRow[];
     eq(second.length, 1);
     eq(second[0].id, children[1].id);
     eq(page2.hasMore, false);
@@ -323,10 +300,7 @@ async function main() {
       cursor: ts,
       limit: 10,
     });
-    const legacyRows = [
-      ...legacy.created.child,
-      ...legacy.updated.child,
-    ] as ChildRow[];
+    const legacyRows = [...legacy.created.child, ...legacy.updated.child] as ChildRow[];
     eq(legacyRows.length, 0, 'legacy gt cursor skips same-timestamp rows');
   });
 
@@ -359,10 +333,7 @@ async function main() {
     let cursorId = resumeCursor.id;
     for (;;) {
       const page = await service.pull(user, { cursor, cursorId, limit: 50 });
-      const batch = [
-        ...page.created.child,
-        ...page.updated.child,
-      ] as ChildRow[];
+      const batch = [...page.created.child, ...page.updated.child] as ChildRow[];
       for (const row of batch) {
         if (seen.has(row.id)) throw new Error(`duplicate on resume: ${row.id}`);
         seen.add(row.id);
@@ -381,9 +352,7 @@ async function main() {
     const result = await service.pull(adminUser(), {});
     eq(result.limit, SYNC_PULL_DEFAULT_LIMIT);
     const count =
-      result.created.child.length +
-      result.updated.child.length +
-      result.deleted.child.length;
+      result.created.child.length + result.updated.child.length + result.deleted.child.length;
     eq(count, SYNC_PULL_DEFAULT_LIMIT);
     eq(result.hasMore, true);
   });

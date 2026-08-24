@@ -1,10 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -42,25 +37,18 @@ export class MonitoringController {
   })
   @ApiOkResponse({ type: MonitoringAttendanceResponseDto })
   @ApiStandardClientErrors()
-  attendance(
-    @CurrentUser() user: AuthUser,
-    @Query() query: MonitoringQueryDto,
-  ) {
+  attendance(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
     return this.monitoring.attendance(user, query);
   }
 
   @Get('nutrition')
   @ApiOperation({
     summary: 'Monitor nutrition',
-    description:
-      'Nutrition screening coverage and severity breakdown by center.',
+    description: 'Nutrition screening coverage and severity breakdown by center.',
   })
   @ApiOkResponse({ type: MonitoringNutritionResponseDto })
   @ApiStandardClientErrors()
-  nutrition(
-    @CurrentUser() user: AuthUser,
-    @Query() query: MonitoringQueryDto,
-  ) {
+  nutrition(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
     return this.monitoring.nutrition(user, query);
   }
 
@@ -79,8 +67,7 @@ export class MonitoringController {
   @Get('sted')
   @ApiOperation({
     summary: 'Monitor STED',
-    description:
-      'STED assessment coverage, average scores, and age-band/outcome distributions.',
+    description: 'STED assessment coverage, average scores, and age-band/outcome distributions.',
   })
   @ApiOkResponse({ type: MonitoringStedResponseDto })
   @ApiStandardClientErrors()
@@ -115,15 +102,11 @@ export class MonitoringController {
   @Get('referrals')
   @ApiOperation({
     summary: 'Monitor referrals',
-    description:
-      'Referral pipeline metrics (pending/completed/overdue) with per-center items.',
+    description: 'Referral pipeline metrics (pending/completed/overdue) with per-center items.',
   })
   @ApiOkResponse({ type: MonitoringReferralsResponseDto })
   @ApiStandardClientErrors()
-  referrals(
-    @CurrentUser() user: AuthUser,
-    @Query() query: MonitoringQueryDto,
-  ) {
+  referrals(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
     return this.monitoring.referrals(user, query);
   }
 }

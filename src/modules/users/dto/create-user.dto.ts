@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { EducationLevel, PersonSex, UserRole } from '@prisma/client';
 import {
   IsEnum,
   IsNotEmpty,
@@ -51,8 +51,7 @@ export class CreateUserDto {
     description: 'Required when role is caregiver or ecd_director',
   })
   @ValidateIf(
-    (o: CreateUserDto) =>
-      o.role === UserRole.caregiver || o.role === UserRole.ecd_director,
+    (o: CreateUserDto) => o.role === UserRole.caregiver || o.role === UserRole.ecd_director,
   )
   @IsUUID()
   centerId?: string;
@@ -62,4 +61,22 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(50)
   phone?: string;
+
+  @ApiPropertyOptional({
+    enum: PersonSex,
+    enumName: 'PersonSex',
+    description: 'Sex of the staff member (Section XI). Optional for all roles.',
+  })
+  @IsOptional()
+  @IsEnum(PersonSex)
+  gender?: PersonSex;
+
+  @ApiPropertyOptional({
+    enum: EducationLevel,
+    enumName: 'EducationLevel',
+    description: 'Education level for centre caregivers/educators (Section XI).',
+  })
+  @IsOptional()
+  @IsEnum(EducationLevel)
+  educationLevel?: EducationLevel;
 }

@@ -14,7 +14,11 @@ import {
   UserAccountStatus,
   UserRole,
 } from '@prisma/client';
-import { assertCenterAccess, assertDistrictAccess, isCenterStaffRole } from '../../common/auth/scope.util';
+import {
+  assertCenterAccess,
+  assertDistrictAccess,
+  isCenterStaffRole,
+} from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { FollowUpAlertDto, FollowUpAlertsResponseDto } from './dto/follow-up-alert.dto';
@@ -553,12 +557,15 @@ export class AlertsService {
 
   private async staleTransferAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
     const cutoff = daysAgo(STALE_TRANSFER_DAYS);
-    const centerFilter = scope.centerIds === 'all' ? {} : {
-      OR: [
-        { fromCenterId: { in: scope.centerIds } },
-        { toCenterId: { in: scope.centerIds } },
-      ],
-    };
+    const centerFilter =
+      scope.centerIds === 'all'
+        ? {}
+        : {
+            OR: [
+              { fromCenterId: { in: scope.centerIds } },
+              { toCenterId: { in: scope.centerIds } },
+            ],
+          };
 
     const rows = await this.prisma.childTransfer.findMany({
       where: {
@@ -603,9 +610,12 @@ export class AlertsService {
 
   private async complianceGapAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
     const today = startOfUtcDay(new Date());
-    const centerFilter = scope.centerIds === 'all' ? {} : {
-      assessment: { centerId: { in: scope.centerIds } },
-    };
+    const centerFilter =
+      scope.centerIds === 'all'
+        ? {}
+        : {
+            assessment: { centerId: { in: scope.centerIds } },
+          };
 
     const items = await this.prisma.complianceAssessmentItem.findMany({
       where: {
@@ -693,10 +703,12 @@ export class AlertsService {
         entityType: 'ecd_center',
         entityId: c.id,
         detectedAt: nowIso,
-        metrics: [{
-          label: 'Last assessment',
-          value: c.complianceAssessments[0]?.assessmentDate.toISOString().slice(0, 10) ?? 'Never',
-        }],
+        metrics: [
+          {
+            label: 'Last assessment',
+            value: c.complianceAssessments[0]?.assessmentDate.toISOString().slice(0, 10) ?? 'Never',
+          },
+        ],
       }));
   }
 

@@ -7,12 +7,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
-import {
-  DeviceStatus,
-  Prisma,
-  SyncOperationStatus,
-  SyncSessionStatus,
-} from '@prisma/client';
+import { DeviceStatus, Prisma, SyncOperationStatus, SyncSessionStatus } from '@prisma/client';
 import { Queue } from 'bullmq';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -50,7 +45,8 @@ export class SyncService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
-    @InjectQueue(SYNC_QUEUE) private readonly syncQueue: Queue<SyncJobPayload | Record<string, never>>,
+    @InjectQueue(SYNC_QUEUE)
+    private readonly syncQueue: Queue<SyncJobPayload | Record<string, never>>,
   ) {}
 
   async onModuleInit() {
@@ -199,9 +195,7 @@ export class SyncService implements OnModuleInit {
       }
 
       const rowId = randomUUID();
-      const status = auth.allowed
-        ? SyncOperationStatus.pending
-        : SyncOperationStatus.failed;
+      const status = auth.allowed ? SyncOperationStatus.pending : SyncOperationStatus.failed;
       const conflictReason = auth.allowed ? null : auth.reason;
 
       toCreate.push({
@@ -235,9 +229,7 @@ export class SyncService implements OnModuleInit {
       });
     }
 
-    const newPendingCount = toCreate.filter(
-      (r) => r.status === SyncOperationStatus.pending,
-    ).length;
+    const newPendingCount = toCreate.filter((r) => r.status === SyncOperationStatus.pending).length;
 
     let createdSessionId: string | null = null;
 
@@ -252,10 +244,7 @@ export class SyncService implements OnModuleInit {
             });
             inserted.push(row);
           } catch (error) {
-            if (
-              error instanceof Prisma.PrismaClientKnownRequestError &&
-              error.code === 'P2002'
-            ) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
               const raced = await tx.syncOperation.findFirst({
                 where: {
                   deviceId: device.id,
@@ -267,8 +256,7 @@ export class SyncService implements OnModuleInit {
               }
 
               const idx = results.findIndex(
-                (r) =>
-                  r.clientOperationId === row.clientOperationId && !r.replayed,
+                (r) => r.clientOperationId === row.clientOperationId && !r.replayed,
               );
               if (idx >= 0) {
                 results[idx] = {
@@ -307,10 +295,7 @@ export class SyncService implements OnModuleInit {
             totalOperations: inserted.length,
             successfulOperations: 0,
             failedOperations: insertedRejected,
-            status:
-              insertedPending === 0
-                ? SyncSessionStatus.completed
-                : SyncSessionStatus.started,
+            status: insertedPending === 0 ? SyncSessionStatus.completed : SyncSessionStatus.started,
             ...(insertedPending === 0 ? { completedAt: now } : {}),
           },
         });
@@ -395,9 +380,7 @@ export class SyncService implements OnModuleInit {
     };
   }
 
-  private aggregatePushStatus(
-    statuses: SyncOperationStatus[],
-  ): SyncOperationStatus {
+  private aggregatePushStatus(statuses: SyncOperationStatus[]): SyncOperationStatus {
     if (statuses.some((s) => s === SyncOperationStatus.pending)) {
       return SyncOperationStatus.pending;
     }
@@ -443,9 +426,7 @@ export class SyncService implements OnModuleInit {
     const take = limit + 1;
 
     const nutritionScope =
-      scope.centerIds === 'all'
-        ? {}
-        : { child: { centerId: { in: scope.centerIds } } };
+      scope.centerIds === 'all' ? {} : { child: { centerId: { in: scope.centerIds } } };
     const transferScope =
       scope.centerIds === 'all'
         ? {}
@@ -456,9 +437,7 @@ export class SyncService implements OnModuleInit {
             ],
           };
     const assessmentItemScope =
-      scope.centerIds === 'all'
-        ? {}
-        : { assessment: { centerId: { in: scope.centerIds } } };
+      scope.centerIds === 'all' ? {} : { assessment: { centerId: { in: scope.centerIds } } };
 
     const [
       children,
@@ -695,7 +674,7 @@ export class SyncService implements OnModuleInit {
     });
 
     let requeued = 0;
-    let deadLettered = 0;
+    const deadLettered = 0;
     let parkedRequeued = 0;
 
     const inFlight = await this.sessionIdsInFlight();
@@ -769,10 +748,7 @@ export class SyncService implements OnModuleInit {
     };
   }
 
-  private async enqueueSession(
-    sessionId: string,
-    retryCount: number,
-  ): Promise<void> {
+  private async enqueueSession(sessionId: string, retryCount: number): Promise<void> {
     await this.syncQueue.add(
       SYNC_JOB_PROCESS_SESSION,
       { sessionId },
@@ -787,12 +763,7 @@ export class SyncService implements OnModuleInit {
   }
 
   private async sessionIdsInFlight(): Promise<Set<string>> {
-    const jobs = await this.syncQueue.getJobs([
-      'active',
-      'waiting',
-      'delayed',
-      'paused',
-    ]);
+    const jobs = await this.syncQueue.getJobs(['active', 'waiting', 'delayed', 'paused']);
     const ids = new Set<string>();
     for (const job of jobs) {
       if (job.name !== SYNC_JOB_PROCESS_SESSION) continue;

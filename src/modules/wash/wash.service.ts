@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RecordSyncStatus, UserRole } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess, isCenterStaffRole } from '../../common/auth/scope.util';
@@ -55,10 +51,7 @@ export class WashService {
     };
   }
 
-  async getIndicator(
-    user: AuthUser,
-    id: string,
-  ): Promise<WashIndicatorResponseDto> {
+  async getIndicator(user: AuthUser, id: string): Promise<WashIndicatorResponseDto> {
     const indicator = await this.prisma.washIndicator.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -70,11 +63,7 @@ export class WashService {
       throw new NotFoundException('WASH indicator not found');
     }
 
-    assertCenterAccess(
-      user,
-      indicator.centerId,
-      indicator.center.districtId,
-    );
+    assertCenterAccess(user, indicator.centerId, indicator.center.districtId);
 
     return this.toDto(indicator);
   }
@@ -161,11 +150,7 @@ export class WashService {
       throw new NotFoundException('WASH indicator not found');
     }
 
-    assertCenterAccess(
-      user,
-      existing.centerId,
-      existing.center.districtId,
-    );
+    assertCenterAccess(user, existing.centerId, existing.center.districtId);
 
     const now = new Date();
     const oldValues = toAuditJson({
@@ -269,9 +254,7 @@ export class WashService {
       where.centerId = user.centerId;
     } else if (user.role === UserRole.district_focal_person) {
       if (!user.districtId) {
-        throw new ForbiddenException(
-          'District scope is required for district focal persons',
-        );
+        throw new ForbiddenException('District scope is required for district focal persons');
       }
       if (query.districtId && query.districtId !== user.districtId) {
         throw new ForbiddenException('Access to other districts is denied');

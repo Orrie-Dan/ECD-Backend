@@ -6,10 +6,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import {
-  ApiAuthErrors,
-  ErrorResponseDto,
-} from '../../common/swagger';
+import { ApiAuthErrors, ErrorResponseDto } from '../../common/swagger';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
@@ -46,8 +43,7 @@ export class AuthController {
   @Post('refresh')
   @ApiOperation({
     summary: 'Refresh tokens',
-    description:
-      'Exchanges a valid refresh token for a new access + refresh token pair.',
+    description: 'Exchanges a valid refresh token for a new access + refresh token pair.',
   })
   @ApiOkResponse({ type: AuthTokensResponseDto })
   @ApiBadRequestResponse({

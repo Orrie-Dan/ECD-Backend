@@ -37,8 +37,7 @@ export class DeviceResponseDto {
     type: String,
     format: 'date-time',
     nullable: true,
-    description:
-      'Last sync timestamp (DB last_sync_at). Additive alias of lastSeenAt.',
+    description: 'Last sync timestamp (DB last_sync_at). Additive alias of lastSeenAt.',
   })
   lastSyncAt: Date | null;
 

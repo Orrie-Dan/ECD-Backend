@@ -61,8 +61,7 @@ export class UpsertFeedingMonthSummaryDto {
 
   @ApiPropertyOptional({
     format: 'uuid',
-    description:
-      'Optional client device ID for audit trail (also accepted via x-device-id header)',
+    description: 'Optional client device ID for audit trail (also accepted via x-device-id header)',
   })
   @IsOptional()
   @IsUUID()

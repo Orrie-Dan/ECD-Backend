@@ -1,8 +1,4 @@
-import {
-  ChildNutritionScreening,
-  NutritionStatus,
-  Prisma,
-} from '@prisma/client';
+import { ChildNutritionScreening, NutritionStatus, Prisma } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { GrowthChartResponseDto } from '../dto/growth-chart-response.dto';
 import { NutritionScreeningResponseDto } from '../dto/nutrition-screening-response.dto';
@@ -11,10 +7,7 @@ export function deriveRequiresReferral(
   nutritionStatus: NutritionStatus,
   clientFlag?: boolean,
 ): boolean {
-  if (
-    nutritionStatus === NutritionStatus.moderate ||
-    nutritionStatus === NutritionStatus.severe
-  ) {
+  if (nutritionStatus === NutritionStatus.moderate || nutritionStatus === NutritionStatus.severe) {
     return true;
   }
   return Boolean(clientFlag);
@@ -32,9 +25,10 @@ export function decimalToNumber(
   return Number(value.toString());
 }
 
-export class NutritionMapper
-  implements Mapper<ChildNutritionScreening, NutritionScreeningResponseDto>
-{
+export class NutritionMapper implements Mapper<
+  ChildNutritionScreening,
+  NutritionScreeningResponseDto
+> {
   toDto(entity: ChildNutritionScreening): NutritionScreeningResponseDto {
     const weightKg = decimalToNumber(entity.weightKg);
     const muacCm = decimalToNumber(entity.muacCm);
@@ -62,10 +56,7 @@ export class NutritionMapper
     };
   }
 
-  toGrowthChart(
-    childId: string,
-    screenings: ChildNutritionScreening[],
-  ): GrowthChartResponseDto {
+  toGrowthChart(childId: string, screenings: ChildNutritionScreening[]): GrowthChartResponseDto {
     const chronological = [...screenings].sort(
       (a, b) => a.screeningDate.getTime() - b.screeningDate.getTime(),
     );

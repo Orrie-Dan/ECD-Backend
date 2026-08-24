@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -59,10 +50,7 @@ export class ComplianceController {
   })
   @ApiOkResponse({ type: PaginatedAssessmentsResponseDto })
   @ApiStandardClientErrors()
-  listAssessments(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListAssessmentsQueryDto,
-  ) {
+  listAssessments(@CurrentUser() user: AuthUser, @Query() query: ListAssessmentsQueryDto) {
     return this.complianceService.listAssessments(user, query);
   }
 
@@ -81,10 +69,7 @@ export class ComplianceController {
   @ApiOkResponse({ type: AssessmentDetailResponseDto })
   @ApiAuthErrors()
   @ApiNotFoundError('Assessment')
-  getAssessment(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  getAssessment(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.complianceService.getAssessment(user, id);
   }
 
@@ -97,10 +82,7 @@ export class ComplianceController {
   @ApiCreatedResponse({ type: AssessmentResponseDto })
   @ApiStandardClientErrors()
   @ApiNotFoundError('Center')
-  createAssessment(
-    @CurrentUser() user: AuthUser,
-    @Body() dto: CreateAssessmentDto,
-  ) {
+  createAssessment(@CurrentUser() user: AuthUser, @Body() dto: CreateAssessmentDto) {
     return this.complianceService.createAssessment(user, dto);
   }
 
@@ -108,8 +90,7 @@ export class ComplianceController {
   @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'Update compliance assessment',
-    description:
-      'Updates assessment metadata/status. Requires optimistic-lock `version`.',
+    description: 'Updates assessment metadata/status. Requires optimistic-lock `version`.',
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'Assessment UUID' })
   @ApiOkResponse({ type: AssessmentResponseDto })
@@ -163,8 +144,7 @@ export class ComplianceController {
   @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'Update assessment item',
-    description:
-      'Updates an assessment item (response, gaps). Requires optimistic-lock `version`.',
+    description: 'Updates an assessment item (response, gaps). Requires optimistic-lock `version`.',
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'Assessment UUID' })
   @ApiParam({ name: 'itemId', format: 'uuid', description: 'Assessment item UUID' })
@@ -178,11 +158,6 @@ export class ComplianceController {
     @Param('itemId', ParseUUIDPipe) itemId: string,
     @Body() dto: UpdateAssessmentItemDto,
   ) {
-    return this.complianceService.updateAssessmentItem(
-      user,
-      assessmentId,
-      itemId,
-      dto,
-    );
+    return this.complianceService.updateAssessmentItem(user, assessmentId, itemId, dto);
   }
 }

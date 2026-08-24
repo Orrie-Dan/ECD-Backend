@@ -26,10 +26,7 @@ import { DashboardResponseDto } from './dto/dashboard-response.dto';
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDashboard(
-    user: AuthUser,
-    query: DashboardQueryDto,
-  ): Promise<DashboardResponseDto> {
+  async getDashboard(user: AuthUser, query: DashboardQueryDto): Promise<DashboardResponseDto> {
     const { from, to } = resolveDateRange(query.from, query.to);
     const scope = await this.resolveScope(user, query);
 
@@ -37,18 +34,13 @@ export class AnalyticsService {
       return emptyDashboard(scope, from, to);
     }
 
-    const centerFilter =
-      scope.centerIds === 'all'
-        ? undefined
-        : { in: scope.centerIds };
+    const centerFilter = scope.centerIds === 'all' ? undefined : { in: scope.centerIds };
 
     const centersInScope = await this.prisma.ecdCenter.count({
       where: {
         deletedAt: null,
         ...(centerFilter ? { id: centerFilter } : {}),
-        ...(scope.districtId && scope.centerIds === 'all'
-          ? { districtId: scope.districtId }
-          : {}),
+        ...(scope.districtId && scope.centerIds === 'all' ? { districtId: scope.districtId } : {}),
       },
     });
 
@@ -231,9 +223,7 @@ export class AnalyticsService {
 
     const totalAttendance = attendancePresent + attendanceAbsent;
     const rate =
-      totalAttendance > 0
-        ? Math.round((attendancePresent / totalAttendance) * 1000) / 10
-        : null;
+      totalAttendance > 0 ? Math.round((attendancePresent / totalAttendance) * 1000) / 10 : null;
 
     return {
       from: from.toISOString(),
@@ -348,9 +338,7 @@ export class AnalyticsService {
       });
       if (!center) throw new NotFoundException('Center not found');
       if (query.districtId && query.districtId !== center.districtId) {
-        throw new BadRequestException(
-          'centerId does not belong to the given districtId',
-        );
+        throw new BadRequestException('centerId does not belong to the given districtId');
       }
       return {
         centerIds: [center.id],
@@ -413,16 +401,11 @@ async function countDistinctCenterIds(
   return rows[0]?.cnt ?? 0;
 }
 
-function resolveDateRange(
-  from?: Date,
-  to?: Date,
-): { from: Date; to: Date } {
+function resolveDateRange(from?: Date, to?: Date): { from: Date; to: Date } {
   const end = to ? startOfUtcDay(to) : startOfUtcDay(new Date());
   const start = from
     ? startOfUtcDay(from)
-    : new Date(
-        Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() - 29),
-      );
+    : new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() - 29));
 
   if (start.getTime() > end.getTime()) {
     throw new BadRequestException('`from` must be on or before `to`');
@@ -433,9 +416,7 @@ function resolveDateRange(
 }
 
 function startOfUtcDay(d: Date): Date {
-  return new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
-  );
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
 function emptyDashboard(

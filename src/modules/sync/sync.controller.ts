@@ -7,10 +7,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import {
-  ApiNotFoundError,
-  ApiStandardClientErrors,
-} from '../../common/swagger';
+import { ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncPullQueryDto } from './dto/sync-pull-query.dto';
@@ -62,10 +59,7 @@ export class SyncController {
   @ApiOkResponse({ type: SyncSessionStatusResponseDto })
   @ApiNotFoundError('Sync session')
   @ApiStandardClientErrors()
-  sessionStatus(
-    @CurrentUser() user: AuthUser,
-    @Param('sessionId') sessionId: string,
-  ) {
+  sessionStatus(@CurrentUser() user: AuthUser, @Param('sessionId') sessionId: string) {
     return this.syncService.getSessionStatus(user, sessionId);
   }
 }

@@ -6,10 +6,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import {
-  ApiAuthErrors,
-  ApiStandardClientErrors,
-} from '../../common/swagger';
+import { ApiAuthErrors, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { DevicesService } from './devices.service';

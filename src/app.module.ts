@@ -30,6 +30,7 @@ import { GeoModule } from './modules/geo/geo.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { WashModule } from './modules/wash/wash.module';
+import { CenterRegisterModule } from './modules/center-register/center-register.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -63,6 +64,7 @@ import { PrismaModule } from './prisma/prisma.module';
     GeoModule,
     ComplianceModule,
     WashModule,
+    CenterRegisterModule,
     NotificationsModule,
   ],
   providers: [

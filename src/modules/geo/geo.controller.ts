@@ -1,17 +1,7 @@
 import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import {
-  ApiAuthErrors,
-  ApiNotFoundError,
-  ApiStandardClientErrors,
-} from '../../common/swagger';
+import { ApiAuthErrors, ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -41,15 +31,11 @@ export class GeoController {
   )
   @ApiOperation({
     summary: 'List administrative units',
-    description:
-      'Returns villages/sectors/cells filtered by district, parent, or level.',
+    description: 'Returns villages/sectors/cells filtered by district, parent, or level.',
   })
   @ApiOkResponse({ type: [AdminUnitResponseDto] })
   @ApiStandardClientErrors()
-  listAdminUnits(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListAdminUnitsQueryDto,
-  ) {
+  listAdminUnits(@CurrentUser() user: AuthUser, @Query() query: ListAdminUnitsQueryDto) {
     return this.geoService.listAdminUnits(user, query);
   }
 
@@ -67,10 +53,7 @@ export class GeoController {
   })
   @ApiOkResponse({ type: PaginatedDistrictsResponseDto })
   @ApiStandardClientErrors()
-  listDistricts(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListDistrictsQueryDto,
-  ) {
+  listDistricts(@CurrentUser() user: AuthUser, @Query() query: ListDistrictsQueryDto) {
     return this.geoService.listDistricts(user, query);
   }
 
@@ -90,10 +73,7 @@ export class GeoController {
   @ApiOkResponse({ type: DistrictResponseDto })
   @ApiStandardClientErrors()
   @ApiNotFoundError('District')
-  getDistrict(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseUUIDPipe) districtId: string,
-  ) {
+  getDistrict(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) districtId: string) {
     return this.geoService.getDistrict(user, districtId);
   }
 

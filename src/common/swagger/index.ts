@@ -1,7 +1,4 @@
-export {
-  ConflictResponseDto,
-  ErrorResponseDto,
-} from './error-response.dto';
+export { ConflictResponseDto, ErrorResponseDto } from './error-response.dto';
 export {
   ApiAuthErrors,
   ApiDeviceIdHeader,

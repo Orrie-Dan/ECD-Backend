@@ -1,8 +1,4 @@
-import {
-  Referral,
-  ReferralSourceType,
-  ReferralStatus,
-} from '@prisma/client';
+import { Referral, ReferralSourceType, ReferralStatus } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { CreateReferralDto } from '../dto/create-referral.dto';
 import {
@@ -61,9 +57,7 @@ export function toDbReferralStatus(status: ApiReferralStatus): ReferralStatus {
   }
 }
 
-export function toApiReferralSourceType(
-  sourceType: ReferralSourceType,
-): ApiReferralSourceType {
+export function toApiReferralSourceType(sourceType: ReferralSourceType): ApiReferralSourceType {
   switch (sourceType) {
     case ReferralSourceType.nutrition:
       return 'nutrition';
@@ -76,9 +70,7 @@ export function toApiReferralSourceType(
   }
 }
 
-export function toDbReferralSourceType(
-  sourceType: ApiReferralSourceType,
-): ReferralSourceType {
+export function toDbReferralSourceType(sourceType: ApiReferralSourceType): ReferralSourceType {
   switch (sourceType) {
     case 'nutrition':
       return ReferralSourceType.nutrition;
@@ -97,25 +89,14 @@ export function toDbReferralSourceType(
  * Never coerces missing values to the string "undefined" (that caused
  * permanent FK failures classified as retryable P2003 → infinite pending).
  */
-export function resolveReferralRecordedByIdFromPayload(
-  payload: Record<string, unknown>,
-): string {
-  const raw =
-    payload.recordedById ?? payload.recordedBy ?? payload.referredById;
+export function resolveReferralRecordedByIdFromPayload(payload: Record<string, unknown>): string {
+  const raw = payload.recordedById ?? payload.recordedBy ?? payload.referredById;
   if (typeof raw !== 'string') {
-    throw new Error(
-      'referral requires recordedById (or recordedBy / referredById)',
-    );
+    throw new Error('referral requires recordedById (or recordedBy / referredById)');
   }
   const trimmed = raw.trim();
-  if (
-    !trimmed ||
-    trimmed === 'undefined' ||
-    trimmed === 'null'
-  ) {
-    throw new Error(
-      'referral requires recordedById (or recordedBy / referredById)',
-    );
+  if (!trimmed || trimmed === 'undefined' || trimmed === 'null') {
+    throw new Error('referral requires recordedById (or recordedBy / referredById)');
   }
   return trimmed;
 }
@@ -139,9 +120,7 @@ export function resolveReferralSourceTypeFromPayload(
 /**
  * Resolve status from sync payload (API string or Prisma enum).
  */
-export function resolveReferralStatusFromPayload(
-  payload: Record<string, unknown>,
-): ReferralStatus {
+export function resolveReferralStatusFromPayload(payload: Record<string, unknown>): ReferralStatus {
   const raw = payload.status;
   if (raw === 'pending' || raw === ReferralStatus.pending) {
     return ReferralStatus.pending;
@@ -156,19 +135,14 @@ export function resolveReferralStatusFromPayload(
 }
 
 /** pending → completed | cancelled; terminal states cannot change. */
-export function canTransitionReferralStatus(
-  from: ReferralStatus,
-  to: ReferralStatus,
-): boolean {
+export function canTransitionReferralStatus(from: ReferralStatus, to: ReferralStatus): boolean {
   if (from !== ReferralStatus.pending) {
     return false;
   }
   return to === ReferralStatus.completed || to === ReferralStatus.cancelled;
 }
 
-export class ReferralMapper
-  implements Mapper<ReferralEntity, ReferralResponseDto>
-{
+export class ReferralMapper implements Mapper<ReferralEntity, ReferralResponseDto> {
   toDto(entity: ReferralEntity): ReferralResponseDto {
     return {
       id: entity.id,
@@ -192,9 +166,7 @@ export class ReferralMapper
   toCreateData(dto: CreateReferralDto): ReferralCreateMapped {
     return {
       sourceType: toDbReferralSourceType(dto.sourceType),
-      referralDate: new Date(
-        `${dto.referralDate.slice(0, 10)}T00:00:00.000Z`,
-      ),
+      referralDate: new Date(`${dto.referralDate.slice(0, 10)}T00:00:00.000Z`),
       reason: dto.reason.trim(),
       destination: dto.destination.trim(),
       notes: dto.notes?.trim() || null,

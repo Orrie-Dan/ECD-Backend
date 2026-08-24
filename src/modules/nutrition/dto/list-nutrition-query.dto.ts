@@ -1,11 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsEnum,
-  IsIn,
-  IsOptional,
-  IsUUID,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsIn, IsOptional, IsUUID } from 'class-validator';
 import { NutritionStatus } from '@prisma/client';
 import { NutritionAlertType } from './nutrition-alert.dto';
 

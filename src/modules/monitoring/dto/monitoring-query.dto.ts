@@ -1,13 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsDate,
-  IsInt,
-  IsOptional,
-  IsUUID,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsDate, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 
 export class MonitoringQueryDto {
   @ApiPropertyOptional({ format: 'uuid' })

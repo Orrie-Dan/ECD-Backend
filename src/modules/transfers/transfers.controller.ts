@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Headers,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -70,30 +61,22 @@ export class TransfersController {
   @Get('transfers/incoming')
   @ApiOperation({
     summary: 'List incoming transfers',
-    description:
-      'Paginated pending transfers into centers visible to the caller.',
+    description: 'Paginated pending transfers into centers visible to the caller.',
   })
   @ApiOkResponse({ type: PaginatedTransfersResponseDto })
   @ApiStandardClientErrors()
-  findIncoming(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListPaginationQueryDto,
-  ) {
+  findIncoming(@CurrentUser() user: AuthUser, @Query() query: ListPaginationQueryDto) {
     return this.transfersService.findIncoming(user, query);
   }
 
   @Get('transfers/outgoing')
   @ApiOperation({
     summary: 'List outgoing transfers',
-    description:
-      'Paginated pending transfers out of centers visible to the caller.',
+    description: 'Paginated pending transfers out of centers visible to the caller.',
   })
   @ApiOkResponse({ type: PaginatedTransfersResponseDto })
   @ApiStandardClientErrors()
-  findOutgoing(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListPaginationQueryDto,
-  ) {
+  findOutgoing(@CurrentUser() user: AuthUser, @Query() query: ListPaginationQueryDto) {
     return this.transfersService.findOutgoing(user, query);
   }
 
@@ -101,7 +84,7 @@ export class TransfersController {
   @ApiOperation({
     summary: 'Get child transfer history',
     description:
-      'Paginated transfers for a child (pending, accepted, and cancelled), newest first. Accessible when the caller can see the child\'s current center or any from/to center on the child\'s transfers.',
+      "Paginated transfers for a child (pending, accepted, and cancelled), newest first. Accessible when the caller can see the child's current center or any from/to center on the child's transfers.",
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'Child ID' })
   @ApiOkResponse({ type: TransferHistoryResponseDto })
@@ -142,18 +125,14 @@ export class TransfersController {
   @ApiOkResponse({ type: TransferResponseDto })
   @ApiNotFoundError('Transfer')
   @ApiStandardClientErrors()
-  findOne(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  findOne(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.transfersService.findOne(user, id);
   }
 
   @Post('transfers/:id/accept')
   @ApiOperation({
     summary: 'Accept pending transfer',
-    description:
-      'Accepts a pending transfer. Requires transfer version and childVersion for CAS.',
+    description: 'Accepts a pending transfer. Requires transfer version and childVersion for CAS.',
   })
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiDeviceIdHeader()
@@ -176,8 +155,7 @@ export class TransfersController {
   @Post('transfers/:id/cancel')
   @ApiOperation({
     summary: 'Cancel pending transfer',
-    description:
-      'Cancels a pending transfer. Requires transfer version and childVersion for CAS.',
+    description: 'Cancels a pending transfer. Requires transfer version and childVersion for CAS.',
   })
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiDeviceIdHeader()

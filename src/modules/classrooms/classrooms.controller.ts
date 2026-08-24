@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -15,10 +8,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import {
-  ApiNotFoundError,
-  ApiStandardClientErrors,
-} from '../../common/swagger';
+import { ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -51,9 +41,7 @@ export class ClassroomsController {
   @ApiOkResponse({ type: [ClassroomResponseDto] })
   @ApiStandardClientErrors()
   @ApiNotFoundError('Center')
-  findAllByCenter(
-    @Param('centerId', ParseUUIDPipe) centerId: string,
-  ) {
+  findAllByCenter(@Param('centerId', ParseUUIDPipe) centerId: string) {
     return this.classroomsService.findAllByCenter(centerId);
   }
 

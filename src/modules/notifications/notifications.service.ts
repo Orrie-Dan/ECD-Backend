@@ -62,10 +62,7 @@ export class NotificationsService {
     return { unreadCount };
   }
 
-  async markAsRead(
-    user: AuthUser,
-    id: string,
-  ): Promise<NotificationResponseDto> {
+  async markAsRead(user: AuthUser, id: string): Promise<NotificationResponseDto> {
     const notification = await this.prisma.notification.findFirst({
       where: { id, userId: user.id },
     });
@@ -129,10 +126,7 @@ export class NotificationsService {
     return result.count;
   }
 
-  async findUserIdsByRoleAndCenter(
-    centerId: string,
-    roles: UserRole[],
-  ): Promise<string[]> {
+  async findUserIdsByRoleAndCenter(centerId: string, roles: UserRole[]): Promise<string[]> {
     const users = await this.prisma.userAccount.findMany({
       where: {
         centerId,
@@ -144,10 +138,7 @@ export class NotificationsService {
     return users.map((u) => u.id);
   }
 
-  async findUserIdsByRoleAndDistrict(
-    districtId: string,
-    roles: UserRole[],
-  ): Promise<string[]> {
+  async findUserIdsByRoleAndDistrict(districtId: string, roles: UserRole[]): Promise<string[]> {
     const users = await this.prisma.userAccount.findMany({
       where: {
         districtId,
@@ -163,16 +154,10 @@ export class NotificationsService {
    * Fire-and-forget: sends notifications without blocking the caller.
    * Logs errors instead of throwing.
    */
-  notifyAsync(
-    userIds: string[],
-    data: Omit<CreateNotificationDto, 'userId'>,
-  ): void {
+  notifyAsync(userIds: string[], data: Omit<CreateNotificationDto, 'userId'>): void {
     if (userIds.length === 0) return;
     this.createForMultipleUsers(userIds, data).catch((err) => {
-      this.logger.error(
-        `Failed to send ${data.type} notification: ${err.message}`,
-        err.stack,
-      );
+      this.logger.error(`Failed to send ${data.type} notification: ${err.message}`, err.stack);
     });
   }
 }

@@ -1,9 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
-import {
-  AbsentReason,
-  AttendanceStatus,
-  UserRole,
-} from '@prisma/client';
+import { AbsentReason, AttendanceStatus, UserRole } from '@prisma/client';
 import { canAccessCenter } from '../../../common/auth/scope.util';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from '../../sync/sync-access.service';
@@ -71,9 +67,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -235,10 +229,7 @@ async function run() {
     eq(result.items[0].outcome, 'updated');
     eq(result.items[0].attendance?.present, false);
     eq(result.items[0].attendance?.absentReason, AbsentReason.weather);
-    eq(
-      (updates[0] as { data: { status: string } }).data.status,
-      AttendanceStatus.absent,
-    );
+    eq((updates[0] as { data: { status: string } }).data.status, AttendanceStatus.absent);
   });
 
   await assert('batch upsert conflicts on stale version', async () => {
@@ -373,10 +364,7 @@ async function run() {
     eq(result.created, 0);
     eq(result.failed, 1);
     eq(result.items[0].outcome, 'failed');
-    eq(
-      result.items[0].message?.includes('absentReason') ?? false,
-      true,
-    );
+    eq(result.items[0].message?.includes('absentReason') ?? false, true);
   });
 
   await assert('weather accepted as absent reason', async () => {
@@ -422,10 +410,7 @@ async function run() {
     });
 
     eq(result.created, 1);
-    eq(
-      (creates[0] as { absentReason: string }).absentReason,
-      AbsentReason.weather,
-    );
+    eq((creates[0] as { absentReason: string }).absentReason, AbsentReason.weather);
   });
 
   await assert('caregiver cannot access another center', async () => {
@@ -445,9 +430,7 @@ async function run() {
     };
     const svc = createService(prisma);
     const result = await svc.createBatch(caregiver, {
-      records: [
-        { childId: 'child-x', date: '2026-08-01', present: true },
-      ],
+      records: [{ childId: 'child-x', date: '2026-08-01', present: true }],
     });
     eq(result.failed, 1);
     eq(result.items[0].outcome, 'forbidden');
@@ -470,9 +453,7 @@ async function run() {
     };
     const svc = createService(prisma);
     const result = await svc.createBatch(focal, {
-      records: [
-        { childId: 'child-z', date: '2026-08-01', present: true },
-      ],
+      records: [{ childId: 'child-z', date: '2026-08-01', present: true }],
     });
     eq(result.failed, 1);
     eq(result.items[0].outcome, 'forbidden');

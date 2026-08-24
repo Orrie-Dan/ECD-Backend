@@ -70,14 +70,18 @@ async function main() {
     };
     const service = new AuditLogsService(prisma as never);
 
-    const result = await service.findAll(
-      user({ role: UserRole.ncda_admin }),
-      { page: 1, pageSize: 20 },
-    );
+    const result = await service.findAll(user({ role: UserRole.ncda_admin }), {
+      page: 1,
+      pageSize: 20,
+    });
 
     eq(result.total, 1);
     eq(result.items[0].entityType, 'ecd_center');
-    eq((captured.where as Record<string, unknown>).changedBy, undefined, 'no district filter for ncda');
+    eq(
+      (captured.where as Record<string, unknown>).changedBy,
+      undefined,
+      'no district filter for ncda',
+    );
   });
 
   await assert('list: district focal only sees district logs', async () => {

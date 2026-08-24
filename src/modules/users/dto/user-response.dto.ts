@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { EducationLevel, PersonSex, UserRole } from '@prisma/client';
 
 /** API lifecycle status (maps from Prisma active/inactive). */
 export type ApiUserStatus = 'ACTIVE' | 'SUSPENDED';
@@ -46,6 +46,16 @@ export class UserResponseDto {
 
   @ApiProperty({ example: '+250788123456', nullable: true })
   phone: string | null;
+
+  @ApiProperty({ enum: PersonSex, enumName: 'PersonSex', nullable: true })
+  gender: PersonSex | null;
+
+  @ApiProperty({
+    enum: EducationLevel,
+    enumName: 'EducationLevel',
+    nullable: true,
+  })
+  educationLevel: EducationLevel | null;
 
   @ApiProperty({ enum: UserRole, enumName: 'UserRole' })
   role: UserRole;

@@ -20,9 +20,7 @@ export const CAREGIVER_FORBIDDEN_SYNC_ENTITY_TYPES = [
   'app_setting',
 ] as const;
 
-export type SyncWriteAuthResult =
-  | { allowed: true }
-  | { allowed: false; reason: string };
+export type SyncWriteAuthResult = { allowed: true } | { allowed: false; reason: string };
 
 @Injectable()
 export class SyncAccessService {
@@ -69,9 +67,7 @@ export class SyncAccessService {
     return { centerId: { in: scope.centerIds } };
   }
 
-  ecdCenterFilter(
-    scope: AccessScope,
-  ): { id?: { in: string[] } } | Record<string, never> {
+  ecdCenterFilter(scope: AccessScope): { id?: { in: string[] } } | Record<string, never> {
     if (scope.centerIds === 'all') {
       return {};
     }
@@ -89,18 +85,13 @@ export class SyncAccessService {
     return scope.centerIds.includes(centerId);
   }
 
-  isEntityTypePermittedForRole(
-    role: UserRole,
-    entityType: string,
-  ): boolean {
+  isEntityTypePermittedForRole(role: UserRole, entityType: string): boolean {
     if (role === UserRole.ncda_admin) {
       return true;
     }
 
     if (isCenterStaffRole(role)) {
-      return !(CAREGIVER_FORBIDDEN_SYNC_ENTITY_TYPES as readonly string[]).includes(
-        entityType,
-      );
+      return !(CAREGIVER_FORBIDDEN_SYNC_ENTITY_TYPES as readonly string[]).includes(entityType);
     }
 
     // district_focal_person may write all syncable types including ecd_center
@@ -169,8 +160,7 @@ export class SyncAccessService {
     }
 
     if (operation === AuditAction.create) {
-      const districtId =
-        typeof payload.districtId === 'string' ? payload.districtId : null;
+      const districtId = typeof payload.districtId === 'string' ? payload.districtId : null;
       if (!districtId || !scope.districtId || districtId !== scope.districtId) {
         return { allowed: false, reason: 'center out of scope' };
       }
@@ -212,10 +202,8 @@ export class SyncAccessService {
     let toCenterId: string | null = null;
 
     if (operation === AuditAction.create) {
-      fromCenterId =
-        typeof payload.fromCenterId === 'string' ? payload.fromCenterId : null;
-      toCenterId =
-        typeof payload.toCenterId === 'string' ? payload.toCenterId : null;
+      fromCenterId = typeof payload.fromCenterId === 'string' ? payload.fromCenterId : null;
+      toCenterId = typeof payload.toCenterId === 'string' ? payload.toCenterId : null;
 
       if (!fromCenterId || !toCenterId) {
         return { allowed: false, reason: 'center out of scope' };
@@ -261,10 +249,7 @@ export class SyncAccessService {
     }
 
     // delete: either end in scope
-    if (
-      !this.isCenterInScope(scope, fromCenterId) &&
-      !this.isCenterInScope(scope, toCenterId)
-    ) {
+    if (!this.isCenterInScope(scope, fromCenterId) && !this.isCenterInScope(scope, toCenterId)) {
       return { allowed: false, reason: 'center out of scope' };
     }
 
@@ -389,8 +374,7 @@ export class SyncAccessService {
       entityType === 'sted_assessment' ||
       entityType === 'referral'
     ) {
-      const childId =
-        typeof payload.childId === 'string' ? payload.childId : null;
+      const childId = typeof payload.childId === 'string' ? payload.childId : null;
       if (!childId) {
         return null;
       }
@@ -402,8 +386,7 @@ export class SyncAccessService {
     }
 
     if (entityType === 'compliance_assessment_item') {
-      const assessmentId =
-        typeof payload.assessmentId === 'string' ? payload.assessmentId : null;
+      const assessmentId = typeof payload.assessmentId === 'string' ? payload.assessmentId : null;
       if (!assessmentId) {
         return null;
       }

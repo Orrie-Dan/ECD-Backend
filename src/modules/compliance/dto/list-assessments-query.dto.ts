@@ -1,15 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { AssessmentStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsUUID,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 
 export class ListAssessmentsQueryDto {
   @ApiPropertyOptional({ format: 'uuid' })

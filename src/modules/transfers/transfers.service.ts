@@ -4,17 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  ChildStatus,
-  DeviceStatus,
-  TransferStatus,
-  UserRole,
-} from '@prisma/client';
+import { ChildStatus, DeviceStatus, TransferStatus, UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import {
-  assertCenterAccess,
-  canAccessCenter,
-} from '../../common/auth/scope.util';
+import { assertCenterAccess, canAccessCenter } from '../../common/auth/scope.util';
 import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -44,10 +36,7 @@ export class TransfersService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  async create(
-    user: AuthUser,
-    dto: CreateTransferDto,
-  ): Promise<TransferResponseDto> {
+  async create(user: AuthUser, dto: CreateTransferDto): Promise<TransferResponseDto> {
     const child = await this.prisma.child.findFirst({
       where: { id: dto.childId, deletedAt: null },
       include: {
@@ -113,11 +102,7 @@ export class TransfersService {
     return transferMapper.toDto(result.transfer);
   }
 
-  async accept(
-    user: AuthUser,
-    id: string,
-    dto: AcceptTransferDto,
-  ): Promise<TransferResponseDto> {
+  async accept(user: AuthUser, id: string, dto: AcceptTransferDto): Promise<TransferResponseDto> {
     const transfer = await this.getTransferOrThrow(id);
     const toCenter = await this.prisma.ecdCenter.findFirst({
       where: { id: transfer.toCenterId, deletedAt: null },
@@ -169,11 +154,7 @@ export class TransfersService {
     return transferMapper.toDto(result.transfer);
   }
 
-  async cancel(
-    user: AuthUser,
-    id: string,
-    dto: CancelTransferDto,
-  ): Promise<TransferResponseDto> {
+  async cancel(user: AuthUser, id: string, dto: CancelTransferDto): Promise<TransferResponseDto> {
     const transfer = await this.getTransferOrThrow(id);
     const fromCenter = await this.prisma.ecdCenter.findFirst({
       where: { id: transfer.fromCenterId, deletedAt: null },
@@ -381,10 +362,7 @@ export class TransfersService {
     const pageSize = query.pageSize ?? 50;
     const skip = (page - 1) * pageSize;
 
-    const directionFilter = this.centerDirectionWhere(
-      centerId,
-      query.direction,
-    );
+    const directionFilter = this.centerDirectionWhere(centerId, query.direction);
     const where = {
       deletedAt: null,
       ...(query.status ? { status: query.status } : {}),
@@ -444,10 +422,7 @@ export class TransfersService {
    * or any from/to center on the child's transfers (so source centers retain
    * visibility after an accepted move).
    */
-  private async assertChildTransferHistoryAccess(
-    user: AuthUser,
-    childId: string,
-  ): Promise<void> {
+  private async assertChildTransferHistoryAccess(user: AuthUser, childId: string): Promise<void> {
     const child = await this.prisma.child.findFirst({
       where: { id: childId, deletedAt: null },
       select: {
@@ -474,18 +449,13 @@ export class TransfersService {
       where: {
         childId,
         deletedAt: null,
-        OR: [
-          { fromCenterId: { in: scope.centerIds } },
-          { toCenterId: { in: scope.centerIds } },
-        ],
+        OR: [{ fromCenterId: { in: scope.centerIds } }, { toCenterId: { in: scope.centerIds } }],
       },
       select: { id: true },
     });
 
     if (!related) {
-      throw new ForbiddenException(
-        'You do not have access to this child transfer history',
-      );
+      throw new ForbiddenException('You do not have access to this child transfer history');
     }
   }
 
@@ -507,11 +477,7 @@ export class TransfersService {
    */
   private throwTransferConflict(reason: string): never {
     const lower = reason.toLowerCase();
-    if (
-      lower.includes('version') ||
-      lower.includes('modified') ||
-      lower.includes('concurrent')
-    ) {
+    if (lower.includes('version') || lower.includes('modified') || lower.includes('concurrent')) {
       const match = /server\s+(\d+)/i.exec(reason);
       const currentVersion = match ? Number(match[1]) : undefined;
       throw new OptimisticLockConflictException(
@@ -545,10 +511,7 @@ export class TransfersService {
       .catch(() => {});
   }
 
-  private async resolveDeviceId(
-    user: AuthUser,
-    deviceId?: string,
-  ): Promise<string | null> {
+  private async resolveDeviceId(user: AuthUser, deviceId?: string): Promise<string | null> {
     if (!deviceId) {
       return null;
     }
@@ -558,9 +521,7 @@ export class TransfersService {
     });
 
     if (!device || device.userId !== user.id) {
-      throw new ForbiddenException(
-        'Device does not belong to the authenticated user',
-      );
+      throw new ForbiddenException('Device does not belong to the authenticated user');
     }
 
     if (device.status !== DeviceStatus.active) {

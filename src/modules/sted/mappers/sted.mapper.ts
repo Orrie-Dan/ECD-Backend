@@ -1,10 +1,7 @@
 import { Prisma, StedAgeBand, StedAssessment } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { CreateStedAssessmentDto } from '../dto/create-sted-assessment.dto';
-import {
-  ApiStedAgeBand,
-  StedAssessmentResponseDto,
-} from '../dto/sted-response.dto';
+import { ApiStedAgeBand, StedAssessmentResponseDto } from '../dto/sted-response.dto';
 
 export type StedAssessmentEntity = StedAssessment;
 
@@ -62,9 +59,7 @@ export function toDbAgeBand(band: ApiStedAgeBand): StedAgeBand {
 /**
  * Resolve age band from sync payload (API `1_3`/`4_6` or Prisma enum).
  */
-export function resolveStedAgeBandFromPayload(
-  payload: Record<string, unknown>,
-): StedAgeBand {
+export function resolveStedAgeBandFromPayload(payload: Record<string, unknown>): StedAgeBand {
   const raw = payload.ageBand;
   if (raw === '1_3' || raw === StedAgeBand.band_1_3) {
     return StedAgeBand.band_1_3;
@@ -89,32 +84,30 @@ export function extractStedReferralSignals(input: {
 
   const referred = Boolean(
     outcome.referred === true ||
-      outcome.referralRequested === true ||
-      outcome.requiresReferral === true,
+    outcome.referralRequested === true ||
+    outcome.requiresReferral === true,
   );
 
   const hasPhysicalProblems = Boolean(
     physical.hasProblems === true ||
-      physical.problemsDetected === true ||
-      (Array.isArray(physical.problems) && physical.problems.length > 0) ||
-      (Array.isArray(physical.flags) && physical.flags.length > 0),
+    physical.problemsDetected === true ||
+    (Array.isArray(physical.problems) && physical.problems.length > 0) ||
+    (Array.isArray(physical.flags) && physical.flags.length > 0),
   );
 
   const failed = milestones.failed;
   const delayed = milestones.delayed;
   const hasFailedMilestones = Boolean(
     milestones.hasFailed === true ||
-      (Array.isArray(failed) && failed.length > 0) ||
-      (Array.isArray(delayed) && delayed.length > 0) ||
-      milestones.anyFailed === true,
+    (Array.isArray(failed) && failed.length > 0) ||
+    (Array.isArray(delayed) && delayed.length > 0) ||
+    milestones.anyFailed === true,
   );
 
   return { referred, hasPhysicalProblems, hasFailedMilestones };
 }
 
-export class StedMapper
-  implements Mapper<StedAssessmentEntity, StedAssessmentResponseDto>
-{
+export class StedMapper implements Mapper<StedAssessmentEntity, StedAssessmentResponseDto> {
   toDto(entity: StedAssessmentEntity): StedAssessmentResponseDto {
     return {
       id: entity.id,

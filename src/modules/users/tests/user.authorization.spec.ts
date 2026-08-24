@@ -29,12 +29,7 @@ function createService(): UsersService {
     create: async () => ({}),
     createForMultipleUsers: async () => 0,
   } as any;
-  return new UsersService(
-    {} as never,
-    {} as never,
-    {} as never,
-    mockNotifications,
-  );
+  return new UsersService({} as never, {} as never, {} as never, mockNotifications);
 }
 
 async function run() {
@@ -55,9 +50,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 

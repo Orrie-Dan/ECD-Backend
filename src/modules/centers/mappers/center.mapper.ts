@@ -1,8 +1,5 @@
 import { EcdCenter, Prisma } from '@prisma/client';
-import {
-  CenterDetailResponseDto,
-  CenterResponseDto,
-} from '../dto/center-response.dto';
+import { CenterDetailResponseDto, CenterResponseDto } from '../dto/center-response.dto';
 
 export type CenterListRow = EcdCenter & {
   district: { id: string; name: string };
@@ -23,9 +20,7 @@ export type CenterDetailRow = EcdCenter & {
   };
 };
 
-function decimalToNumber(
-  value: Prisma.Decimal | number | null | undefined,
-): number | null {
+function decimalToNumber(value: Prisma.Decimal | number | null | undefined): number | null {
   if (value == null) return null;
   if (typeof value === 'number') return value;
   return Number(value);

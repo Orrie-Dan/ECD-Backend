@@ -1,21 +1,9 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import {
-  ClassroomAssignmentReason,
-  ClassroomGrade,
-  ChildStatus,
-  Prisma,
-} from '@prisma/client';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { ClassroomAssignmentReason, ClassroomGrade, ChildStatus, Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
-import {
-  BulkPromoteResponseDto,
-  ClassroomResponseDto,
-} from './dto/classroom-response.dto';
+import { BulkPromoteResponseDto, ClassroomResponseDto } from './dto/classroom-response.dto';
 
 const GRADE_LABELS: Record<ClassroomGrade, string> = {
   grade_1: 'Grade 1 / Umwaka wa 1',
@@ -104,9 +92,7 @@ export class ClassroomsService {
       throw new NotFoundException('Child not found');
     }
     if (!child.classroomId || !child.classroom) {
-      throw new BadRequestException(
-        'Child is not assigned to a classroom',
-      );
+      throw new BadRequestException('Child is not assigned to a classroom');
     }
 
     const nextGrade = NEXT_GRADE[child.classroom.grade];
@@ -312,11 +298,7 @@ export class ClassroomsService {
     tx: Prisma.TransactionClient,
     centerId: string,
   ): Promise<void> {
-    const grades = [
-      ClassroomGrade.grade_1,
-      ClassroomGrade.grade_2,
-      ClassroomGrade.grade_3,
-    ];
+    const grades = [ClassroomGrade.grade_1, ClassroomGrade.grade_2, ClassroomGrade.grade_3];
 
     for (const grade of grades) {
       await tx.classroom.create({

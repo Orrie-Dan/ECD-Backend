@@ -7,9 +7,7 @@ import { UserWithRelations } from '../mappers/user.mapper';
  * Run: npx ts-node src/modules/users/tests/user.mapper.spec.ts
  */
 
-function sampleUser(
-  overrides: Partial<UserWithRelations> = {},
-): UserWithRelations {
+function sampleUser(overrides: Partial<UserWithRelations> = {}): UserWithRelations {
   const now = new Date('2026-08-01T10:00:00.000Z');
   return {
     id: 'user-1',
@@ -18,6 +16,8 @@ function sampleUser(
     fullName: 'Care Giver',
     phone: '0780000000',
     email: 'hidden@example.com',
+    gender: null,
+    educationLevel: null,
     role: UserRole.caregiver,
     districtId: 'd1',
     centerId: 'c1',
@@ -59,9 +59,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -75,9 +73,7 @@ async function run() {
   });
 
   await assert('maps SUSPENDED status from inactive', () => {
-    const dto = userMapper.toDto(
-      sampleUser({ status: UserAccountStatus.inactive }),
-    );
+    const dto = userMapper.toDto(sampleUser({ status: UserAccountStatus.inactive }));
     eq(dto.status, 'SUSPENDED');
   });
 
@@ -109,6 +105,13 @@ async function run() {
     eq(mapped.fullName, 'Alice Admin');
     eq(mapped.phone, '0781');
     eq(mapped.centerId, 'c1');
+    eq(mapped.gender, null);
+    eq(mapped.educationLevel, null);
+  });
+
+  await assert('toUpdateInput cannot reassign centerId', () => {
+    const mapped = userMapper.toUpdateInput({ fullName: 'A' });
+    eq('centerId' in mapped, false);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

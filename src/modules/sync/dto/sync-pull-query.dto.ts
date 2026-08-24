@@ -1,17 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsDate,
-  IsInt,
-  IsOptional,
-  IsUUID,
-  Max,
-  Min,
-} from 'class-validator';
-import {
-  SYNC_PULL_DEFAULT_LIMIT,
-  SYNC_PULL_MAX_LIMIT,
-} from '../sync.constants';
+import { IsDate, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { SYNC_PULL_DEFAULT_LIMIT, SYNC_PULL_MAX_LIMIT } from '../sync.constants';
 
 export class SyncPullQueryDto {
   /**
@@ -36,8 +26,7 @@ export class SyncPullQueryDto {
    */
   @ApiPropertyOptional({
     format: 'uuid',
-    description:
-      'Tie-breaker for keyset pagination; use with cursor to resume mid-timestamp pages',
+    description: 'Tie-breaker for keyset pagination; use with cursor to resume mid-timestamp pages',
   })
   @IsOptional()
   @IsUUID()

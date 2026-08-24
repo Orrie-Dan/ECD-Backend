@@ -61,10 +61,9 @@ async function main() {
     };
     const service = new GeoService(prisma as never);
 
-    const result = await service.listAdminUnits(
-      user({ role: UserRole.ncda_admin }),
-      { level: AdministrativeLevel.village },
-    );
+    const result = await service.listAdminUnits(user({ role: UserRole.ncda_admin }), {
+      level: AdministrativeLevel.village,
+    });
 
     eq(result.length, 1);
     eq(result[0].name, 'Village A');
@@ -157,10 +156,7 @@ async function main() {
       },
     };
     const service = new GeoService(prisma as never);
-    const result = await service.getDistrict(
-      user({ role: UserRole.ncda_admin }),
-      'district-1',
-    );
+    const result = await service.getDistrict(user({ role: UserRole.ncda_admin }), 'district-1');
     eq(result.id, 'district-1');
     eq(result.code, 'D1');
   });

@@ -38,9 +38,7 @@ function buildSyncCreate(
   );
   const status =
     payload.status != null
-      ? resolveReferralStatusFromPayload(
-          payload as unknown as Record<string, unknown>,
-        )
+      ? resolveReferralStatusFromPayload(payload as unknown as Record<string, unknown>)
       : ReferralStatus.pending;
   const recordedById = resolveReferralRecordedByIdFromPayload(
     payload as unknown as Record<string, unknown>,
@@ -76,10 +74,7 @@ function assertReferralUpdateAllowed(
   return 'ok';
 }
 
-function buildSyncUpdate(
-  payload: Record<string, unknown>,
-  now: Date,
-): Record<string, unknown> {
+function buildSyncUpdate(payload: Record<string, unknown>, now: Date): Record<string, unknown> {
   const data: Record<string, unknown> = {};
   if (payload.status != null) {
     data.status = resolveReferralStatusFromPayload(payload);
@@ -88,9 +83,7 @@ function buildSyncUpdate(
     data.notes = payload.notes ?? null;
   }
   if (payload.implementedAt !== undefined) {
-    data.implementedAt = payload.implementedAt
-      ? new Date(String(payload.implementedAt))
-      : null;
+    data.implementedAt = payload.implementedAt ? new Date(String(payload.implementedAt)) : null;
   } else if (data.status === ReferralStatus.completed) {
     data.implementedAt = now;
   }
@@ -124,9 +117,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -208,10 +199,7 @@ async function run() {
       'Cannot transition referral from completed to cancelled',
     );
 
-    const data = buildSyncUpdate(
-      { status: 'completed', notes: 'Followed up' },
-      now,
-    );
+    const data = buildSyncUpdate({ status: 'completed', notes: 'Followed up' }, now);
     eq(data.status, ReferralStatus.completed);
     eq(data.notes, 'Followed up');
     eq((data.implementedAt as Date).toISOString(), now.toISOString());
@@ -237,8 +225,7 @@ async function run() {
   await assert('CAS conflict on version mismatch', () => {
     const clientVersion = 1 as number;
     const serverVersion = 3 as number;
-    const outcome =
-      clientVersion === serverVersion ? 'applied' : 'conflict';
+    const outcome = clientVersion === serverVersion ? 'applied' : 'conflict';
     eq(outcome, 'conflict');
   });
 

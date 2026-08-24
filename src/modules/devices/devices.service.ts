@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { DeviceStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -33,9 +29,7 @@ export class DevicesService {
     });
 
     if (existing && existing.userId !== user.id) {
-      throw new ConflictException(
-        'This device is already registered to another user',
-      );
+      throw new ConflictException('This device is already registered to another user');
     }
 
     const now = new Date();

@@ -14,18 +14,14 @@ import {
   resolveAbsentReasonFromPayload,
   resolveAttendanceStatusFromPayload,
 } from '../attendance/mappers/attendance.mapper';
-import {
-  deriveRequiresReferral,
-} from '../nutrition/mappers/nutrition.mapper';
+import { deriveRequiresReferral } from '../nutrition/mappers/nutrition.mapper';
 import {
   canTransitionReferralStatus,
   resolveReferralRecordedByIdFromPayload,
   resolveReferralSourceTypeFromPayload,
   resolveReferralStatusFromPayload,
 } from '../referrals/mappers/referral.mapper';
-import {
-  resolveStedAgeBandFromPayload,
-} from '../sted/mappers/sted.mapper';
+import { resolveStedAgeBandFromPayload } from '../sted/mappers/sted.mapper';
 import {
   resolveFeedingRecordedByIdFromPayload,
   resolveFeedingRecordedDateFromPayload,
@@ -34,10 +30,7 @@ import {
   resolveChildGenderFromPayload,
   resolveChildNationalIdFromPayload,
 } from '../children/mappers/child.mapper';
-import {
-  CHILD_SCOPED_ENTITY_TYPES,
-  SyncableEntityType,
-} from './sync.constants';
+import { CHILD_SCOPED_ENTITY_TYPES, SyncableEntityType } from './sync.constants';
 
 type JsonPayload = Record<string, unknown>;
 
@@ -64,9 +57,7 @@ export interface ApplyResult {
 }
 
 type CasOutcome =
-  | { kind: 'applied' }
-  | { kind: 'not_found' }
-  | { kind: 'version_mismatch'; serverVersion: number };
+  { kind: 'applied' } | { kind: 'not_found' } | { kind: 'version_mismatch'; serverVersion: number };
 
 @Injectable()
 export class SyncApplyService {
@@ -193,10 +184,7 @@ export class SyncApplyService {
       childVersion = child.version;
     }
 
-    const meta = this.syncMeta(
-      context.deviceId,
-      Math.max(1, context.clientVersion || 1),
-    );
+    const meta = this.syncMeta(context.deviceId, Math.max(1, context.clientVersion || 1));
 
     const result = await this.transferLifecycle.createPending(db, {
       transferId: context.entityId || randomUUID(),
@@ -242,15 +230,10 @@ export class SyncApplyService {
       select: { id: true },
     });
     if (!recorder) {
-      throw new Error(
-        'center_feeding_day recordedById does not reference an existing user',
-      );
+      throw new Error('center_feeding_day recordedById does not reference an existing user');
     }
 
-    const meta = this.syncMeta(
-      context.deviceId,
-      Math.max(1, context.clientVersion || 1),
-    );
+    const meta = this.syncMeta(context.deviceId, Math.max(1, context.clientVersion || 1));
 
     const existing = await db.centerFeedingDay.findFirst({
       where: { centerId, recordedDate },
@@ -271,9 +254,7 @@ export class SyncApplyService {
       updatedAt: new Date(),
       ...meta,
       lastModifiedByDeviceId:
-        typeof payload.deviceId === 'string'
-          ? payload.deviceId
-          : meta.lastModifiedByDeviceId,
+        typeof payload.deviceId === 'string' ? payload.deviceId : meta.lastModifiedByDeviceId,
     };
 
     if (existing) {
@@ -304,10 +285,7 @@ export class SyncApplyService {
     const db = this.db(context);
     const centerId = String(payload.centerId);
     const yearMonth = String(payload.yearMonth);
-    const meta = this.syncMeta(
-      context.deviceId,
-      Math.max(1, context.clientVersion || 1),
-    );
+    const meta = this.syncMeta(context.deviceId, Math.max(1, context.clientVersion || 1));
 
     const existing = await db.centerFeedingMonthSummary.findFirst({
       where: { centerId, yearMonth },
@@ -318,17 +296,14 @@ export class SyncApplyService {
       flourKg: new Prisma.Decimal(String(payload.flourKg ?? 0)),
       foodSource: String(payload.foodSource),
       updatedById:
-        typeof (payload.updatedById ?? payload.recordedById ?? payload.recordedBy) ===
-        'string'
+        typeof (payload.updatedById ?? payload.recordedById ?? payload.recordedBy) === 'string'
           ? String(payload.updatedById ?? payload.recordedById ?? payload.recordedBy)
           : null,
       deletedAt: null,
       updatedAt: new Date(),
       ...meta,
       lastModifiedByDeviceId:
-        typeof payload.deviceId === 'string'
-          ? payload.deviceId
-          : meta.lastModifiedByDeviceId,
+        typeof payload.deviceId === 'string' ? payload.deviceId : meta.lastModifiedByDeviceId,
     };
 
     if (existing) {
@@ -383,8 +358,7 @@ export class SyncApplyService {
       };
     }
 
-    let centerId =
-      typeof payload.centerId === 'string' ? payload.centerId : null;
+    let centerId = typeof payload.centerId === 'string' ? payload.centerId : null;
     if (!centerId) {
       centerId = child.centerId;
     }
@@ -408,26 +382,19 @@ export class SyncApplyService {
 
     const status = resolveAttendanceStatusFromPayload(payload);
     const absentReason = resolveAbsentReasonFromPayload(payload, status);
-    const meta = this.syncMeta(
-      context.deviceId,
-      Math.max(1, context.clientVersion || 1),
-    );
+    const meta = this.syncMeta(context.deviceId, Math.max(1, context.clientVersion || 1));
     const fieldData = {
       status,
       broughtBy: (payload.broughtBy as string) ?? null,
       broughtByOther: (payload.broughtByOther as string) ?? null,
-      arrivedAt: payload.arrivedAt
-        ? new Date(String(payload.arrivedAt))
-        : null,
+      arrivedAt: payload.arrivedAt ? new Date(String(payload.arrivedAt)) : null,
       absentReason,
       notes: (payload.notes as string) ?? null,
       recordedById: String(payload.recordedById ?? payload.recordedBy),
       deletedAt: null,
       ...meta,
       lastModifiedByDeviceId:
-        typeof payload.deviceId === 'string'
-          ? payload.deviceId
-          : meta.lastModifiedByDeviceId,
+        typeof payload.deviceId === 'string' ? payload.deviceId : meta.lastModifiedByDeviceId,
     };
 
     const existing = await db.attendanceRecord.findFirst({
@@ -451,10 +418,7 @@ export class SyncApplyService {
       });
       return { status: SyncOperationStatus.applied, entityId: id };
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         const raced = await db.attendanceRecord.findFirst({
           where: { childId, attendanceDate },
         });
@@ -515,9 +479,7 @@ export class SyncApplyService {
     };
   }
 
-  private async missingParentChild(
-    context: ApplyContext,
-  ): Promise<ApplyResult | null> {
+  private async missingParentChild(context: ApplyContext): Promise<ApplyResult | null> {
     if (
       !CHILD_SCOPED_ENTITY_TYPES.includes(
         context.entityType as (typeof CHILD_SCOPED_ENTITY_TYPES)[number],
@@ -605,14 +567,10 @@ export class SyncApplyService {
     const targetStatus = String(payload.status ?? '');
     const db = this.db(context);
 
-    if (
-      targetStatus !== TransferStatus.accepted &&
-      targetStatus !== TransferStatus.cancelled
-    ) {
+    if (targetStatus !== TransferStatus.accepted && targetStatus !== TransferStatus.cancelled) {
       return {
         status: SyncOperationStatus.failed,
-        conflictReason:
-          'child_transfer update only allows pending→accepted or pending→cancelled',
+        conflictReason: 'child_transfer update only allows pending→accepted or pending→cancelled',
         entityId: context.entityId,
       };
     }
@@ -643,8 +601,7 @@ export class SyncApplyService {
       };
     }
 
-    const transferVersion =
-      context.clientVersion > 0 ? context.clientVersion : transfer.version;
+    const transferVersion = context.clientVersion > 0 ? context.clientVersion : transfer.version;
 
     let childVersion = Number(payload.childVersion ?? payload.__childVersion);
     if (!Number.isFinite(childVersion)) {
@@ -679,10 +636,7 @@ export class SyncApplyService {
           deviceId: context.deviceId,
           transferVersion,
           childVersion,
-          updatedById:
-            typeof payload.updatedById === 'string'
-              ? payload.updatedById
-              : null,
+          updatedById: typeof payload.updatedById === 'string' ? payload.updatedById : null,
         });
 
         if (result.status === 'conflict') {
@@ -704,8 +658,7 @@ export class SyncApplyService {
         deviceId: context.deviceId,
         transferVersion,
         childVersion,
-        updatedById:
-          typeof payload.updatedById === 'string' ? payload.updatedById : null,
+        updatedById: typeof payload.updatedById === 'string' ? payload.updatedById : null,
       });
 
       if (result.status === 'conflict') {
@@ -764,8 +717,7 @@ export class SyncApplyService {
       } catch (error) {
         return {
           status: SyncOperationStatus.failed,
-          conflictReason:
-            error instanceof Error ? error.message : 'Invalid referral status',
+          conflictReason: error instanceof Error ? error.message : 'Invalid referral status',
           entityId: context.entityId,
         };
       }
@@ -895,9 +847,7 @@ export class SyncApplyService {
                 archiveReason: (payload.archiveReason as string) ?? null,
               }),
               ...(payload.archivedAt !== undefined && {
-                archivedAt: payload.archivedAt
-                  ? new Date(String(payload.archivedAt))
-                  : null,
+                archivedAt: payload.archivedAt ? new Date(String(payload.archivedAt)) : null,
               }),
               ...meta,
             },
@@ -924,9 +874,7 @@ export class SyncApplyService {
           data.broughtByOther = (payload.broughtByOther as string) ?? null;
         }
         if (payload.arrivedAt !== undefined) {
-          data.arrivedAt = payload.arrivedAt
-            ? new Date(String(payload.arrivedAt))
-            : null;
+          data.arrivedAt = payload.arrivedAt ? new Date(String(payload.arrivedAt)) : null;
         }
         if (payload.notes !== undefined) {
           data.notes = (payload.notes as string) ?? null;
@@ -950,8 +898,7 @@ export class SyncApplyService {
                 phone: (payload.phone as string) ?? null,
               }),
               ...(payload.capacity !== undefined && {
-                capacity:
-                  payload.capacity != null ? Number(payload.capacity) : null,
+                capacity: payload.capacity != null ? Number(payload.capacity) : null,
               }),
               ...(payload.status != null && { status: payload.status as never }),
               ...meta,
@@ -966,8 +913,7 @@ export class SyncApplyService {
             data: {
               ...(payload.status != null && { status: payload.status as never }),
               ...(payload.overallClassification !== undefined && {
-                overallClassification:
-                  (payload.overallClassification as never) ?? null,
+                overallClassification: (payload.overallClassification as never) ?? null,
               }),
               ...(payload.submittedById !== undefined && {
                 submittedById: (payload.submittedById as string) ?? null,
@@ -989,10 +935,7 @@ export class SyncApplyService {
                 response: payload.response as never,
               }),
               ...(payload.score !== undefined && {
-                score:
-                  payload.score != null
-                    ? new Prisma.Decimal(String(payload.score))
-                    : null,
+                score: payload.score != null ? new Prisma.Decimal(String(payload.score)) : null,
               }),
               ...(payload.evidenceNotes !== undefined && {
                 evidenceNotes: (payload.evidenceNotes as string) ?? null,
@@ -1001,8 +944,7 @@ export class SyncApplyService {
                 gapSeverity: (payload.gapSeverity as never) ?? null,
               }),
               ...(payload.gapImprovementAction !== undefined && {
-                gapImprovementAction:
-                  (payload.gapImprovementAction as string) ?? null,
+                gapImprovementAction: (payload.gapImprovementAction as string) ?? null,
               }),
               ...(payload.gapStatus !== undefined && {
                 gapStatus: (payload.gapStatus as never) ?? null,
@@ -1024,25 +966,16 @@ export class SyncApplyService {
                 waterSourceType: (payload.waterSourceType as string) ?? null,
               }),
               ...(payload.sanitationFacilityAvailable != null && {
-                sanitationFacilityAvailable: Boolean(
-                  payload.sanitationFacilityAvailable,
-                ),
+                sanitationFacilityAvailable: Boolean(payload.sanitationFacilityAvailable),
               }),
               ...(payload.latrineCount !== undefined && {
-                latrineCount:
-                  payload.latrineCount != null
-                    ? Number(payload.latrineCount)
-                    : null,
+                latrineCount: payload.latrineCount != null ? Number(payload.latrineCount) : null,
               }),
               ...(payload.handwashingFacilityAvailable != null && {
-                handwashingFacilityAvailable: Boolean(
-                  payload.handwashingFacilityAvailable,
-                ),
+                handwashingFacilityAvailable: Boolean(payload.handwashingFacilityAvailable),
               }),
               ...(payload.wasteManagementAvailable != null && {
-                wasteManagementAvailable: Boolean(
-                  payload.wasteManagementAvailable,
-                ),
+                wasteManagementAvailable: Boolean(payload.wasteManagementAvailable),
               }),
               ...(payload.notes !== undefined && {
                 notes: (payload.notes as string) ?? null,
@@ -1163,9 +1096,7 @@ export class SyncApplyService {
         count = (await db.attendanceRecord.updateMany({ where, data })).count;
         break;
       case 'child_nutrition_screening':
-        count = (
-          await db.childNutritionScreening.updateMany({ where, data })
-        ).count;
+        count = (await db.childNutritionScreening.updateMany({ where, data })).count;
         break;
       case 'sted_assessment':
         count = (await db.stedAssessment.updateMany({ where, data })).count;
@@ -1177,14 +1108,10 @@ export class SyncApplyService {
         count = (await db.ecdCenter.updateMany({ where, data })).count;
         break;
       case 'compliance_assessment':
-        count = (
-          await db.complianceAssessment.updateMany({ where, data })
-        ).count;
+        count = (await db.complianceAssessment.updateMany({ where, data })).count;
         break;
       case 'compliance_assessment_item':
-        count = (
-          await db.complianceAssessmentItem.updateMany({ where, data })
-        ).count;
+        count = (await db.complianceAssessmentItem.updateMany({ where, data })).count;
         break;
       case 'wash_indicator':
         count = (await db.washIndicator.updateMany({ where, data })).count;
@@ -1193,9 +1120,7 @@ export class SyncApplyService {
         count = (await db.centerFeedingDay.updateMany({ where, data })).count;
         break;
       case 'center_feeding_month_summary':
-        count = (
-          await db.centerFeedingMonthSummary.updateMany({ where, data })
-        ).count;
+        count = (await db.centerFeedingMonthSummary.updateMany({ where, data })).count;
         break;
       case 'referral':
         count = (await db.referral.updateMany({ where, data })).count;
@@ -1213,11 +1138,7 @@ export class SyncApplyService {
 
   /** Cheap existence check only on the conflict/miss branch. */
   private async classifyCasMiss(context: ApplyContext): Promise<CasOutcome> {
-    const existing = await this.findRecord(
-      context.entityType,
-      context.entityId,
-      context,
-    );
+    const existing = await this.findRecord(context.entityType, context.entityId, context);
     if (!existing) {
       return { kind: 'not_found' };
     }
@@ -1309,10 +1230,7 @@ export class SyncApplyService {
   private async createRecord(context: ApplyContext): Promise<void> {
     const id = context.entityId || randomUUID();
     const payload = context.payload;
-    const meta = this.syncMeta(
-      context.deviceId,
-      Math.max(1, context.clientVersion || 1),
-    );
+    const meta = this.syncMeta(context.deviceId, Math.max(1, context.clientVersion || 1));
     const db = this.db(context);
 
     switch (context.entityType) {
@@ -1339,9 +1257,7 @@ export class SyncApplyService {
             homeVillageId: String(payload.homeVillageId),
             registeredAt: new Date(String(payload.registeredAt)),
             archiveReason: (payload.archiveReason as string) ?? null,
-            archivedAt: payload.archivedAt
-              ? new Date(String(payload.archivedAt))
-              : null,
+            archivedAt: payload.archivedAt ? new Date(String(payload.archivedAt)) : null,
             ...meta,
           },
         });
@@ -1349,8 +1265,7 @@ export class SyncApplyService {
       case 'attendance_record': {
         const status = resolveAttendanceStatusFromPayload(payload);
         const absentReason = resolveAbsentReasonFromPayload(payload, status);
-        let centerId =
-          typeof payload.centerId === 'string' ? payload.centerId : null;
+        let centerId = typeof payload.centerId === 'string' ? payload.centerId : null;
         if (!centerId) {
           const child = await db.child.findUnique({
             where: { id: String(payload.childId) },
@@ -1359,17 +1274,12 @@ export class SyncApplyService {
           centerId = child?.centerId ?? null;
         }
         if (!centerId) {
-          throw new Error(
-            'attendance_record requires centerId or a valid childId',
-          );
+          throw new Error('attendance_record requires centerId or a valid childId');
         }
 
-        const attendanceDateRaw =
-          payload.attendanceDate ?? payload.date ?? null;
+        const attendanceDateRaw = payload.attendanceDate ?? payload.date ?? null;
         if (attendanceDateRaw == null) {
-          throw new Error(
-            'attendance_record requires attendanceDate (or date)',
-          );
+          throw new Error('attendance_record requires attendanceDate (or date)');
         }
 
         await db.attendanceRecord.create({
@@ -1381,17 +1291,13 @@ export class SyncApplyService {
             status,
             broughtBy: (payload.broughtBy as string) ?? null,
             broughtByOther: (payload.broughtByOther as string) ?? null,
-            arrivedAt: payload.arrivedAt
-              ? new Date(String(payload.arrivedAt))
-              : null,
+            arrivedAt: payload.arrivedAt ? new Date(String(payload.arrivedAt)) : null,
             absentReason,
             notes: (payload.notes as string) ?? null,
             recordedById: String(payload.recordedById ?? payload.recordedBy),
             ...meta,
             lastModifiedByDeviceId:
-              typeof payload.deviceId === 'string'
-                ? payload.deviceId
-                : meta.lastModifiedByDeviceId,
+              typeof payload.deviceId === 'string' ? payload.deviceId : meta.lastModifiedByDeviceId,
           },
         });
         break;
@@ -1401,9 +1307,7 @@ export class SyncApplyService {
         const nutritionStatus = payload.nutritionStatus as never;
         const requiresReferral = deriveRequiresReferral(
           nutritionStatus,
-          payload.requiresReferral != null
-            ? Boolean(payload.requiresReferral)
-            : undefined,
+          payload.requiresReferral != null ? Boolean(payload.requiresReferral) : undefined,
         );
 
         await db.childNutritionScreening.create({
@@ -1414,9 +1318,7 @@ export class SyncApplyService {
             weightKg: new Prisma.Decimal(String(payload.weightKg)),
             muacCm: new Prisma.Decimal(String(payload.muacCm)),
             heightCm:
-              payload.heightCm != null
-                ? new Prisma.Decimal(String(payload.heightCm))
-                : null,
+              payload.heightCm != null ? new Prisma.Decimal(String(payload.heightCm)) : null,
             headCircumferenceCm:
               payload.headCircumferenceCm != null
                 ? new Prisma.Decimal(String(payload.headCircumferenceCm))
@@ -1429,9 +1331,7 @@ export class SyncApplyService {
             recordedById: String(payload.recordedById ?? payload.recordedBy),
             ...meta,
             lastModifiedByDeviceId:
-              typeof payload.deviceId === 'string'
-                ? payload.deviceId
-                : meta.lastModifiedByDeviceId,
+              typeof payload.deviceId === 'string' ? payload.deviceId : meta.lastModifiedByDeviceId,
           },
         });
         break;
@@ -1439,8 +1339,7 @@ export class SyncApplyService {
       case 'sted_assessment': {
         // Append-only CREATE: UPDATE is rejected; duplicate id → conflict upstream
         const ageBand = resolveStedAgeBandFromPayload(payload);
-        let centerId =
-          typeof payload.centerId === 'string' ? payload.centerId : null;
+        let centerId = typeof payload.centerId === 'string' ? payload.centerId : null;
         if (!centerId) {
           const child = await db.child.findUnique({
             where: { id: String(payload.childId) },
@@ -1449,9 +1348,7 @@ export class SyncApplyService {
           centerId = child?.centerId ?? null;
         }
         if (!centerId) {
-          throw new Error(
-            'sted_assessment requires centerId or a valid childId',
-          );
+          throw new Error('sted_assessment requires centerId or a valid childId');
         }
 
         await db.stedAssessment.create({
@@ -1462,10 +1359,8 @@ export class SyncApplyService {
             assessmentDate: new Date(String(payload.assessmentDate)),
             ageBand,
             consentObtained: Boolean(payload.consentObtained ?? false),
-            physicalAssessment: (payload.physicalAssessment ??
-              {}) as Prisma.InputJsonValue,
-            milestoneResults: (payload.milestoneResults ??
-              {}) as Prisma.InputJsonValue,
+            physicalAssessment: (payload.physicalAssessment ?? {}) as Prisma.InputJsonValue,
+            milestoneResults: (payload.milestoneResults ?? {}) as Prisma.InputJsonValue,
             outcome: (payload.outcome ?? {}) as Prisma.InputJsonValue,
             followUpIn6Months: Boolean(payload.followUpIn6Months ?? false),
             followUpDueDate: payload.followUpDueDate
@@ -1477,9 +1372,7 @@ export class SyncApplyService {
             ),
             ...meta,
             lastModifiedByDeviceId:
-              typeof payload.deviceId === 'string'
-                ? payload.deviceId
-                : meta.lastModifiedByDeviceId,
+              typeof payload.deviceId === 'string' ? payload.deviceId : meta.lastModifiedByDeviceId,
           },
         });
         break;
@@ -1495,13 +1388,9 @@ export class SyncApplyService {
             phone: (payload.phone as string) ?? null,
             capacity: payload.capacity != null ? Number(payload.capacity) : null,
             latitude:
-              payload.latitude != null
-                ? new Prisma.Decimal(String(payload.latitude))
-                : null,
+              payload.latitude != null ? new Prisma.Decimal(String(payload.latitude)) : null,
             longitude:
-              payload.longitude != null
-                ? new Prisma.Decimal(String(payload.longitude))
-                : null,
+              payload.longitude != null ? new Prisma.Decimal(String(payload.longitude)) : null,
             status: (payload.status as never) ?? undefined,
             ...meta,
           },
@@ -1518,8 +1407,7 @@ export class SyncApplyService {
             status: (payload.status as never) ?? undefined,
             submittedById: (payload.submittedById as string) ?? null,
             verifiedById: (payload.verifiedById as string) ?? null,
-            overallClassification:
-              (payload.overallClassification as never) ?? null,
+            overallClassification: (payload.overallClassification as never) ?? null,
             ...meta,
           },
         });
@@ -1531,21 +1419,13 @@ export class SyncApplyService {
             assessmentId: String(payload.assessmentId),
             standardId: String(payload.standardId),
             response: payload.response as never,
-            score:
-              payload.score != null
-                ? new Prisma.Decimal(String(payload.score))
-                : null,
+            score: payload.score != null ? new Prisma.Decimal(String(payload.score)) : null,
             evidenceNotes: (payload.evidenceNotes as string) ?? null,
             gapSeverity: (payload.gapSeverity as never) ?? null,
-            gapImprovementAction:
-              (payload.gapImprovementAction as string) ?? null,
-            gapTargetDate: payload.gapTargetDate
-              ? new Date(String(payload.gapTargetDate))
-              : null,
+            gapImprovementAction: (payload.gapImprovementAction as string) ?? null,
+            gapTargetDate: payload.gapTargetDate ? new Date(String(payload.gapTargetDate)) : null,
             gapStatus: (payload.gapStatus as never) ?? null,
-            gapResolvedAt: payload.gapResolvedAt
-              ? new Date(String(payload.gapResolvedAt))
-              : null,
+            gapResolvedAt: payload.gapResolvedAt ? new Date(String(payload.gapResolvedAt)) : null,
             ...meta,
           },
         });
@@ -1558,17 +1438,10 @@ export class SyncApplyService {
             recordedDate: new Date(String(payload.recordedDate)),
             waterSourceAvailable: Boolean(payload.waterSourceAvailable ?? false),
             waterSourceType: (payload.waterSourceType as string) ?? null,
-            sanitationFacilityAvailable: Boolean(
-              payload.sanitationFacilityAvailable ?? false,
-            ),
-            latrineCount:
-              payload.latrineCount != null ? Number(payload.latrineCount) : null,
-            handwashingFacilityAvailable: Boolean(
-              payload.handwashingFacilityAvailable ?? false,
-            ),
-            wasteManagementAvailable: Boolean(
-              payload.wasteManagementAvailable ?? false,
-            ),
+            sanitationFacilityAvailable: Boolean(payload.sanitationFacilityAvailable ?? false),
+            latrineCount: payload.latrineCount != null ? Number(payload.latrineCount) : null,
+            handwashingFacilityAvailable: Boolean(payload.handwashingFacilityAvailable ?? false),
+            wasteManagementAvailable: Boolean(payload.wasteManagementAvailable ?? false),
             notes: (payload.notes as string) ?? null,
             recordedById: String(payload.recordedById ?? payload.recordedBy),
             ...meta,
@@ -1578,8 +1451,7 @@ export class SyncApplyService {
       case 'child_transfer':
         throw new Error('child_transfer create must use applyChildTransferCreate');
       case 'referral': {
-        let centerId =
-          typeof payload.centerId === 'string' ? payload.centerId : null;
+        let centerId = typeof payload.centerId === 'string' ? payload.centerId : null;
         if (!centerId) {
           const child = await db.child.findUnique({
             where: { id: String(payload.childId) },
@@ -1604,9 +1476,7 @@ export class SyncApplyService {
           select: { id: true },
         });
         if (!recorder) {
-          throw new Error(
-            'referral recordedById does not reference an existing user',
-          );
+          throw new Error('referral recordedById does not reference an existing user');
         }
 
         await db.referral.create({
@@ -1620,16 +1490,12 @@ export class SyncApplyService {
             reason: String(payload.reason),
             destination: String(payload.destination),
             status,
-            implementedAt: payload.implementedAt
-              ? new Date(String(payload.implementedAt))
-              : null,
+            implementedAt: payload.implementedAt ? new Date(String(payload.implementedAt)) : null,
             notes: (payload.notes as string) ?? null,
             recordedById,
             ...meta,
             lastModifiedByDeviceId:
-              typeof payload.deviceId === 'string'
-                ? payload.deviceId
-                : meta.lastModifiedByDeviceId,
+              typeof payload.deviceId === 'string' ? payload.deviceId : meta.lastModifiedByDeviceId,
           },
         });
         break;

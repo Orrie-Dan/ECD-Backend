@@ -30,9 +30,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -93,14 +91,8 @@ async function run() {
   });
 
   await assert('sync payload present maps to status', () => {
-    eq(
-      resolveAttendanceStatusFromPayload({ present: true }),
-      AttendanceStatus.present,
-    );
-    eq(
-      resolveAttendanceStatusFromPayload({ present: false }),
-      AttendanceStatus.absent,
-    );
+    eq(resolveAttendanceStatusFromPayload({ present: true }), AttendanceStatus.present);
+    eq(resolveAttendanceStatusFromPayload({ present: false }), AttendanceStatus.absent);
     eq(
       resolveAbsentReasonFromPayload(
         { present: false, absentReason: AbsentReason.family },
@@ -108,10 +100,7 @@ async function run() {
       ),
       AbsentReason.family,
     );
-    eq(
-      resolveAbsentReasonFromPayload({ present: true }, AttendanceStatus.present),
-      null,
-    );
+    eq(resolveAbsentReasonFromPayload({ present: true }, AttendanceStatus.present), null);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

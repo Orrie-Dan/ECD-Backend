@@ -33,8 +33,7 @@ export class ListCenterTransferHistoryQueryDto {
 
   @ApiPropertyOptional({
     enum: TRANSFER_DIRECTIONS,
-    description:
-      'Filter relative to the center: incoming (toCenter) or outgoing (fromCenter).',
+    description: 'Filter relative to the center: incoming (toCenter) or outgoing (fromCenter).',
   })
   @IsOptional()
   @IsIn(TRANSFER_DIRECTIONS)

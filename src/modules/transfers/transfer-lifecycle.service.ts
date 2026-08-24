@@ -271,10 +271,7 @@ export class TransferLifecycleService {
 
     if (childUpdate.count === 0) {
       // Ensure the transaction rolls back the transfer status change and surface a clean 409.
-      throw new OptimisticLockConflictException(
-        'child_transfer',
-        childBefore?.version,
-      );
+      throw new OptimisticLockConflictException('child_transfer', childBefore?.version);
     }
 
     const transfer = await tx.childTransfer.findUniqueOrThrow({
@@ -403,10 +400,7 @@ export class TransferLifecycleService {
 
     if (childUpdate.count === 0) {
       // Ensure the transaction rolls back the transfer status change and surface a clean 409.
-      throw new OptimisticLockConflictException(
-        'child_transfer',
-        childBefore?.version,
-      );
+      throw new OptimisticLockConflictException('child_transfer', childBefore?.version);
     }
 
     const transfer = await tx.childTransfer.findUniqueOrThrow({

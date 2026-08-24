@@ -1,9 +1,6 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ChildStatus, UserRole } from '@prisma/client';
-import {
-  assertCasApplied,
-  classifyCasMiss,
-} from '../../../common/concurrency/cas.util';
+import { assertCasApplied, classifyCasMiss } from '../../../common/concurrency/cas.util';
 import { OptimisticLockConflictException } from '../../../common/concurrency/optimistic-lock.exception';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ChildrenService } from '../children.service';
@@ -92,9 +89,14 @@ function createService(prisma: object) {
     create: async () => ({}),
     createForMultipleUsers: async () => 0,
   } as any;
-  return new ChildrenService(prisma as never, syncAccess as never, {
-    log: async () => {},
-  } as never, mockNotifications);
+  return new ChildrenService(
+    prisma as never,
+    syncAccess as never,
+    {
+      log: async () => {},
+    } as never,
+    mockNotifications,
+  );
 }
 
 async function run() {
@@ -115,9 +117,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -175,11 +175,7 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           child: {
-            updateMany: async ({
-              where,
-            }: {
-              where: { id: string; version: number };
-            }) => {
+            updateMany: async ({ where }: { where: { id: string; version: number } }) => {
               casWhere = where;
               return { count: 1 };
             },
@@ -276,23 +272,17 @@ async function run() {
     const seen: Array<{ version?: number }> = [];
     const prisma = {
       child: {
-        findFirst: async () =>
-          childRow({ version: 3, status: ChildStatus.archived }),
+        findFirst: async () => childRow({ version: 3, status: ChildStatus.archived }),
       },
       device: { findUnique: async () => null },
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           child: {
-            updateMany: async ({
-              where,
-            }: {
-              where: { version: number };
-            }) => {
+            updateMany: async ({ where }: { where: { version: number } }) => {
               seen.push(where);
               return { count: 1 };
             },
-            findFirstOrThrow: async () =>
-              childRow({ version: 4, status: ChildStatus.active }),
+            findFirstOrThrow: async () => childRow({ version: 4, status: ChildStatus.active }),
             findUnique: async () => ({ version: 4 }),
           },
           syncOperation: { create: async () => ({}) },
@@ -311,16 +301,11 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           child: {
-            updateMany: async ({
-              where,
-            }: {
-              where: { version: number };
-            }) => {
+            updateMany: async ({ where }: { where: { version: number } }) => {
               seen.push(where);
               return { count: 1 };
             },
-            findFirstOrThrow: async () =>
-              childRow({ version: 5, deletedAt: new Date() }),
+            findFirstOrThrow: async () => childRow({ version: 5, deletedAt: new Date() }),
             findUnique: async () => ({ version: 5 }),
           },
           syncOperation: { create: async () => ({}) },

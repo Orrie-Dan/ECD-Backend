@@ -14,29 +14,19 @@ import {
   UserRole,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import {
-  AuditAction,
-  AuditService,
-  toAuditJson,
-} from '../../common/audit';
+import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertDistrictAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { AccessScope, SyncAccessService } from '../sync/sync-access.service';
 import { ArchiveChildDto } from './dto/archive-child.dto';
-import {
-  ChildDetailResponseDto,
-  PaginatedChildrenResponseDto,
-} from './dto/child-response.dto';
+import { ChildDetailResponseDto, PaginatedChildrenResponseDto } from './dto/child-response.dto';
 import { CreateChildDto } from './dto/create-child.dto';
 import { ListChildrenQueryDto } from './dto/list-children-query.dto';
 import { ReactivateChildDto } from './dto/reactivate-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
-import {
-  ChildWithRelations,
-  childMapper,
-} from './mappers/child.mapper';
+import { ChildWithRelations, childMapper } from './mappers/child.mapper';
 import { ClassroomsService } from '../classrooms/classrooms.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -49,10 +39,7 @@ export class ChildrenService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  async create(
-    user: AuthUser,
-    dto: CreateChildDto,
-  ): Promise<ChildDetailResponseDto> {
+  async create(user: AuthUser, dto: CreateChildDto): Promise<ChildDetailResponseDto> {
     if (!dto.fullName && !dto.firstName) {
       throw new BadRequestException('Either fullName or firstName is required');
     }
@@ -187,9 +174,7 @@ export class ChildrenService {
         select: { id: true, districtId: true },
       });
       if (!center || center.districtId !== query.districtId) {
-        throw new BadRequestException(
-          'centerId does not belong to the given districtId',
-        );
+        throw new BadRequestException('centerId does not belong to the given districtId');
       }
     }
 
@@ -238,9 +223,7 @@ export class ChildrenService {
     ]);
 
     return {
-      items: rows.map((row) =>
-        childMapper.toDto(row as ChildWithRelations),
-      ),
+      items: rows.map((row) => childMapper.toDto(row as ChildWithRelations)),
       total,
       page,
       pageSize,
@@ -248,19 +231,12 @@ export class ChildrenService {
     };
   }
 
-  async findOne(
-    user: AuthUser,
-    id: string,
-  ): Promise<ChildDetailResponseDto> {
+  async findOne(user: AuthUser, id: string): Promise<ChildDetailResponseDto> {
     const child = await this.getAccessibleChild(user, id);
     return childMapper.toDetailDto(child);
   }
 
-  async update(
-    user: AuthUser,
-    id: string,
-    dto: UpdateChildDto,
-  ): Promise<ChildDetailResponseDto> {
+  async update(user: AuthUser, id: string, dto: UpdateChildDto): Promise<ChildDetailResponseDto> {
     const existing = await this.getAccessibleChild(user, id);
     const scope = await this.syncAccess.resolveScope(user);
 
@@ -371,11 +347,7 @@ export class ChildrenService {
     return childMapper.toDetailDto(child as ChildWithRelations);
   }
 
-  async archive(
-    user: AuthUser,
-    id: string,
-    dto: ArchiveChildDto,
-  ): Promise<ChildDetailResponseDto> {
+  async archive(user: AuthUser, id: string, dto: ArchiveChildDto): Promise<ChildDetailResponseDto> {
     const existing = await this.getAccessibleChild(user, id);
 
     if (existing.status === ChildStatus.archived) {
@@ -530,12 +502,7 @@ export class ChildrenService {
     return childMapper.toDetailDto(child as ChildWithRelations);
   }
 
-  async softDelete(
-    user: AuthUser,
-    id: string,
-    version: number,
-    deviceId?: string,
-  ) {
+  async softDelete(user: AuthUser, id: string, version: number, deviceId?: string) {
     const existing = await this.getAccessibleChild(user, id);
     const resolvedDeviceId = await this.resolveDeviceId(user, deviceId);
     const now = new Date();
@@ -598,18 +565,16 @@ export class ChildrenService {
     return childMapper.toDetailDto(child as ChildWithRelations);
   }
 
-  private plainChild(
-    child: ChildWithRelations | Record<string, unknown>,
-  ): Record<string, unknown> {
-    const { center: _center, homeVillage: _homeVillage, ...plain } =
-      child as ChildWithRelations & Record<string, unknown>;
+  private plainChild(child: ChildWithRelations | Record<string, unknown>): Record<string, unknown> {
+    const {
+      center: _center,
+      homeVillage: _homeVillage,
+      ...plain
+    } = child as ChildWithRelations & Record<string, unknown>;
     return plain;
   }
 
-  private async getAccessibleChild(
-    user: AuthUser,
-    id: string,
-  ): Promise<ChildWithRelations> {
+  private async getAccessibleChild(user: AuthUser, id: string): Promise<ChildWithRelations> {
     const scope = await this.syncAccess.resolveScope(user);
     const child = await this.prisma.child.findFirst({
       where: {
@@ -637,16 +602,11 @@ export class ChildrenService {
     }
 
     if (!scope.centerIds.includes(centerId)) {
-      throw new ForbiddenException(
-        `You do not have access to center ${centerId} (${user.role})`,
-      );
+      throw new ForbiddenException(`You do not have access to center ${centerId} (${user.role})`);
     }
   }
 
-  private async resolveDeviceId(
-    user: AuthUser,
-    deviceId?: string,
-  ): Promise<string | null> {
+  private async resolveDeviceId(user: AuthUser, deviceId?: string): Promise<string | null> {
     if (!deviceId) {
       return null;
     }
@@ -656,9 +616,7 @@ export class ChildrenService {
     });
 
     if (!device || device.userId !== user.id) {
-      throw new ForbiddenException(
-        'Device does not belong to the authenticated user',
-      );
+      throw new ForbiddenException('Device does not belong to the authenticated user');
     }
 
     if (device.status !== DeviceStatus.active) {

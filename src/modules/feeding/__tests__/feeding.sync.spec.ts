@@ -49,10 +49,7 @@ function buildDayCreate(payload: FeedingDayPayload, contextDeviceId: string) {
   };
 }
 
-function buildMonthUpdate(
-  payload: Partial<FeedingMonthPayload>,
-  existing: FeedingMonthPayload,
-) {
+function buildMonthUpdate(payload: Partial<FeedingMonthPayload>, existing: FeedingMonthPayload) {
   return {
     ...existing,
     ...payload,
@@ -80,9 +77,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 

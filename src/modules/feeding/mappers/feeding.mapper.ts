@@ -1,13 +1,6 @@
-import {
-  CenterFeedingDay,
-  CenterFeedingMonthSummary,
-  Prisma,
-} from '@prisma/client';
+import { CenterFeedingDay, CenterFeedingMonthSummary, Prisma } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
-import {
-  FeedingDayResponseDto,
-  FeedingMonthSummaryResponseDto,
-} from '../dto/feeding-response.dto';
+import { FeedingDayResponseDto, FeedingMonthSummaryResponseDto } from '../dto/feeding-response.dto';
 import { UpsertFeedingDayDto } from '../dto/upsert-feeding-day.dto';
 import { UpsertFeedingMonthSummaryDto } from '../dto/upsert-feeding-month-summary.dto';
 
@@ -50,14 +43,10 @@ export function balancedMealWarnings(dto: {
     return [];
   }
 
-  return [
-    `balancedMealServed=true but food groups incomplete: ${missing.join(', ')}`,
-  ];
+  return [`balancedMealServed=true but food groups incomplete: ${missing.join(', ')}`];
 }
 
-export class FeedingMapper
-  implements Mapper<CenterFeedingDay, FeedingDayResponseDto>
-{
+export class FeedingMapper implements Mapper<CenterFeedingDay, FeedingDayResponseDto> {
   toDto(entity: CenterFeedingDay, warnings: string[] = []): FeedingDayResponseDto {
     return {
       id: entity.id,
@@ -79,9 +68,7 @@ export class FeedingMapper
     };
   }
 
-  toMonthDto(
-    entity: CenterFeedingMonthSummary,
-  ): FeedingMonthSummaryResponseDto {
+  toMonthDto(entity: CenterFeedingMonthSummary): FeedingMonthSummaryResponseDto {
     return {
       id: entity.id,
       centerId: entity.centerId,
@@ -140,33 +127,18 @@ export const feedingMapper = new FeedingMapper();
  * Validates before Prisma so Invalid Date never reaches the driver (that left
  * ops stuck at pending with null conflictReason on LIVE).
  */
-export function resolveFeedingRecordedDateFromPayload(
-  payload: Record<string, unknown>,
-): Date {
+export function resolveFeedingRecordedDateFromPayload(payload: Record<string, unknown>): Date {
   const raw = payload.recordedDate ?? payload.date ?? null;
   if (raw == null || raw === '') {
-    throw new Error(
-      'center_feeding_day requires recordedDate (or date)',
-    );
+    throw new Error('center_feeding_day requires recordedDate (or date)');
   }
-  const asString =
-    raw instanceof Date
-      ? raw.toISOString().slice(0, 10)
-      : String(raw).trim();
-  if (
-    !asString ||
-    asString === 'undefined' ||
-    asString === 'null'
-  ) {
-    throw new Error(
-      'center_feeding_day requires recordedDate (or date)',
-    );
+  const asString = raw instanceof Date ? raw.toISOString().slice(0, 10) : String(raw).trim();
+  if (!asString || asString === 'undefined' || asString === 'null') {
+    throw new Error('center_feeding_day requires recordedDate (or date)');
   }
   const recordedDate = new Date(asString);
   if (Number.isNaN(recordedDate.getTime())) {
-    throw new Error(
-      `center_feeding_day recordedDate is invalid: ${asString}`,
-    );
+    throw new Error(`center_feeding_day recordedDate is invalid: ${asString}`);
   }
   return recordedDate;
 }
@@ -176,24 +148,14 @@ export function resolveFeedingRecordedDateFromPayload(
  * Accepts recordedById / recordedBy. Never coerces missing values to the
  * string "undefined" (that caused P2003 retry loops → session stuck started).
  */
-export function resolveFeedingRecordedByIdFromPayload(
-  payload: Record<string, unknown>,
-): string {
+export function resolveFeedingRecordedByIdFromPayload(payload: Record<string, unknown>): string {
   const raw = payload.recordedById ?? payload.recordedBy;
   if (typeof raw !== 'string') {
-    throw new Error(
-      'center_feeding_day requires recordedById (or recordedBy)',
-    );
+    throw new Error('center_feeding_day requires recordedById (or recordedBy)');
   }
   const trimmed = raw.trim();
-  if (
-    !trimmed ||
-    trimmed === 'undefined' ||
-    trimmed === 'null'
-  ) {
-    throw new Error(
-      'center_feeding_day requires recordedById (or recordedBy)',
-    );
+  if (!trimmed || trimmed === 'undefined' || trimmed === 'null') {
+    throw new Error('center_feeding_day requires recordedById (or recordedBy)');
   }
   return trimmed;
 }

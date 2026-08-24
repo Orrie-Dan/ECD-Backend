@@ -1,11 +1,5 @@
 import { Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -33,15 +27,11 @@ export class NotificationsController {
   @Get()
   @ApiOperation({
     summary: 'List notifications',
-    description:
-      'Returns paginated notifications for the authenticated user, with unread count.',
+    description: 'Returns paginated notifications for the authenticated user, with unread count.',
   })
   @ApiOkResponse({ type: PaginatedNotificationsResponseDto })
   @ApiStandardClientErrors()
-  findAll(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListNotificationsQueryDto,
-  ) {
+  findAll(@CurrentUser() user: AuthUser, @Query() query: ListNotificationsQueryDto) {
     return this.notificationsService.findAll(user, query);
   }
 
@@ -70,10 +60,7 @@ export class NotificationsController {
   @ApiOkResponse({ type: NotificationResponseDto })
   @ApiNotFoundError('Notification')
   @ApiStandardClientErrors()
-  markAsRead(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  markAsRead(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.notificationsService.markAsRead(user, id);
   }
 

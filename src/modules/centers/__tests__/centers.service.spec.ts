@@ -108,11 +108,7 @@ async function main() {
 
     eq(result.total, 1);
     eq(result.items[0].id, 'center-1');
-    eq(
-      (captured.where as { districtId: string }).districtId,
-      'district-1',
-      'district scope',
-    );
+    eq((captured.where as { districtId: string }).districtId, 'district-1', 'district scope');
   });
 
   await assert('list: caregiver only sees own center', async () => {
@@ -127,15 +123,9 @@ async function main() {
         count: async () => 1,
       },
     };
-    const service = new CentersService(
-      prisma as never,
-      { log: async () => undefined } as never,
-    );
+    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
 
-    await service.findAll(
-      user({ role: UserRole.caregiver, centerId: 'center-a' }),
-      {},
-    );
+    await service.findAll(user({ role: UserRole.caregiver, centerId: 'center-a' }), {});
     eq((captured.where as { id: string }).id, 'center-a');
   });
 
@@ -151,10 +141,7 @@ async function main() {
         count: async () => 0,
       },
     };
-    const service = new CentersService(
-      prisma as never,
-      { log: async () => undefined } as never,
-    );
+    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
 
     await service.findAll(user({ role: UserRole.ncda_admin }), {
       search: 'gasabo',
@@ -183,10 +170,7 @@ async function main() {
           }),
       },
     };
-    const service = new CentersService(
-      prisma as never,
-      { log: async () => undefined } as never,
-    );
+    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
 
     let threw = false;
     try {
@@ -237,11 +221,14 @@ async function main() {
 
     // Patch assertCasApplied path via real service
     const auditLogs: unknown[] = [];
-    const service = new CentersService(prisma as never, {
-      log: async (args: unknown) => {
-        auditLogs.push(args);
-      },
-    } as never);
+    const service = new CentersService(
+      prisma as never,
+      {
+        log: async (args: unknown) => {
+          auditLogs.push(args);
+        },
+      } as never,
+    );
 
     let err: unknown;
     try {
@@ -266,17 +253,13 @@ async function main() {
     const prisma = {
       ecdCenter: { findFirst: async () => null },
     };
-    const service = new CentersService(
-      prisma as never,
-      { log: async () => undefined } as never,
-    );
+    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
     let threw = false;
     try {
-      await service.update(
-        user({ role: UserRole.ncda_admin }),
-        'missing',
-        { version: 1, name: 'X' },
-      );
+      await service.update(user({ role: UserRole.ncda_admin }), 'missing', {
+        version: 1,
+        name: 'X',
+      });
     } catch (e) {
       threw = e instanceof NotFoundException;
     }

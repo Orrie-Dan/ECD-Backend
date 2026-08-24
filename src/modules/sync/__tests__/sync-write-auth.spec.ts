@@ -61,9 +61,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -86,10 +84,7 @@ async function run() {
   });
 
   await assert('district_focal_person can write ecd_center (entity type)', () => {
-    eq(
-      svc.isEntityTypePermittedForRole(UserRole.district_focal_person, 'ecd_center'),
-      true,
-    );
+    eq(svc.isEntityTypePermittedForRole(UserRole.district_focal_person, 'ecd_center'), true);
   });
 
   await assert('ecdCenterFilter: caregiver with districtId is own center only', () => {
@@ -156,83 +151,74 @@ async function run() {
     },
   );
 
-  await assert(
-    'caregiver writing ecd_center → reject entity type not permitted',
-    async () => {
-      const result = await svc.authorizeSyncWrite({
-        user: user({ role: UserRole.caregiver, centerId: 'center-a' }),
-        scope: { centerIds: ['center-a'], districtId: 'd1' },
-        entityType: 'ecd_center',
-        entityId: 'center-a',
-        operation: AuditAction.update,
-        payload: { name: 'X' },
-      });
-      eq(result.allowed, false);
-      if (!result.allowed) eq(result.reason, 'entity type not permitted for role');
-    },
-  );
+  await assert('caregiver writing ecd_center → reject entity type not permitted', async () => {
+    const result = await svc.authorizeSyncWrite({
+      user: user({ role: UserRole.caregiver, centerId: 'center-a' }),
+      scope: { centerIds: ['center-a'], districtId: 'd1' },
+      entityType: 'ecd_center',
+      entityId: 'center-a',
+      operation: AuditAction.update,
+      payload: { name: 'X' },
+    });
+    eq(result.allowed, false);
+    if (!result.allowed) eq(result.reason, 'entity type not permitted for role');
+  });
 
-  await assert(
-    'district_focal_person writing center in own district → pass',
-    async () => {
-      const districtSvc = createService({
-        ...emptyPrisma,
-        ecdCenter: {
-          findMany: async () => [{ id: 'center-a' }, { id: 'center-b' }],
-          findUnique: async () => ({
-            id: 'center-a',
-            districtId: 'district-1',
-          }),
-        },
-      });
-
-      const result = await districtSvc.authorizeSyncWrite({
-        user: user({
-          role: UserRole.district_focal_person,
+  await assert('district_focal_person writing center in own district → pass', async () => {
+    const districtSvc = createService({
+      ...emptyPrisma,
+      ecdCenter: {
+        findMany: async () => [{ id: 'center-a' }, { id: 'center-b' }],
+        findUnique: async () => ({
+          id: 'center-a',
           districtId: 'district-1',
         }),
-        scope: {
-          centerIds: ['center-a', 'center-b'],
-          districtId: 'district-1',
-        },
-        entityType: 'ecd_center',
-        entityId: 'center-a',
-        operation: AuditAction.update,
-        payload: { name: 'Updated' },
-      });
-      eq(result.allowed, true);
-    },
-  );
+      },
+    });
 
-  await assert(
-    'district_focal_person writing center outside district → reject',
-    async () => {
-      const districtSvc = createService({
-        ...emptyPrisma,
-        ecdCenter: {
-          findMany: async () => [{ id: 'center-a' }],
-          findUnique: async () => ({
-            id: 'center-x',
-            districtId: 'district-other',
-          }),
-        },
-      });
+    const result = await districtSvc.authorizeSyncWrite({
+      user: user({
+        role: UserRole.district_focal_person,
+        districtId: 'district-1',
+      }),
+      scope: {
+        centerIds: ['center-a', 'center-b'],
+        districtId: 'district-1',
+      },
+      entityType: 'ecd_center',
+      entityId: 'center-a',
+      operation: AuditAction.update,
+      payload: { name: 'Updated' },
+    });
+    eq(result.allowed, true);
+  });
 
-      const result = await districtSvc.authorizeSyncWrite({
-        user: user({
-          role: UserRole.district_focal_person,
-          districtId: 'district-1',
+  await assert('district_focal_person writing center outside district → reject', async () => {
+    const districtSvc = createService({
+      ...emptyPrisma,
+      ecdCenter: {
+        findMany: async () => [{ id: 'center-a' }],
+        findUnique: async () => ({
+          id: 'center-x',
+          districtId: 'district-other',
         }),
-        scope: { centerIds: ['center-a'], districtId: 'district-1' },
-        entityType: 'ecd_center',
-        entityId: 'center-x',
-        operation: AuditAction.update,
-        payload: { name: 'Updated' },
-      });
-      eq(result.allowed, false);
-      if (!result.allowed) eq(result.reason, 'center out of scope');
-    },
-  );
+      },
+    });
+
+    const result = await districtSvc.authorizeSyncWrite({
+      user: user({
+        role: UserRole.district_focal_person,
+        districtId: 'district-1',
+      }),
+      scope: { centerIds: ['center-a'], districtId: 'district-1' },
+      entityType: 'ecd_center',
+      entityId: 'center-x',
+      operation: AuditAction.update,
+      payload: { name: 'Updated' },
+    });
+    eq(result.allowed, false);
+    if (!result.allowed) eq(result.reason, 'center out of scope');
+  });
 
   await assert('ncda_admin unrestricted → pass for ecd_center', async () => {
     const result = await svc.authorizeSyncWrite({

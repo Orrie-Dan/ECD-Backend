@@ -6,23 +6,13 @@ import {
 } from '@nestjs/common';
 import { DeviceStatus, RecordSyncStatus, UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import {
-  AuditAction,
-  AuditService,
-  toAuditJson,
-} from '../../common/audit';
+import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateStedAssessmentDto } from './dto/create-sted-assessment.dto';
-import {
-  StedAssessmentResponseDto,
-  StedHistoryResponseDto,
-} from './dto/sted-response.dto';
-import {
-  extractStedReferralSignals,
-  stedMapper,
-} from './mappers/sted.mapper';
+import { StedAssessmentResponseDto, StedHistoryResponseDto } from './dto/sted-response.dto';
+import { extractStedReferralSignals, stedMapper } from './mappers/sted.mapper';
 import { NotificationsService } from '../notifications/notifications.service';
 
 /**
@@ -38,22 +28,15 @@ export class StedService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  async create(
-    user: AuthUser,
-    dto: CreateStedAssessmentDto,
-  ): Promise<StedAssessmentResponseDto> {
+  async create(user: AuthUser, dto: CreateStedAssessmentDto): Promise<StedAssessmentResponseDto> {
     if (!dto.consentObtained) {
-      throw new BadRequestException(
-        'consentObtained must be true to record a STED assessment',
-      );
+      throw new BadRequestException('consentObtained must be true to record a STED assessment');
     }
 
     const child = await this.getAccessibleChild(user, dto.childId);
 
     if (child.centerId !== dto.centerId) {
-      throw new BadRequestException(
-        'centerId does not match the child current center',
-      );
+      throw new BadRequestException('centerId does not match the child current center');
     }
 
     assertCenterAccess(user, dto.centerId, child.center.districtId);
@@ -75,9 +58,7 @@ export class StedService {
           id: randomUUID(),
           childId: child.id,
           centerId: dto.centerId,
-          assessmentDate: new Date(
-            `${dto.assessmentDate.slice(0, 10)}T00:00:00.000Z`,
-          ),
+          assessmentDate: new Date(`${dto.assessmentDate.slice(0, 10)}T00:00:00.000Z`),
           ageBand: mapped.ageBand,
           consentObtained: mapped.consentObtained,
           physicalAssessment: mapped.physicalAssessment,
@@ -111,10 +92,7 @@ export class StedService {
 
     if (mapped.followUpIn6Months) {
       this.notifications
-        .findUserIdsByRoleAndCenter(dto.centerId, [
-          UserRole.ecd_director,
-          UserRole.caregiver,
-        ])
+        .findUserIdsByRoleAndCenter(dto.centerId, [UserRole.ecd_director, UserRole.caregiver])
         .then((ids) => {
           this.notifications.notifyAsync(ids, {
             type: 'sted_followup',
@@ -161,10 +139,7 @@ export class StedService {
     };
   }
 
-  async findOne(
-    user: AuthUser,
-    id: string,
-  ): Promise<StedAssessmentResponseDto> {
+  async findOne(user: AuthUser, id: string): Promise<StedAssessmentResponseDto> {
     const row = await this.prisma.stedAssessment.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -199,10 +174,7 @@ export class StedService {
     return child;
   }
 
-  private async resolveDeviceId(
-    user: AuthUser,
-    deviceId?: string,
-  ): Promise<string | null> {
+  private async resolveDeviceId(user: AuthUser, deviceId?: string): Promise<string | null> {
     if (!deviceId) {
       return null;
     }
@@ -212,9 +184,7 @@ export class StedService {
     });
 
     if (!device || device.userId !== user.id) {
-      throw new ForbiddenException(
-        'Device does not belong to the authenticated user',
-      );
+      throw new ForbiddenException('Device does not belong to the authenticated user');
     }
 
     if (device.status !== DeviceStatus.active) {

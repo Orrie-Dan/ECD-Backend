@@ -80,16 +80,10 @@ function createHarness() {
             where.clientOperationId.in.includes(o.clientOperationId),
         );
       },
-      findFirst: async ({
-        where,
-      }: {
-        where: { deviceId: string; clientOperationId: string };
-      }) => {
+      findFirst: async ({ where }: { where: { deviceId: string; clientOperationId: string } }) => {
         return (
           [...ops.values()].find(
-            (o) =>
-              o.deviceId === where.deviceId &&
-              o.clientOperationId === where.clientOperationId,
+            (o) => o.deviceId === where.deviceId && o.clientOperationId === where.clientOperationId,
           ) ?? null
         );
       },
@@ -164,11 +158,7 @@ function createHarness() {
     logRejectedSyncOperation: () => undefined,
   };
 
-  const service = new SyncService(
-    prisma as never,
-    syncAccess as never,
-    queue as never,
-  );
+  const service = new SyncService(prisma as never, syncAccess as never, queue as never);
 
   const user = {
     id: userId,
@@ -308,10 +298,12 @@ async function main() {
     uniqueIndex.set(`${deviceId}|${clientOperationId}`, existingId);
 
     // Clear findMany prefetch so push thinks it's new, then create hits P2002.
-    const originalFindMany = (service as unknown as { prisma: { syncOperation: { findMany: Function } } })
-      .prisma.syncOperation.findMany;
-    (service as unknown as { prisma: { syncOperation: { findMany: Function } } }).prisma.syncOperation.findMany =
-      async () => [];
+    const originalFindMany = (
+      service as unknown as { prisma: { syncOperation: { findMany: Function } } }
+    ).prisma.syncOperation.findMany;
+    (
+      service as unknown as { prisma: { syncOperation: { findMany: Function } } }
+    ).prisma.syncOperation.findMany = async () => [];
 
     const result = await service.push(user as never, {
       deviceId,
@@ -326,8 +318,9 @@ async function main() {
       ],
     });
 
-    (service as unknown as { prisma: { syncOperation: { findMany: Function } } }).prisma.syncOperation.findMany =
-      originalFindMany;
+    (
+      service as unknown as { prisma: { syncOperation: { findMany: Function } } }
+    ).prisma.syncOperation.findMany = originalFindMany;
 
     eq(result.operations[0].replayed, true);
     eq(result.operations[0].id, existingId);
@@ -358,10 +351,7 @@ async function main() {
       });
     } catch (e) {
       caught = true;
-      eq(
-        (e as Error).message.includes('Duplicate clientOperationId'),
-        true,
-      );
+      eq((e as Error).message.includes('Duplicate clientOperationId'), true);
     }
     eq(caught, true);
   });

@@ -21,24 +21,19 @@ function eq(actual: unknown, expected: unknown, label?: string) {
 
 function config(map: Record<string, string | undefined>): ConfigService {
   return {
-    get: (key: string, fallback?: string) =>
-      map[key] !== undefined ? map[key] : fallback,
+    get: (key: string, fallback?: string) => (map[key] !== undefined ? map[key] : fallback),
   } as ConfigService;
 }
 
 assert('uses REDIS_URL when set', () => {
-  const conn = buildRedisConnection(
-    config({ REDIS_URL: 'rediss://:secret@example.com:6380' }),
-  );
+  const conn = buildRedisConnection(config({ REDIS_URL: 'rediss://:secret@example.com:6380' }));
   eq(conn.url, 'rediss://:secret@example.com:6380');
   eq(conn.maxRetriesPerRequest, null);
   eq(Boolean(conn.tls), true, 'rediss implies tls');
 });
 
 assert('falls back to host/port', () => {
-  const conn = buildRedisConnection(
-    config({ REDIS_HOST: '10.0.0.2', REDIS_PORT: '6381' }),
-  );
+  const conn = buildRedisConnection(config({ REDIS_HOST: '10.0.0.2', REDIS_PORT: '6381' }));
   eq(conn.host, '10.0.0.2');
   eq(conn.port, 6381);
   eq(conn.url, undefined);

@@ -75,15 +75,11 @@ export class AttendanceController {
   @Get()
   @ApiOperation({
     summary: 'List attendance records',
-    description:
-      'Returns a paginated list of attendance records visible in the caller scope.',
+    description: 'Returns a paginated list of attendance records visible in the caller scope.',
   })
   @ApiOkResponse({ type: PaginatedAttendanceResponseDto })
   @ApiStandardClientErrors()
-  findAll(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListAttendanceQueryDto,
-  ) {
+  findAll(@CurrentUser() user: AuthUser, @Query() query: ListAttendanceQueryDto) {
     return this.attendanceService.findAll(user, query);
   }
 
@@ -114,9 +110,7 @@ export class AttendanceController {
   ) {
     const version = Number(versionRaw);
     if (!Number.isInteger(version) || version < 0) {
-      throw new BadRequestException(
-        'Query parameter version (non-negative integer) is required',
-      );
+      throw new BadRequestException('Query parameter version (non-negative integer) is required');
     }
     return this.attendanceService.softDelete(user, id, version, deviceHeader);
   }

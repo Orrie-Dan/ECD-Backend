@@ -52,13 +52,10 @@ type OpRow = {
   processedAt: Date | null;
 };
 
-function createRecoveryHarness(opts?: {
-  inFlightSessionIds?: string[];
-}) {
+function createRecoveryHarness(opts?: { inFlightSessionIds?: string[] }) {
   const sessions = new Map<string, SessionRow>();
   const ops = new Map<string, OpRow>();
-  const enqueued: Array<{ name: string; data: { sessionId: string }; opts?: unknown }> =
-    [];
+  const enqueued: Array<{ name: string; data: { sessionId: string }; opts?: unknown }> = [];
 
   const prisma: {
     syncSession: {
@@ -91,9 +88,7 @@ function createRecoveryHarness(opts?: {
             if (s.status !== where.status) return false;
             if (!(s.startedAt < where.startedAt.lt)) return false;
             const hasPending = [...ops.values()].some(
-              (o) =>
-                o.sessionId === s.id &&
-                o.status === where.operations.some.status,
+              (o) => o.sessionId === s.id && o.status === where.operations.some.status,
             );
             return hasPending;
           })
@@ -107,13 +102,7 @@ function createRecoveryHarness(opts?: {
             deviceId: s.deviceId,
           }));
       },
-      update: async ({
-        where,
-        data,
-      }: {
-        where: { id: string };
-        data: Partial<SessionRow>;
-      }) => {
+      update: async ({ where, data }: { where: { id: string }; data: Partial<SessionRow> }) => {
         const s = sessions.get(where.id)!;
         Object.assign(s, data);
         return s;
@@ -137,12 +126,7 @@ function createRecoveryHarness(opts?: {
         }
         return { count };
       },
-      findMany: async ({
-        where,
-      }: {
-        where: { sessionId: string };
-        select?: unknown;
-      }) => {
+      findMany: async ({ where }: { where: { sessionId: string }; select?: unknown }) => {
         return [...ops.values()]
           .filter((o) => o.sessionId === where.sessionId)
           .map((o) => ({ status: o.status }));
@@ -152,11 +136,7 @@ function createRecoveryHarness(opts?: {
   };
 
   const queue = {
-    add: async (
-      name: string,
-      data: { sessionId: string },
-      opts?: unknown,
-    ) => {
+    add: async (name: string, data: { sessionId: string }, opts?: unknown) => {
       enqueued.push({ name, data, opts });
       return { id: randomUUID() };
     },
@@ -171,11 +151,7 @@ function createRecoveryHarness(opts?: {
     resolveScope: async () => ({ centerIds: 'all', districtId: null }),
   };
 
-  const service = new SyncService(
-    prisma as never,
-    syncAccess as never,
-    queue as never,
-  );
+  const service = new SyncService(prisma as never, syncAccess as never, queue as never);
 
   return { service, sessions, ops, enqueued, prisma };
 }
@@ -185,9 +161,7 @@ function seedStaleSession(
   overrides: Partial<SessionRow> & { pending?: boolean } = {},
 ) {
   const id = overrides.id ?? randomUUID();
-  const startedAt =
-    overrides.startedAt ??
-    new Date(Date.now() - SYNC_STALE_THRESHOLD_MS - 60_000);
+  const startedAt = overrides.startedAt ?? new Date(Date.now() - SYNC_STALE_THRESHOLD_MS - 60_000);
   h.sessions.set(id, {
     id,
     status: overrides.status ?? SyncSessionStatus.started,
@@ -229,9 +203,7 @@ async function main() {
     eq(h.enqueued[0].name, SYNC_JOB_PROCESS_SESSION);
     eq(h.enqueued[0].data.sessionId, sessionId);
 
-    const stillPending = [...h.ops.values()].every(
-      (o) => o.status === SyncOperationStatus.pending,
-    );
+    const stillPending = [...h.ops.values()].every((o) => o.status === SyncOperationStatus.pending);
     eq(stillPending, true, 'ops remain pending until worker applies');
   });
 
@@ -323,9 +295,7 @@ async function main() {
     eq(h.ops.get(appliedId)!.status, SyncOperationStatus.applied);
     const stillPending = [...h.ops.values()].filter(
       (o) =>
-        o.sessionId === sessionId &&
-        o.id !== appliedId &&
-        o.status === SyncOperationStatus.pending,
+        o.sessionId === sessionId && o.id !== appliedId && o.status === SyncOperationStatus.pending,
     );
     eq(stillPending.length, 1);
   });

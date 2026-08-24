@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -54,10 +45,7 @@ export class WashController {
   })
   @ApiOkResponse({ type: PaginatedWashIndicatorsResponseDto })
   @ApiStandardClientErrors()
-  listIndicators(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListWashIndicatorsQueryDto,
-  ) {
+  listIndicators(@CurrentUser() user: AuthUser, @Query() query: ListWashIndicatorsQueryDto) {
     return this.washService.listIndicators(user, query);
   }
 
@@ -76,10 +64,7 @@ export class WashController {
   @ApiOkResponse({ type: WashIndicatorResponseDto })
   @ApiAuthErrors()
   @ApiNotFoundError('WASH indicator')
-  getIndicator(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  getIndicator(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.washService.getIndicator(user, id);
   }
 
@@ -92,10 +77,7 @@ export class WashController {
   @ApiCreatedResponse({ type: WashIndicatorResponseDto })
   @ApiStandardClientErrors()
   @ApiNotFoundError('Center')
-  createIndicator(
-    @CurrentUser() user: AuthUser,
-    @Body() dto: CreateWashIndicatorDto,
-  ) {
+  createIndicator(@CurrentUser() user: AuthUser, @Body() dto: CreateWashIndicatorDto) {
     return this.washService.createIndicator(user, dto);
   }
 
@@ -103,8 +85,7 @@ export class WashController {
   @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'Update WASH indicator',
-    description:
-      'Updates a WASH indicator. Requires optimistic-lock `version`.',
+    description: 'Updates a WASH indicator. Requires optimistic-lock `version`.',
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'WASH indicator UUID' })
   @ApiOkResponse({ type: WashIndicatorResponseDto })

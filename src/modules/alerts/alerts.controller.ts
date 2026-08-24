@@ -1,10 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -34,10 +29,7 @@ export class AlertsController {
   })
   @ApiOkResponse({ type: FollowUpAlertsResponseDto })
   @ApiStandardClientErrors()
-  getFollowUp(
-    @CurrentUser() user: AuthUser,
-    @Query() query: FollowUpAlertsQueryDto,
-  ) {
+  getFollowUp(@CurrentUser() user: AuthUser, @Query() query: FollowUpAlertsQueryDto) {
     return this.alertsService.getFollowUpAlerts(user, query);
   }
 }

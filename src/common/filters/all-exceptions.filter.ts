@@ -17,9 +17,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
     if (status === HttpStatus.INTERNAL_SERVER_ERROR && exception instanceof Error) {
       this.logger.error(exception.message, exception.stack);
@@ -33,10 +31,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? exception.message
           : 'Internal server error';
 
-    const extras =
-      exception instanceof HttpException
-        ? this.extractConflictExtras(exception)
-        : {};
+    const extras = exception instanceof HttpException ? this.extractConflictExtras(exception) : {};
 
     response.status(status).json({
       success: false,
@@ -59,9 +54,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   /** Surface entity + currentVersion for optimistic-lock 409 responses. */
-  private extractConflictExtras(
-    exception: HttpException,
-  ): { entity?: string; currentVersion?: number } {
+  private extractConflictExtras(exception: HttpException): {
+    entity?: string;
+    currentVersion?: number;
+  } {
     const res = exception.getResponse();
     if (typeof res !== 'object' || res === null) {
       return {};

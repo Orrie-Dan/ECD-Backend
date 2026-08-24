@@ -7,26 +7,16 @@ import {
 } from '@nestjs/common';
 import { DeviceStatus, Prisma, RecordSyncStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import {
-  AuditAction,
-  AuditService,
-  toAuditJson,
-} from '../../common/audit';
+import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
-import {
-  FeedingDayResponseDto,
-  FeedingMonthSummaryResponseDto,
-} from './dto/feeding-response.dto';
+import { FeedingDayResponseDto, FeedingMonthSummaryResponseDto } from './dto/feeding-response.dto';
 import { UpsertFeedingDayDto } from './dto/upsert-feeding-day.dto';
 import { UpsertFeedingMonthSummaryDto } from './dto/upsert-feeding-month-summary.dto';
-import {
-  balancedMealWarnings,
-  feedingMapper,
-} from './mappers/feeding.mapper';
+import { balancedMealWarnings, feedingMapper } from './mappers/feeding.mapper';
 
 @Injectable()
 export class FeedingService {
@@ -37,10 +27,7 @@ export class FeedingService {
     private readonly audit: AuditService,
   ) {}
 
-  async upsertDaily(
-    user: AuthUser,
-    dto: UpsertFeedingDayDto,
-  ): Promise<FeedingDayResponseDto> {
+  async upsertDaily(user: AuthUser, dto: UpsertFeedingDayDto): Promise<FeedingDayResponseDto> {
     await this.assertAccessibleCenter(user, dto.centerId);
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
     const warnings = balancedMealWarnings(dto);
@@ -94,27 +81,19 @@ export class FeedingService {
 
           return created;
         } catch (error) {
-          if (
-            error instanceof Prisma.PrismaClientKnownRequestError &&
-            error.code === 'P2002'
-          ) {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
             const raced = await tx.centerFeedingDay.findFirst({
               where: { centerId: dto.centerId, recordedDate },
               select: { version: true },
             });
-            throw new OptimisticLockConflictException(
-              'center_feeding_day',
-              raced?.version,
-            );
+            throw new OptimisticLockConflictException('center_feeding_day', raced?.version);
           }
           throw error;
         }
       }
 
       if (dto.version == null) {
-        throw new BadRequestException(
-          'version is required when updating an existing feeding day',
-        );
+        throw new BadRequestException('version is required when updating an existing feeding day');
       }
 
       const cas = await tx.centerFeedingDay.updateMany({
@@ -247,10 +226,7 @@ export class FeedingService {
 
           return created;
         } catch (error) {
-          if (
-            error instanceof Prisma.PrismaClientKnownRequestError &&
-            error.code === 'P2002'
-          ) {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
             const raced = await tx.centerFeedingMonthSummary.findFirst({
               where: { centerId: dto.centerId, yearMonth: dto.yearMonth },
               select: { version: true },
@@ -352,10 +328,7 @@ export class FeedingService {
     };
   }
 
-  private async assertAccessibleCenter(
-    user: AuthUser,
-    centerId: string,
-  ): Promise<void> {
+  private async assertAccessibleCenter(user: AuthUser, centerId: string): Promise<void> {
     const center = await this.prisma.ecdCenter.findFirst({
       where: { id: centerId, deletedAt: null },
       select: { id: true, districtId: true },
@@ -368,10 +341,7 @@ export class FeedingService {
     assertCenterAccess(user, center.id, center.districtId);
   }
 
-  private async resolveDeviceId(
-    user: AuthUser,
-    deviceId?: string,
-  ): Promise<string | null> {
+  private async resolveDeviceId(user: AuthUser, deviceId?: string): Promise<string | null> {
     if (!deviceId) {
       return null;
     }
@@ -381,9 +351,7 @@ export class FeedingService {
     });
 
     if (!device || device.userId !== user.id) {
-      throw new ForbiddenException(
-        'Device does not belong to the authenticated user',
-      );
+      throw new ForbiddenException('Device does not belong to the authenticated user');
     }
 
     if (device.status !== DeviceStatus.active) {

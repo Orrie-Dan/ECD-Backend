@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Headers,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -18,19 +9,12 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { ListPaginationQueryDto } from '../../common/dto/list-pagination-query.dto';
-import {
-  ApiDeviceIdHeader,
-  ApiNotFoundError,
-  ApiStandardClientErrors,
-} from '../../common/swagger';
+import { ApiDeviceIdHeader, ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateStedAssessmentDto } from './dto/create-sted-assessment.dto';
-import {
-  StedAssessmentResponseDto,
-  StedHistoryResponseDto,
-} from './dto/sted-response.dto';
+import { StedAssessmentResponseDto, StedHistoryResponseDto } from './dto/sted-response.dto';
 import { StedService } from './sted.service';
 
 @ApiTags('sted')
@@ -91,10 +75,7 @@ export class StedController {
   @ApiOkResponse({ type: StedAssessmentResponseDto })
   @ApiNotFoundError('STED assessment')
   @ApiStandardClientErrors()
-  findOne(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  findOne(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.stedService.findOne(user, id);
   }
 }

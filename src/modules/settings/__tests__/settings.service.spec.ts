@@ -79,10 +79,7 @@ async function main() {
     const prisma = {
       appSetting: { findMany: async () => [] },
     };
-    const service = new SettingsService(
-      prisma as never,
-      { log: async () => undefined } as never,
-    );
+    const service = new SettingsService(prisma as never, { log: async () => undefined } as never);
 
     let threw = false;
     try {
@@ -101,7 +98,8 @@ async function main() {
     const prisma = {
       appSetting: {
         findUnique: async () => null,
-        upsert: async (args: { create: unknown }) => settingRow(args.create as Record<string, unknown>),
+        upsert: async (args: { create: unknown }) =>
+          settingRow(args.create as Record<string, unknown>),
       },
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
         const tx = { appSetting: prisma.appSetting };
@@ -115,10 +113,11 @@ async function main() {
     };
     const service = new SettingsService(prisma as never, audit as never);
 
-    const result = await service.upsert(
-      user({ role: UserRole.ncda_admin }),
-      { districtId: 'district-1', key: 'new_key', value: '42' },
-    );
+    const result = await service.upsert(user({ role: UserRole.ncda_admin }), {
+      districtId: 'district-1',
+      key: 'new_key',
+      value: '42',
+    });
 
     eq(result.key, 'new_key');
     eq(result.value, '42');
@@ -145,10 +144,11 @@ async function main() {
     };
     const service = new SettingsService(prisma as never, audit as never);
 
-    await service.upsert(
-      user({ role: UserRole.district_focal_person, districtId: 'district-1' }),
-      { districtId: 'district-1', key: 'alert_threshold', value: 'new' },
-    );
+    await service.upsert(user({ role: UserRole.district_focal_person, districtId: 'district-1' }), {
+      districtId: 'district-1',
+      key: 'alert_threshold',
+      value: 'new',
+    });
 
     eq(auditLogs.length >= 1, true);
   });

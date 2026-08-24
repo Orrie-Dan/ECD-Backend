@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   AttendanceStatus,
   ChildStatus,
@@ -13,11 +9,7 @@ import {
   UserAccountStatus,
   UserRole,
 } from '@prisma/client';
-import {
-  AuditAction,
-  AuditService,
-  toAuditJson,
-} from '../../common/audit';
+import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import {
   assertCenterAccess,
   assertDistrictAccess,
@@ -33,11 +25,7 @@ import {
 } from './dto/center-response.dto';
 import { ListCentersQueryDto } from './dto/list-centers-query.dto';
 import { UpdateCenterDto } from './dto/update-center.dto';
-import {
-  CenterDetailRow,
-  CenterListRow,
-  centerMapper,
-} from './mappers/center.mapper';
+import { CenterDetailRow, CenterListRow, centerMapper } from './mappers/center.mapper';
 
 @Injectable()
 export class CentersService {
@@ -46,10 +34,7 @@ export class CentersService {
     private readonly audit: AuditService,
   ) {}
 
-  async findAll(
-    user: AuthUser,
-    query: ListCentersQueryDto,
-  ): Promise<PaginatedCentersResponseDto> {
+  async findAll(user: AuthUser, query: ListCentersQueryDto): Promise<PaginatedCentersResponseDto> {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
@@ -85,10 +70,7 @@ export class CentersService {
     };
   }
 
-  async findOne(
-    user: AuthUser,
-    id: string,
-  ): Promise<CenterDetailResponseDto> {
+  async findOne(user: AuthUser, id: string): Promise<CenterDetailResponseDto> {
     const center = await this.prisma.ecdCenter.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -159,11 +141,7 @@ export class CentersService {
     });
   }
 
-  async update(
-    user: AuthUser,
-    id: string,
-    dto: UpdateCenterDto,
-  ): Promise<CenterDetailResponseDto> {
+  async update(user: AuthUser, id: string, dto: UpdateCenterDto): Promise<CenterDetailResponseDto> {
     const existing = await this.prisma.ecdCenter.findFirst({
       where: { id, deletedAt: null },
     });
@@ -214,16 +192,10 @@ export class CentersService {
           }),
           ...(dto.capacity !== undefined && { capacity: dto.capacity }),
           ...(dto.latitude !== undefined && {
-            latitude:
-              dto.latitude == null
-                ? null
-                : new Prisma.Decimal(dto.latitude),
+            latitude: dto.latitude == null ? null : new Prisma.Decimal(dto.latitude),
           }),
           ...(dto.longitude !== undefined && {
-            longitude:
-              dto.longitude == null
-                ? null
-                : new Prisma.Decimal(dto.longitude),
+            longitude: dto.longitude == null ? null : new Prisma.Decimal(dto.longitude),
           }),
           ...(dto.status != null && { status: dto.status }),
           ...(dto.villageId != null && { villageId: dto.villageId }),
@@ -275,10 +247,7 @@ export class CentersService {
     return this.findOne(user, id);
   }
 
-  private buildListWhere(
-    user: AuthUser,
-    query: ListCentersQueryDto,
-  ): Prisma.EcdCenterWhereInput {
+  private buildListWhere(user: AuthUser, query: ListCentersQueryDto): Prisma.EcdCenterWhereInput {
     const where: Prisma.EcdCenterWhereInput = {
       deletedAt: null,
     };
@@ -290,16 +259,12 @@ export class CentersService {
       where.id = user.centerId;
     } else if (user.role === UserRole.ecd_director) {
       if (!user.districtId) {
-        throw new ForbiddenException(
-          'District scope is required for ECD directors',
-        );
+        throw new ForbiddenException('District scope is required for ECD directors');
       }
       where.districtId = user.districtId;
     } else if (user.role === UserRole.district_focal_person) {
       if (!user.districtId) {
-        throw new ForbiddenException(
-          'District scope is required for district focal persons',
-        );
+        throw new ForbiddenException('District scope is required for district focal persons');
       }
       if (query.districtId && query.districtId !== user.districtId) {
         assertDistrictAccess(user, query.districtId);
@@ -327,10 +292,7 @@ export class CentersService {
     return where;
   }
 
-  private async resolveDeviceId(
-    user: AuthUser,
-    deviceId?: string,
-  ): Promise<string | null> {
+  private async resolveDeviceId(user: AuthUser, deviceId?: string): Promise<string | null> {
     if (!deviceId) return null;
     const device = await this.prisma.device.findFirst({
       where: {
@@ -345,9 +307,7 @@ export class CentersService {
 }
 
 function startOfUtcDay(d: Date): Date {
-  return new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
-  );
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
 export type { CenterResponseDto };

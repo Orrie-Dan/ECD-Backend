@@ -419,9 +419,7 @@ export class MonitoringService {
     }
 
     const coverage =
-      activeChildren > 0
-        ? Math.round((childrenAssessed / activeChildren) * 1000) / 10
-        : null;
+      activeChildren > 0 ? Math.round((childrenAssessed / activeChildren) * 1000) / 10 : null;
 
     const isNationalDistrictView =
       scope.centerIds === 'all' && !scope.districtId && !scope.singleCenterId;
@@ -498,34 +496,29 @@ export class MonitoringService {
           })
         : scope.centerIds.length;
 
-    const [
-      totalAssessments,
-      centersAssessed,
-      byStatusRows,
-      byTypeRows,
-      byClassificationRows,
-    ] = await Promise.all([
-      this.prisma.complianceAssessment.count({ where: assessmentWhere }),
-      this.countDistinctComplianceCenters(scope, from, to),
-      this.prisma.complianceAssessment.groupBy({
-        by: ['status'],
-        where: assessmentWhere,
-        _count: { _all: true },
-      }),
-      this.prisma.complianceAssessment.groupBy({
-        by: ['assessmentType'],
-        where: assessmentWhere,
-        _count: { _all: true },
-      }),
-      this.prisma.complianceAssessment.groupBy({
-        by: ['overallClassification'],
-        where: {
-          ...assessmentWhere,
-          overallClassification: { not: null },
-        },
-        _count: { _all: true },
-      }),
-    ]);
+    const [totalAssessments, centersAssessed, byStatusRows, byTypeRows, byClassificationRows] =
+      await Promise.all([
+        this.prisma.complianceAssessment.count({ where: assessmentWhere }),
+        this.countDistinctComplianceCenters(scope, from, to),
+        this.prisma.complianceAssessment.groupBy({
+          by: ['status'],
+          where: assessmentWhere,
+          _count: { _all: true },
+        }),
+        this.prisma.complianceAssessment.groupBy({
+          by: ['assessmentType'],
+          where: assessmentWhere,
+          _count: { _all: true },
+        }),
+        this.prisma.complianceAssessment.groupBy({
+          by: ['overallClassification'],
+          where: {
+            ...assessmentWhere,
+            overallClassification: { not: null },
+          },
+          _count: { _all: true },
+        }),
+      ]);
 
     const byStatus: Record<string, number> = {};
     for (const row of byStatusRows) {
@@ -757,9 +750,10 @@ export class MonitoringService {
     };
   }
 
-  private stedCenterScopeConditions(
-    scope: { centerIds: string[] | 'all'; districtId: string | null },
-  ): Prisma.Sql[] {
+  private stedCenterScopeConditions(scope: {
+    centerIds: string[] | 'all';
+    districtId: string | null;
+  }): Prisma.Sql[] {
     const parts: Prisma.Sql[] = [];
     if (scope.centerIds !== 'all') {
       if (scope.centerIds.length === 0) {

@@ -1,9 +1,12 @@
 export { UserContext } from './interfaces/user-context.interface';
 export {
   assertCenterAccess,
+  assertCenterAdminAccess,
   assertDistrictAccess,
   canAccessCenter,
   canAccessDistrict,
+  canAdministerCenter,
+  isCenterAdminRole,
   isCenterStaffRole,
   type ScopeUser,
 } from './auth/scope.util';

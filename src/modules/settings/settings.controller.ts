@@ -1,10 +1,5 @@
 import { Body, Controller, Get, Patch, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -25,8 +20,7 @@ export class SettingsController {
   @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'List district settings',
-    description:
-      'Returns app settings for a district. NCDA admins must supply districtId.',
+    description: 'Returns app settings for a district. NCDA admins must supply districtId.',
   })
   @ApiOkResponse({ type: [SettingResponseDto] })
   @ApiStandardClientErrors()

@@ -33,19 +33,13 @@ export function buildKeysetWhere(
     OR: [
       { lastModifiedAt: { gt: cursorTime } },
       {
-        AND: [
-          { lastModifiedAt: { equals: cursorTime } },
-          { id: { gt: cursorId } },
-        ],
+        AND: [{ lastModifiedAt: { equals: cursorTime } }, { id: { gt: cursorId } }],
       },
     ],
   };
 }
 
-export const KEYSET_ORDER_BY = [
-  { lastModifiedAt: 'asc' as const },
-  { id: 'asc' as const },
-];
+export const KEYSET_ORDER_BY = [{ lastModifiedAt: 'asc' as const }, { id: 'asc' as const }];
 
 /**
  * Merge per-entity pages (each already ordered by lastModifiedAt, id),
@@ -107,8 +101,7 @@ export function andWhere(
   ...parts: Array<Record<string, unknown> | object | undefined | null>
 ): Record<string, unknown> {
   const filtered = parts.filter(
-    (p): p is Record<string, unknown> =>
-      !!p && typeof p === 'object' && Object.keys(p).length > 0,
+    (p): p is Record<string, unknown> => !!p && typeof p === 'object' && Object.keys(p).length > 0,
   );
   if (filtered.length === 0) return {};
   if (filtered.length === 1) return filtered[0];

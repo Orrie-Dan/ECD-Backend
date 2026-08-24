@@ -1,11 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import {
-  ChildStatus,
-  GapStatus,
-  TransferStatus,
-  UserRole,
-} from '@prisma/client';
+import { ChildStatus, GapStatus, TransferStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from './notifications.service';
 
@@ -59,10 +54,10 @@ export class NotificationCronService {
 
     for (const a of assessments) {
       const childName = `${a.child.firstName} ${a.child.lastName ?? ''}`.trim();
-      const userIds = await this.notifications.findUserIdsByRoleAndCenter(
-        a.centerId,
-        [UserRole.ecd_director, UserRole.caregiver],
-      );
+      const userIds = await this.notifications.findUserIdsByRoleAndCenter(a.centerId, [
+        UserRole.ecd_director,
+        UserRole.caregiver,
+      ]);
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'sted_followup',
         title: 'STED follow-up due soon',
@@ -136,10 +131,9 @@ export class NotificationCronService {
 
     for (const t of transfers) {
       const childName = `${t.child.firstName} ${t.child.lastName ?? ''}`.trim();
-      const userIds = await this.notifications.findUserIdsByRoleAndCenter(
-        t.toCenterId,
-        [UserRole.ecd_director],
-      );
+      const userIds = await this.notifications.findUserIdsByRoleAndCenter(t.toCenterId, [
+        UserRole.ecd_director,
+      ]);
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'transfer_request',
         title: 'Pending transfer reminder',
@@ -178,10 +172,9 @@ export class NotificationCronService {
     );
 
     for (const c of overCapacity) {
-      const userIds = await this.notifications.findUserIdsByRoleAndCenter(
-        c.id,
-        [UserRole.ecd_director],
-      );
+      const userIds = await this.notifications.findUserIdsByRoleAndCenter(c.id, [
+        UserRole.ecd_director,
+      ]);
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'capacity_warning',
         title: 'Center at capacity',

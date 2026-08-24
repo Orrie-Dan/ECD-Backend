@@ -9,8 +9,12 @@ export interface Mapper<Entity, Dto> {
 /**
  * Optional create/update mapping when request DTOs differ from Prisma input.
  */
-export interface BidirectionalMapper<Entity, ResponseDto, CreateInput, UpdateInput = CreateInput>
-  extends Mapper<Entity, ResponseDto> {
+export interface BidirectionalMapper<
+  Entity,
+  ResponseDto,
+  CreateInput,
+  UpdateInput = CreateInput,
+> extends Mapper<Entity, ResponseDto> {
   toCreateInput?(dto: CreateInput): unknown;
   toUpdateInput?(dto: UpdateInput): unknown;
 }

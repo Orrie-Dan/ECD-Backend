@@ -56,13 +56,7 @@ export class AttendanceBatchResultItemDto {
     enumName: 'AttendanceBatchOutcome',
     example: 'created',
   })
-  outcome:
-    | 'created'
-    | 'updated'
-    | 'failed'
-    | 'forbidden'
-    | 'not_found'
-    | 'conflict';
+  outcome: 'created' | 'updated' | 'failed' | 'forbidden' | 'not_found' | 'conflict';
 
   @ApiPropertyOptional({ type: () => AttendanceResponseDto })
   attendance?: AttendanceResponseDto;

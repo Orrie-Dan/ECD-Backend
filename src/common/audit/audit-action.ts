@@ -38,9 +38,7 @@ export function toPrismaAuditAction(action: AuditAction): PrismaAuditAction {
 }
 
 /** Map a sync Prisma operation to a domain audit action. */
-export function fromPrismaAuditAction(
-  operation: PrismaAuditAction,
-): AuditAction {
+export function fromPrismaAuditAction(operation: PrismaAuditAction): AuditAction {
   switch (operation) {
     case PrismaAuditAction.create:
       return AuditAction.CREATE;

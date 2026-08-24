@@ -1,15 +1,8 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import {
-  AuditAction,
-  SyncOperationStatus,
-  SyncSessionStatus,
-} from '@prisma/client';
+import { AuditAction, SyncOperationStatus, SyncSessionStatus } from '@prisma/client';
 import { Job } from 'bullmq';
-import {
-  AuditService,
-  fromPrismaAuditAction,
-} from '../../common/audit';
+import { AuditService, fromPrismaAuditAction } from '../../common/audit';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from './sync-access.service';
@@ -47,9 +40,7 @@ export class SyncProcessor extends WorkerHost {
     super();
   }
 
-  async process(
-    job: Job<SyncJobPayload | Record<string, never>>,
-  ): Promise<void> {
+  async process(job: Job<SyncJobPayload | Record<string, never>>): Promise<void> {
     if (job.name === SYNC_JOB_RECOVER_STALE) {
       await this.syncService.recoverStalePendingSessions();
       return;
@@ -138,21 +129,14 @@ export class SyncProcessor extends WorkerHost {
       }
 
       const clientVersion =
-        typeof payload.__clientVersion === 'number'
-          ? payload.__clientVersion
-          : 0;
+        typeof payload.__clientVersion === 'number' ? payload.__clientVersion : 0;
 
       const result = await this.prisma.$transaction(async (tx) => {
         // Row lock + status check prevents double-apply under concurrent recovery.
-        const locked = await tx.$queryRaw<
-          Array<{ id: string; status: SyncOperationStatus }>
-        >`
+        const locked = await tx.$queryRaw<Array<{ id: string; status: SyncOperationStatus }>>`
           SELECT id, status FROM sync_operation WHERE id = ${op.id} FOR UPDATE
         `;
-        if (
-          !locked[0] ||
-          locked[0].status !== SyncOperationStatus.pending
-        ) {
+        if (!locked[0] || locked[0].status !== SyncOperationStatus.pending) {
           return { skipped: true as const };
         }
 
@@ -168,10 +152,7 @@ export class SyncProcessor extends WorkerHost {
           tx,
         });
 
-        if (
-          applyResult.retryable ||
-          applyResult.status === SyncOperationStatus.pending
-        ) {
+        if (applyResult.retryable || applyResult.status === SyncOperationStatus.pending) {
           await tx.syncOperation.update({
             where: { id: op.id },
             data: {
@@ -255,28 +236,18 @@ export class SyncProcessor extends WorkerHost {
       select: { status: true },
     });
 
-    const pendingLeft = allOps.some(
-      (o) => o.status === SyncOperationStatus.pending,
-    );
+    const pendingLeft = allOps.some((o) => o.status === SyncOperationStatus.pending);
     if (pendingLeft) {
       // Concurrent recovery worker may still be applying; leave session started.
-      this.logger.warn(
-        `Sync session ${sessionId} still has pending ops; leaving status=started`,
-      );
+      this.logger.warn(`Sync session ${sessionId} still has pending ops; leaving status=started`);
       return;
     }
 
-    const successful = allOps.filter(
-      (o) => o.status === SyncOperationStatus.applied,
-    ).length;
-    const failed = allOps.filter(
-      (o) => o.status !== SyncOperationStatus.applied,
-    ).length;
+    const successful = allOps.filter((o) => o.status === SyncOperationStatus.applied).length;
+    const failed = allOps.filter((o) => o.status !== SyncOperationStatus.applied).length;
 
     const sessionStatus =
-      failed > 0 && successful === 0
-        ? SyncSessionStatus.failed
-        : SyncSessionStatus.completed;
+      failed > 0 && successful === 0 ? SyncSessionStatus.failed : SyncSessionStatus.completed;
 
     await this.prisma.syncSession.update({
       where: { id: sessionId },

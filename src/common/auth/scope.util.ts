@@ -10,6 +10,11 @@ export function isCenterStaffRole(role: UserRole): boolean {
   return role === UserRole.caregiver || role === UserRole.ecd_director;
 }
 
+/** Centre administration authority (ECD director / centre manager). */
+export function isCenterAdminRole(role: UserRole): boolean {
+  return role === UserRole.ecd_director;
+}
+
 /**
  * Caregiver / ECD director: own center only.
  * District focal: centers in their district (pass centerDistrictId).
@@ -61,16 +66,36 @@ export function assertCenterAccess(
   centerDistrictId?: string | null,
 ): void {
   if (!canAccessCenter(user, centerId, centerDistrictId)) {
+    throw new ForbiddenException(`You do not have access to center ${centerId} (${user.role})`);
+  }
+}
+
+/**
+ * Centre administration: ECD director assigned to the target centre only.
+ * Membership (caregiver) or district/NCDA read scope is not sufficient.
+ */
+export function canAdministerCenter(
+  user: ScopeUser,
+  centerId: string,
+  centerDistrictId?: string | null,
+): boolean {
+  return isCenterAdminRole(user.role) && canAccessCenter(user, centerId, centerDistrictId);
+}
+
+export function assertCenterAdminAccess(
+  user: ScopeUser,
+  centerId: string,
+  centerDistrictId?: string | null,
+): void {
+  if (!canAdministerCenter(user, centerId, centerDistrictId)) {
     throw new ForbiddenException(
-      `You do not have access to center ${centerId} (${user.role})`,
+      `You do not have administration authority for center ${centerId} (${user.role})`,
     );
   }
 }
 
 export function assertDistrictAccess(user: ScopeUser, districtId: string): void {
   if (!canAccessDistrict(user, districtId)) {
-    throw new ForbiddenException(
-      `You do not have access to district ${districtId} (${user.role})`,
-    );
+    throw new ForbiddenException(`You do not have access to district ${districtId} (${user.role})`);
   }
 }

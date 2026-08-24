@@ -1,13 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsDateString,
-  IsInt,
-  IsOptional,
-  IsUUID,
-  Min,
-} from 'class-validator';
+import { IsBoolean, IsDateString, IsInt, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class UpsertFeedingDayDto {
   @ApiProperty({ format: 'uuid' })
@@ -76,8 +69,7 @@ export class UpsertFeedingDayDto {
 
   @ApiPropertyOptional({
     format: 'uuid',
-    description:
-      'Optional client device ID for audit trail (also accepted via x-device-id header)',
+    description: 'Optional client device ID for audit trail (also accepted via x-device-id header)',
   })
   @IsOptional()
   @IsUUID()

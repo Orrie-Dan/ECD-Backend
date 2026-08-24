@@ -57,9 +57,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -117,7 +115,10 @@ async function run() {
         }),
     };
 
-    const result = await new FeedingService(prisma as never, { log: async () => {} } as never).upsertDaily(
+    const result = await new FeedingService(
+      prisma as never,
+      { log: async () => {} } as never,
+    ).upsertDaily(
       user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
       baseDayDto({ milkServed: false, version: 1 }),
     );
@@ -128,9 +129,8 @@ async function run() {
   });
 
   await assert('stale daily update conflicts', async () => {
-    const { OptimisticLockConflictException } = await import(
-      '../../../common/concurrency/optimistic-lock.exception'
-    );
+    const { OptimisticLockConflictException } =
+      await import('../../../common/concurrency/optimistic-lock.exception');
     const prisma = {
       ecdCenter: {
         findFirst: async () => ({ id: 'center-a', districtId: 'd1' }),
@@ -190,7 +190,10 @@ async function run() {
         }),
     };
 
-    const result = await new FeedingService(prisma as never, { log: async () => {} } as never).upsertDaily(
+    const result = await new FeedingService(
+      prisma as never,
+      { log: async () => {} } as never,
+    ).upsertDaily(
       user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
       baseDayDto(),
     );
@@ -223,7 +226,10 @@ async function run() {
         }),
     };
 
-    const result = await new FeedingService(prisma as never, { log: async () => {} } as never).upsertMonthSummary(
+    const result = await new FeedingService(
+      prisma as never,
+      { log: async () => {} } as never,
+    ).upsertMonthSummary(
       user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
       {
         centerId: 'center-a',
@@ -254,11 +260,7 @@ async function run() {
               yearMonth: '2026-08',
               version: 2,
             }),
-            updateMany: async ({
-              where,
-            }: {
-              where: { version: number };
-            }) => {
+            updateMany: async ({ where }: { where: { version: number } }) => {
               updated = true;
               eq(where.version, 2);
               return { count: 1 };
@@ -284,7 +286,10 @@ async function run() {
         }),
     };
 
-    const result = await new FeedingService(prisma as never, { log: async () => {} } as never).upsertMonthSummary(
+    const result = await new FeedingService(
+      prisma as never,
+      { log: async () => {} } as never,
+    ).upsertMonthSummary(
       user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
       {
         centerId: 'center-a',

@@ -25,7 +25,16 @@ export class FollowUpAlertDto {
   id: string;
 
   @ApiProperty({
-    enum: ['nutrition', 'attendance', 'referral', 'data_quality', 'sted', 'transfer', 'compliance', 'capacity'],
+    enum: [
+      'nutrition',
+      'attendance',
+      'referral',
+      'data_quality',
+      'sted',
+      'transfer',
+      'compliance',
+      'capacity',
+    ],
     enumName: 'FollowUpAlertCategory',
   })
   category: FollowUpAlertCategory;

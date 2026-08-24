@@ -22,10 +22,7 @@ type SyncNutritionPayload = {
   recordedById: string;
 };
 
-function buildSyncCreateData(
-  payload: SyncNutritionPayload,
-  contextDeviceId: string,
-) {
+function buildSyncCreateData(payload: SyncNutritionPayload, contextDeviceId: string) {
   const requiresReferral = deriveRequiresReferral(
     payload.nutritionStatus,
     payload.requiresReferral,
@@ -66,9 +63,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 

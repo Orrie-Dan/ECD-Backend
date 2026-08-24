@@ -91,9 +91,7 @@ export class CreateChildDto {
   @IsString()
   @IsNotEmpty()
   @Matches(RWANDA_NIN_REGEX, {
-    message:
-      'nationalId must be a valid 16-digit Rwanda NIN ' +
-      '(e.g. 1200080012345600)',
+    message: 'nationalId must be a valid 16-digit Rwanda NIN ' + '(e.g. 1200080012345600)',
   })
   nationalId: string;
 

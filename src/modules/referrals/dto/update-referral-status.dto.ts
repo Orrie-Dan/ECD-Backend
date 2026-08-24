@@ -18,8 +18,7 @@ const API_STATUS_TRANSITIONS: ApiReferralStatus[] = ['completed', 'cancelled'];
 export class UpdateReferralStatusDto {
   /** Expected optimistic-lock version from the last read. */
   @ApiProperty({
-    description:
-      'Expected optimistic-lock version from the last read (required for CAS)',
+    description: 'Expected optimistic-lock version from the last read (required for CAS)',
     example: 1,
     minimum: 0,
   })
@@ -31,8 +30,7 @@ export class UpdateReferralStatusDto {
   @ApiProperty({
     enum: API_STATUS_TRANSITIONS,
     enumName: 'ApiReferralUpdateStatus',
-    description:
-      'Terminal statuses only — pending is the initial state, not a PATCH target',
+    description: 'Terminal statuses only — pending is the initial state, not a PATCH target',
     example: 'completed',
   })
   @IsIn(API_STATUS_TRANSITIONS)
@@ -55,8 +53,7 @@ export class UpdateReferralStatusDto {
 
   @ApiPropertyOptional({
     format: 'uuid',
-    description:
-      'Optional client device ID for audit trail (also accepted via x-device-id header)',
+    description: 'Optional client device ID for audit trail (also accepted via x-device-id header)',
   })
   @IsOptional()
   @IsUUID()

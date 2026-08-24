@@ -12,9 +12,7 @@ type AttendanceBatchItemLike = {
 };
 
 @ValidatorConstraint({ name: 'UniqueChildDateInBatch', async: false })
-export class UniqueChildDateInBatchConstraint
-  implements ValidatorConstraintInterface
-{
+export class UniqueChildDateInBatchConstraint implements ValidatorConstraintInterface {
   validate(records: AttendanceBatchItemLike[]): boolean {
     if (!Array.isArray(records)) {
       return false;

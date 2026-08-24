@@ -15,10 +15,7 @@ export class SettingsService {
     private readonly audit: AuditService,
   ) {}
 
-  async findAll(
-    user: AuthUser,
-    query: ListSettingsQueryDto,
-  ): Promise<SettingResponseDto[]> {
+  async findAll(user: AuthUser, query: ListSettingsQueryDto): Promise<SettingResponseDto[]> {
     const districtId = this.resolveDistrictId(user, query.districtId);
 
     const rows = await this.prisma.appSetting.findMany({

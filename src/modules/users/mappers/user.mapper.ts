@@ -1,4 +1,6 @@
 import {
+  EducationLevel,
+  PersonSex,
   UserAccount,
   UserAccountStatus,
   UserRole,
@@ -6,10 +8,7 @@ import {
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import {
-  ApiUserStatus,
-  UserResponseDto,
-} from '../dto/user-response.dto';
+import { ApiUserStatus, UserResponseDto } from '../dto/user-response.dto';
 
 export type UserWithRelations = UserAccount & {
   district: { id: string; name: string } | null;
@@ -21,6 +20,8 @@ export type UserCreateMapped = {
   username: string;
   fullName: string;
   phone: string | null;
+  gender: PersonSex | null;
+  educationLevel: EducationLevel | null;
   role: UserRole;
   districtId: string | null;
   centerId: string | null;
@@ -29,6 +30,8 @@ export type UserCreateMapped = {
 export type UserUpdateMapped = {
   fullName?: string;
   phone?: string | null;
+  gender?: PersonSex | null;
+  educationLevel?: EducationLevel | null;
   status?: UserAccountStatus;
 };
 
@@ -39,11 +42,11 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
       username: entity.username,
       fullName: entity.fullName,
       phone: entity.phone,
+      gender: entity.gender,
+      educationLevel: entity.educationLevel,
       role: entity.role,
       status: this.toApiStatus(entity.status),
-      district: entity.district
-        ? { id: entity.district.id, name: entity.district.name }
-        : null,
+      district: entity.district ? { id: entity.district.id, name: entity.district.name } : null,
       center: entity.center
         ? {
             id: entity.center.id,
@@ -68,9 +71,7 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
   }
 
   toDbStatus(status: ApiUserStatus): UserAccountStatus {
-    return status === 'ACTIVE'
-      ? UserAccountStatus.active
-      : UserAccountStatus.inactive;
+    return status === 'ACTIVE' ? UserAccountStatus.active : UserAccountStatus.inactive;
   }
 
   /**
@@ -82,6 +83,8 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
       username: dto.username.trim(),
       fullName: dto.fullName.trim(),
       phone: dto.phone?.trim() || null,
+      gender: dto.gender ?? null,
+      educationLevel: dto.educationLevel ?? null,
       role: dto.role,
       districtId: dto.districtId ?? null,
       centerId: dto.centerId ?? null,
@@ -96,6 +99,12 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
     }
     if (dto.phone !== undefined) {
       data.phone = dto.phone?.trim() || null;
+    }
+    if (dto.gender !== undefined) {
+      data.gender = dto.gender;
+    }
+    if (dto.educationLevel !== undefined) {
+      data.educationLevel = dto.educationLevel;
     }
     if (dto.status !== undefined) {
       data.status = this.toDbStatus(dto.status);

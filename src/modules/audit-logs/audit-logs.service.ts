@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AuditAction, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
-import {
-  AuditLogResponseDto,
-  PaginatedAuditLogsResponseDto,
-} from './dto/audit-log-response.dto';
+import { AuditLogResponseDto, PaginatedAuditLogsResponseDto } from './dto/audit-log-response.dto';
 import { ListAuditLogsQueryDto } from './dto/list-audit-logs-query.dto';
 
 @Injectable()
@@ -45,10 +42,7 @@ export class AuditLogsService {
     };
   }
 
-  private buildWhere(
-    user: AuthUser,
-    query: ListAuditLogsQueryDto,
-  ): Prisma.AuditLogWhereInput {
+  private buildWhere(user: AuthUser, query: ListAuditLogsQueryDto): Prisma.AuditLogWhereInput {
     const where: Prisma.AuditLogWhereInput = {};
 
     if (user.role === UserRole.district_focal_person && user.districtId) {

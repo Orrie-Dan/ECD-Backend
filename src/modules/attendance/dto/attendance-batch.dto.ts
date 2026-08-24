@@ -17,10 +17,7 @@ import {
 } from 'class-validator';
 import { AbsentReason } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsAttendanceDate,
-  UniqueChildDateInBatch,
-} from '../validators/attendance.validators';
+import { IsAttendanceDate, UniqueChildDateInBatch } from '../validators/attendance.validators';
 
 export class AttendanceBatchRecordDto {
   @ApiProperty({

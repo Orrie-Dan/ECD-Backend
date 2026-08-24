@@ -74,10 +74,7 @@ export class ComplianceService {
     };
   }
 
-  async getAssessment(
-    user: AuthUser,
-    id: string,
-  ): Promise<AssessmentDetailResponseDto> {
+  async getAssessment(user: AuthUser, id: string): Promise<AssessmentDetailResponseDto> {
     const assessment = await this.prisma.complianceAssessment.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -101,10 +98,7 @@ export class ComplianceService {
     };
   }
 
-  async createAssessment(
-    user: AuthUser,
-    dto: CreateAssessmentDto,
-  ): Promise<AssessmentResponseDto> {
+  async createAssessment(user: AuthUser, dto: CreateAssessmentDto): Promise<AssessmentResponseDto> {
     const center = await this.prisma.ecdCenter.findFirst({
       where: { id: dto.centerId, deletedAt: null },
       select: { id: true, name: true, districtId: true },
@@ -275,10 +269,7 @@ export class ComplianceService {
           .catch(() => {});
       }
 
-      if (
-        dto.status === AssessmentStatus.verified ||
-        dto.status === AssessmentStatus.rejected
-      ) {
+      if (dto.status === AssessmentStatus.verified || dto.status === AssessmentStatus.rejected) {
         this.notifications
           .findUserIdsByRoleAndCenter(centerId, [UserRole.ecd_director])
           .then((ids) => {
@@ -325,9 +316,7 @@ export class ComplianceService {
     assertCenterAccess(user, assessment.centerId, assessment.center.districtId);
 
     if (assessment.status !== AssessmentStatus.draft) {
-      throw new BadRequestException(
-        'Can only add items to draft assessments',
-      );
+      throw new BadRequestException('Can only add items to draft assessments');
     }
 
     const standard = await this.prisma.ecdStandard.findFirst({
@@ -444,17 +433,13 @@ export class ComplianceService {
             gapImprovementAction: dto.gapImprovementAction ?? null,
           }),
           ...(dto.gapTargetDate !== undefined && {
-            gapTargetDate: dto.gapTargetDate
-              ? new Date(dto.gapTargetDate)
-              : null,
+            gapTargetDate: dto.gapTargetDate ? new Date(dto.gapTargetDate) : null,
           }),
           ...(dto.gapStatus !== undefined && {
             gapStatus: dto.gapStatus ?? null,
           }),
           ...(dto.gapResolvedAt !== undefined && {
-            gapResolvedAt: dto.gapResolvedAt
-              ? new Date(dto.gapResolvedAt)
-              : null,
+            gapResolvedAt: dto.gapResolvedAt ? new Date(dto.gapResolvedAt) : null,
           }),
           updatedAt: now,
           version: { increment: 1 },
@@ -513,9 +498,7 @@ export class ComplianceService {
       where.centerId = user.centerId;
     } else if (user.role === UserRole.district_focal_person) {
       if (!user.districtId) {
-        throw new ForbiddenException(
-          'District scope is required for district focal persons',
-        );
+        throw new ForbiddenException('District scope is required for district focal persons');
       }
       if (query.districtId && query.districtId !== user.districtId) {
         throw new ForbiddenException('Access to other districts is denied');
@@ -548,24 +531,16 @@ export class ComplianceService {
     return where;
   }
 
-  private validateStatusTransition(
-    current: AssessmentStatus,
-    next: AssessmentStatus,
-  ): void {
+  private validateStatusTransition(current: AssessmentStatus, next: AssessmentStatus): void {
     const validTransitions: Record<AssessmentStatus, AssessmentStatus[]> = {
       [AssessmentStatus.draft]: [AssessmentStatus.submitted],
-      [AssessmentStatus.submitted]: [
-        AssessmentStatus.verified,
-        AssessmentStatus.rejected,
-      ],
+      [AssessmentStatus.submitted]: [AssessmentStatus.verified, AssessmentStatus.rejected],
       [AssessmentStatus.verified]: [],
       [AssessmentStatus.rejected]: [AssessmentStatus.submitted],
     };
 
     if (!validTransitions[current]?.includes(next)) {
-      throw new BadRequestException(
-        `Invalid status transition from ${current} to ${next}`,
-      );
+      throw new BadRequestException(`Invalid status transition from ${current} to ${next}`);
     }
   }
 

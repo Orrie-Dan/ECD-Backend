@@ -31,10 +31,7 @@ type AttendanceRow = {
   status: string;
 };
 
-function createApplyHarness(opts?: {
-  childExists?: boolean;
-  existing?: AttendanceRow | null;
-}) {
+function createApplyHarness(opts?: { childExists?: boolean; existing?: AttendanceRow | null }) {
   const created: unknown[] = [];
   const updated: unknown[] = [];
   let existing = opts?.existing ?? null;
@@ -42,16 +39,12 @@ function createApplyHarness(opts?: {
   const db = {
     child: {
       findUnique: async () =>
-        opts?.childExists === false
-          ? null
-          : { id: 'child-1', centerId: 'center-1' },
+        opts?.childExists === false ? null : { id: 'child-1', centerId: 'center-1' },
     },
     attendanceRecord: {
       findFirst: async () => existing,
       findUnique: async ({ where }: { where: { id: string } }) =>
-        existing && existing.id === where.id
-          ? { version: existing.version }
-          : null,
+        existing && existing.id === where.id ? { version: existing.version } : null,
       create: async ({ data }: { data: AttendanceRow }) => {
         created.push(data);
         existing = {

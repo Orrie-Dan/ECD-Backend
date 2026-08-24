@@ -25,12 +25,7 @@ import { SyncService } from './sync.service';
     forwardRef(() => TransfersModule),
   ],
   controllers: [SyncController],
-  providers: [
-    SyncService,
-    SyncProcessor,
-    SyncApplyService,
-    SyncAccessService,
-  ],
+  providers: [SyncService, SyncProcessor, SyncApplyService, SyncAccessService],
   exports: [SyncService, SyncAccessService],
 })
 export class SyncModule {}

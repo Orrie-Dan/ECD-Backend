@@ -1,9 +1,6 @@
 import { StedAgeBand } from '@prisma/client';
 import { SYNCABLE_ENTITY_TYPES } from '../../sync/sync.constants';
-import {
-  resolveStedAgeBandFromPayload,
-  toApiAgeBand,
-} from '../mappers/sted.mapper';
+import { resolveStedAgeBandFromPayload, toApiAgeBand } from '../mappers/sted.mapper';
 
 /**
  * STED sync create/delete/append-only coverage.
@@ -31,9 +28,7 @@ function buildSyncCreate(
   contextDeviceId: string,
   resolvedCenterId: string,
 ) {
-  const ageBand = resolveStedAgeBandFromPayload(
-    payload as unknown as Record<string, unknown>,
-  );
+  const ageBand = resolveStedAgeBandFromPayload(payload as unknown as Record<string, unknown>);
   return {
     childId: payload.childId,
     centerId: payload.centerId ?? resolvedCenterId,
@@ -52,10 +47,7 @@ function buildSyncCreate(
 }
 
 function assertAppendOnlyUpdateRejected(entityType: string): string {
-  if (
-    entityType === 'child_nutrition_screening' ||
-    entityType === 'sted_assessment'
-  ) {
+  if (entityType === 'child_nutrition_screening' || entityType === 'sted_assessment') {
     return `${entityType} is append-only and cannot be updated`;
   }
   return 'ok';
@@ -87,9 +79,7 @@ async function run() {
 
   const eq = (actual: unknown, expected: unknown) => {
     if (actual !== expected) {
-      throw new Error(
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
-      );
+      throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
     }
   };
 
@@ -160,9 +150,7 @@ async function run() {
     // Matches SyncApplyService.applyCreate: existing entityId → conflict
     const existingIds = new Set(['sted-1']);
     const incomingId = 'sted-1';
-    const outcome = existingIds.has(incomingId)
-      ? 'conflict'
-      : 'applied';
+    const outcome = existingIds.has(incomingId) ? 'conflict' : 'applied';
     eq(outcome, 'conflict');
   });
 

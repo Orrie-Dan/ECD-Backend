@@ -18,18 +18,14 @@ export async function assertCasApplied(
 
   const existing = await findCurrent();
   if (!existing) {
-    throw new NotFoundException(
-      `${entity.charAt(0).toUpperCase()}${entity.slice(1)} not found`,
-    );
+    throw new NotFoundException(`${entity.charAt(0).toUpperCase()}${entity.slice(1)} not found`);
   }
 
   throw new OptimisticLockConflictException(entity, existing.version);
 }
 
 export type CasClassifyResult =
-  | { kind: 'applied' }
-  | { kind: 'not_found' }
-  | { kind: 'version_mismatch'; serverVersion: number };
+  { kind: 'applied' } | { kind: 'not_found' } | { kind: 'version_mismatch'; serverVersion: number };
 
 /** Non-throwing classification for batch item outcomes. */
 export async function classifyCasMiss(

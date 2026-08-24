@@ -30,10 +30,7 @@ type FeedingDayRow = {
   milkServed: boolean;
 };
 
-function createApplyHarness(opts?: {
-  existing?: FeedingDayRow | null;
-  recorderExists?: boolean;
-}) {
+function createApplyHarness(opts?: { existing?: FeedingDayRow | null; recorderExists?: boolean }) {
   const created: unknown[] = [];
   const updated: unknown[] = [];
   let existing = opts?.existing ?? null;
@@ -42,18 +39,12 @@ function createApplyHarness(opts?: {
   const db = {
     userAccount: {
       findUnique: async ({ where }: { where: { id: string } }) =>
-        recorderExists && where.id && where.id !== 'undefined'
-          ? { id: where.id }
-          : null,
+        recorderExists && where.id && where.id !== 'undefined' ? { id: where.id } : null,
     },
     centerFeedingDay: {
       findUnique: async ({ where }: { where: { id: string } }) =>
         existing && existing.id === where.id ? { version: existing.version } : null,
-      findFirst: async ({
-        where,
-      }: {
-        where: { centerId: string; recordedDate: Date };
-      }) => {
+      findFirst: async ({ where }: { where: { centerId: string; recordedDate: Date } }) => {
         if (!existing) return null;
         if (existing.centerId !== where.centerId) return null;
         if (existing.recordedDate.getTime() !== where.recordedDate.getTime()) return null;
@@ -180,30 +171,27 @@ async function main() {
     },
   );
 
-  await assert(
-    'feeding day create without date/recordedDate is terminal failed',
-    async () => {
-      const h = createApplyHarness();
-      const result = await h.service.apply({
-        deviceId: randomUUID(),
-        entityType: 'center_feeding_day',
-        entityId: randomUUID(),
-        localId: null,
-        operation: 'create' as never,
-        payload: {
-          centerId: 'center-1',
-          milkServed: true,
-          recordedById: recorderId,
-        },
-        clientVersion: 0,
-      });
-      eq(result.status, SyncOperationStatus.failed);
-      eq(result.retryable ?? false, false);
-      if (!String(result.conflictReason || '').includes('recordedDate')) {
-        throw new Error(`expected recordedDate message, got ${result.conflictReason}`);
-      }
-    },
-  );
+  await assert('feeding day create without date/recordedDate is terminal failed', async () => {
+    const h = createApplyHarness();
+    const result = await h.service.apply({
+      deviceId: randomUUID(),
+      entityType: 'center_feeding_day',
+      entityId: randomUUID(),
+      localId: null,
+      operation: 'create' as never,
+      payload: {
+        centerId: 'center-1',
+        milkServed: true,
+        recordedById: recorderId,
+      },
+      clientVersion: 0,
+    });
+    eq(result.status, SyncOperationStatus.failed);
+    eq(result.retryable ?? false, false);
+    if (!String(result.conflictReason || '').includes('recordedDate')) {
+      throw new Error(`expected recordedDate message, got ${result.conflictReason}`);
+    }
+  });
 
   await assert(
     'feeding day create without recordedById is terminal failed (not P2003 retry)',
@@ -230,28 +218,25 @@ async function main() {
     },
   );
 
-  await assert(
-    'feeding day create with recordedBy alias applies',
-    async () => {
-      const h = createApplyHarness();
-      const result = await h.service.apply({
-        deviceId: randomUUID(),
-        entityType: 'center_feeding_day',
-        entityId: randomUUID(),
-        localId: null,
-        operation: 'create' as never,
-        payload: {
-          centerId: 'center-1',
-          recordedDate: '2026-07-30',
-          milkServed: true,
-          recordedBy: recorderId,
-        },
-        clientVersion: 0,
-      });
-      eq(result.status, SyncOperationStatus.applied);
-      eq(h.created.length, 1);
-    },
-  );
+  await assert('feeding day create with recordedBy alias applies', async () => {
+    const h = createApplyHarness();
+    const result = await h.service.apply({
+      deviceId: randomUUID(),
+      entityType: 'center_feeding_day',
+      entityId: randomUUID(),
+      localId: null,
+      operation: 'create' as never,
+      payload: {
+        centerId: 'center-1',
+        recordedDate: '2026-07-30',
+        milkServed: true,
+        recordedBy: recorderId,
+      },
+      clientVersion: 0,
+    });
+    eq(result.status, SyncOperationStatus.applied);
+    eq(h.created.length, 1);
+  });
 
   console.log('\nAll feeding apply assertions passed');
 }
