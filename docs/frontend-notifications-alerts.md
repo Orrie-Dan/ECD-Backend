@@ -108,6 +108,8 @@ POST /api/v1/notifications/read-all
 | `sted_followup` | STED assessment flags 6-month follow-up | `sted_assessment` |
 | `compliance_update` | Assessment submitted/verified/rejected | `compliance_assessment` |
 | `capacity_warning` | Center at/over capacity (daily cron) | `ecd_center` |
+| `attendance_absence` | Child absent 3+ days in the last 7 days (daily cron) | `child` |
+| `attendance_low_rate` | Center present-rate below 80% in the last 7 days (daily cron) | `ecd_center` |
 | `general` | New user added to center, misc | `user_account` |
 
 ### Linking Notifications to Pages
@@ -216,6 +218,7 @@ GET /api/v1/alerts/follow-up?category=all&limit=100&districtId=uuid&centerId=uui
 | `NUTRITION_OVERDUE` | nutrition | medium | No screening in 30+ days |
 | `NUTRITION_NEVER_SCREENED` | nutrition | medium | Child never screened |
 | `ATTENDANCE_ABSENCE_RISK` | attendance | high/medium | 3+ absences in 7 days |
+| `ATTENDANCE_LOW_RATE` | attendance | high/medium | Center present-rate below 80% in 7 days |
 | `REFERRAL_FOLLOW_UP` | referral | high/medium | Pending referral 7+ days |
 | `DQ_MISSING_GUARDIAN_PHONE` | data_quality | low | Missing guardian phone |
 | `DQ_NO_ATTENDANCE_TODAY` | data_quality | medium | Center has no attendance today |
@@ -297,6 +300,8 @@ const notificationIcons: Record<string, LucideIcon> = {
   sted_followup: ClipboardCheck,
   compliance_update: FileWarning,
   capacity_warning: Users,
+  attendance_absence: AlertTriangle,
+  attendance_low_rate: AlertTriangle,
   general: Bell,
 };
 ```

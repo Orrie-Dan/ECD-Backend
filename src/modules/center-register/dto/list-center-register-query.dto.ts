@@ -30,6 +30,14 @@ export class ListCenterRegisterQueryDto {
   to?: string;
 
   @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Filter staff trainings by trainee platform user',
+  })
+  @IsOptional()
+  @IsUUID()
+  traineeUserId?: string;
+
+  @ApiPropertyOptional({
     description: 'Filter committee members by active status',
   })
   @IsOptional()

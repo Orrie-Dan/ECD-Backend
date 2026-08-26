@@ -14,6 +14,8 @@ const NOTIFICATION_TYPES = [
   'sted_followup',
   'compliance_update',
   'capacity_warning',
+  'attendance_absence',
+  'attendance_low_rate',
   'general',
 ] as const;
 

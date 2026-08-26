@@ -21,6 +21,14 @@ import {
 } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
+import {
+  ATTENDANCE_ABSENT_THRESHOLD,
+  ATTENDANCE_RISK_DAYS,
+  HIGH_PRIORITY_LOW_RATE_THRESHOLD,
+  LOW_CENTER_ATTENDANCE_THRESHOLD,
+  attendanceLookbackRange,
+  startOfUtcDay,
+} from './attendance-alert.constants';
 import { FollowUpAlertDto, FollowUpAlertsResponseDto } from './dto/follow-up-alert.dto';
 import { FollowUpAlertsQueryDto } from './dto/follow-up-alerts-query.dto';
 
@@ -28,10 +36,6 @@ import { FollowUpAlertsQueryDto } from './dto/follow-up-alerts-query.dto';
 const OVERDUE_SCREENING_DAYS = 30;
 /** Pending referrals older than this are follow-up risks. */
 const STALE_REFERRAL_DAYS = 7;
-/** Lookback for absence risk window. */
-const ATTENDANCE_RISK_DAYS = 7;
-/** Absent count threshold within lookback. */
-const ATTENDANCE_ABSENT_THRESHOLD = 3;
 /** Centers with no attendance recorded today while having active children. */
 const DATA_QUALITY_NO_ATTENDANCE = true;
 /** Pending transfers older than this are stale. */
@@ -263,8 +267,13 @@ export class AlertsService {
   }
 
   private async attendanceAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
-    const from = daysAgo(ATTENDANCE_RISK_DAYS);
-    const to = startOfUtcDay(new Date());
+    const absence = await this.attendanceAbsenceAlerts(scope);
+    const lowRate = await this.attendanceLowRateAlerts(scope);
+    return [...absence, ...lowRate];
+  }
+
+  private async attendanceAbsenceAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
+    const { from, to } = attendanceLookbackRange();
     const childWhere = this.childScopeWhere(scope);
 
     const absences = await this.prisma.attendanceRecord.groupBy({
@@ -327,6 +336,74 @@ export class AlertsService {
         },
       ];
     });
+  }
+
+  private async attendanceLowRateAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
+    const { from, to } = attendanceLookbackRange();
+    const centerWhere = scope.centerIds === 'all' ? {} : { id: { in: scope.centerIds } };
+
+    const [centers, attByCenter] = await Promise.all([
+      this.prisma.ecdCenter.findMany({
+        where: {
+          deletedAt: null,
+          status: 'active',
+          ...centerWhere,
+          children: {
+            some: { deletedAt: null, status: ChildStatus.active },
+          },
+        },
+        select: { id: true, name: true },
+        take: 500,
+      }),
+      this.prisma.attendanceRecord.groupBy({
+        by: ['centerId', 'status'],
+        where: {
+          deletedAt: null,
+          attendanceDate: { gte: from, lte: to },
+          ...(scope.centerIds === 'all' ? {} : { centerId: { in: scope.centerIds } }),
+        },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const presentByCenter = new Map<string, number>();
+    const absentByCenter = new Map<string, number>();
+    for (const row of attByCenter) {
+      if (row.status === AttendanceStatus.present) {
+        presentByCenter.set(row.centerId, row._count._all);
+      } else if (row.status === AttendanceStatus.absent) {
+        absentByCenter.set(row.centerId, row._count._all);
+      }
+    }
+
+    const nowIso = new Date().toISOString();
+    const alerts: FollowUpAlertDto[] = [];
+    for (const center of centers) {
+      const present = presentByCenter.get(center.id) ?? 0;
+      const absent = absentByCenter.get(center.id) ?? 0;
+      const total = present + absent;
+      if (total === 0) continue;
+      const rate = Math.round((present / total) * 100);
+      if (rate >= LOW_CENTER_ATTENDANCE_THRESHOLD) continue;
+
+      alerts.push({
+        id: `attendance-low-rate-${center.id}`,
+        category: 'attendance',
+        priority: rate < HIGH_PRIORITY_LOW_RATE_THRESHOLD ? 'high' : 'medium',
+        code: 'ATTENDANCE_LOW_RATE',
+        title: 'Low attendance rate',
+        description: `${center.name} attendance is ${rate}% over the last ${ATTENDANCE_RISK_DAYS} days`,
+        centerId: center.id,
+        centerName: center.name,
+        childId: null,
+        childName: null,
+        entityType: 'ecd_center',
+        entityId: center.id,
+        detectedAt: nowIso,
+        metrics: [{ label: 'Rate', value: `${rate}%` }],
+      });
+    }
+    return alerts;
   }
 
   private async referralAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
@@ -878,8 +955,4 @@ function daysAgo(days: number): Date {
   const d = startOfUtcDay(new Date());
   d.setUTCDate(d.getUTCDate() - days);
   return d;
-}
-
-function startOfUtcDay(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }

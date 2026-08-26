@@ -48,6 +48,8 @@ export class StaffTrainingsService {
     ) as Prisma.StaffTrainingWhereInput;
     if (user.role === UserRole.caregiver) {
       where.traineeUserId = user.id;
+    } else if (query.traineeUserId) {
+      where.traineeUserId = query.traineeUserId;
     }
 
     const [rows, total] = await this.prisma.$transaction([
