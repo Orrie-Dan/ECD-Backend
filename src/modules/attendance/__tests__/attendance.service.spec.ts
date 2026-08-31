@@ -1,6 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { AbsentReason, AttendanceStatus, UserRole } from '@prisma/client';
 import { canAccessCenter } from '../../../common/auth/scope.util';
+import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from '../../sync/sync-access.service';
 import { AttendanceBatchDto } from '../dto/attendance-batch.dto';
@@ -46,7 +47,7 @@ function createService(prisma: object) {
 
   return new AttendanceService(prisma as never, syncAccess, {
     log: async () => {},
-  } as never);
+  } as never, createMockLookupResolver());
 }
 
 async function run() {

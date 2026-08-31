@@ -17,6 +17,13 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:recreate-schema": "ts-node scripts/recreate-schema.ts",
+    "gis:audit:arcgis-types": "ts-node scripts/audit-arcgis-column-types.ts",
+    "gis:deploy": "ts-node scripts/deploy-gis-scenario-c.ts",
+    "gis:migrate:phase": "ts-node scripts/run-gis-scenario-c-phase.ts",
+    "gis:verify": "ts-node scripts/verify-gis-phase.ts",
+    "gis:verify:phase8": "ts-node scripts/verify-gis-phase-8.ts",
+    "test:gis:sync-regression": "npm run test:sync-apply-attendance && npm run test:sync-apply-feeding && npm run test:referrals && npm run test:nutrition && npm run test:sted && npm run test:wash && npm run test:compliance",
     "prisma:studio": "prisma studio",
     "test:sync-auth": "ts-node src/modules/sync/__tests__/sync-write-auth.spec.ts",
     "test:sync-idempotency": "ts-node src/modules/sync/__tests__/sync-push-idempotency.spec.ts",
@@ -56,7 +63,8 @@
     "seed:admin": "ts-node prisma/seed.ts",
     "report:orphaned-transfers": "ts-node scripts/report-orphaned-child-transfers.ts",
     "migrate:assign-classrooms": "ts-node scripts/assign-classrooms.ts",
-    "migrate:national-ids": "ts-node scripts/migrate-national-ids.ts"
+    "migrate:national-ids": "ts-node scripts/migrate-national-ids.ts",
+    "restore:backup-data": "ts-node scripts/restore-backup-data.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -84,6 +92,7 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.22.0",
+    "pg-copy-streams": "^7.0.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },

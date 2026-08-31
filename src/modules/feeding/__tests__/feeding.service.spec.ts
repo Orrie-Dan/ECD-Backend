@@ -1,6 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
+import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { FeedingService } from '../feeding.service';
 import { UpsertFeedingDayDto } from '../dto/upsert-feeding-day.dto';
 
@@ -118,6 +119,7 @@ async function run() {
     const result = await new FeedingService(
       prisma as never,
       { log: async () => {} } as never,
+      createMockLookupResolver(),
     ).upsertDaily(
       user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
       baseDayDto({ milkServed: false, version: 1 }),
@@ -151,7 +153,7 @@ async function run() {
 
     let caught: unknown;
     try {
-      await new FeedingService(prisma as never, { log: async () => {} } as never).upsertDaily(
+      await new FeedingService(prisma as never, { log: async () => {} } as never, createMockLookupResolver()).upsertDaily(
         user({
           role: UserRole.caregiver,
           centerId: 'center-a',
@@ -193,6 +195,7 @@ async function run() {
     const result = await new FeedingService(
       prisma as never,
       { log: async () => {} } as never,
+      createMockLookupResolver(),
     ).upsertDaily(
       user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
       baseDayDto(),
@@ -229,6 +232,7 @@ async function run() {
     const result = await new FeedingService(
       prisma as never,
       { log: async () => {} } as never,
+      createMockLookupResolver(),
     ).upsertMonthSummary(
       user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
       {
@@ -289,6 +293,7 @@ async function run() {
     const result = await new FeedingService(
       prisma as never,
       { log: async () => {} } as never,
+      createMockLookupResolver(),
     ).upsertMonthSummary(
       user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
       {
@@ -313,7 +318,7 @@ async function run() {
     };
     let denied = false;
     try {
-      await new FeedingService(prisma as never, { log: async () => {} } as never).upsertDaily(
+      await new FeedingService(prisma as never, { log: async () => {} } as never, createMockLookupResolver()).upsertDaily(
         user({
           role: UserRole.caregiver,
           centerId: 'center-a',

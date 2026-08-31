@@ -31,6 +31,7 @@ import { ComplianceModule } from './modules/compliance/compliance.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { WashModule } from './modules/wash/wash.module';
 import { CenterRegisterModule } from './modules/center-register/center-register.module';
+import { LookupModule } from './common/lookups';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -41,6 +42,7 @@ import { PrismaModule } from './prisma/prisma.module';
     }),
     ScheduleModule.forRoot(),
     PrismaModule,
+    LookupModule,
     AuditModule,
     AuthModule,
     DevicesModule,

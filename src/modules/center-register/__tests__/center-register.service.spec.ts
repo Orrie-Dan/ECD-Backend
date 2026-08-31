@@ -10,6 +10,7 @@ import {
   UserRole,
 } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
+import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { CenterRegisterAccessService } from '../center-register-access.service';
 import { CenterSupportService } from '../center-support.service';
 import { CenterVisitsService } from '../center-visits.service';
@@ -172,6 +173,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     const result = await service.create(director, {
       centerId: 'center-1',
@@ -309,6 +311,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     const result = await service.create(director, {
       centerId: 'center-1',
@@ -437,6 +440,7 @@ async function main() {
       {} as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() =>
       service.create(director, {
@@ -459,6 +463,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() =>
       service.update(director, 'pc-1', {
@@ -473,6 +478,7 @@ async function main() {
       {} as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() => service.list(caregiver, { centerId: 'center-2' }));
   });
@@ -483,6 +489,7 @@ async function main() {
       {} as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() =>
       service.create(caregiver, {
@@ -503,6 +510,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() =>
       service.update(caregiver, 'pc-1', { version: 1, contributorName: 'X' }),
@@ -514,6 +522,7 @@ async function main() {
       {} as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() => service.summary(caregiver, { centerId: 'center-1' }));
   });
@@ -597,6 +606,7 @@ async function main() {
       {} as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() =>
       service.create(caregiver, {
@@ -645,6 +655,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await service.list(caregiver, {});
     eq(captured.where!.centerId, 'center-1');
@@ -720,6 +731,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await service.list(district, {});
     eq((captured.where!.center as { districtId: string }).districtId, 'district-1');
@@ -730,6 +742,7 @@ async function main() {
       {} as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() =>
       service.create(district, {
@@ -747,6 +760,7 @@ async function main() {
       {} as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() => service.list(district, { districtId: 'district-2' }));
   });
@@ -809,6 +823,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     const summary = await service.summary(ncda, { centerId: 'center-1' });
     eq(summary.cashContributorCount, 1);
@@ -821,6 +836,7 @@ async function main() {
       { $transaction: async () => undefined } as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     let thrown = false;
     try {
@@ -842,6 +858,7 @@ async function main() {
       {} as never,
       { log: async () => undefined } as never,
       access,
+      createMockLookupResolver(),
     );
     await expectForbidden(() =>
       service.create(otherDirector, {

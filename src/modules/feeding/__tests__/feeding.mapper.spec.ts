@@ -119,6 +119,7 @@ async function run() {
       milkLiters: new Prisma.Decimal('120.5'),
       flourKg: new Prisma.Decimal('40'),
       foodSource: 'local',
+      foodSourceId: null,
       createdAt: new Date(),
       updatedAt: new Date('2026-08-02'),
       updatedById: 'u2',

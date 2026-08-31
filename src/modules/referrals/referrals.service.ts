@@ -14,6 +14,7 @@ import {
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
+import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -49,12 +50,17 @@ export type CreateReferralFromSignalInput = {
 
 @Injectable()
 export class ReferralsService {
+  private readonly lookupDw: LookupDualWrite;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
-  ) {}
+    private readonly lookupResolver: LookupResolverService,
+  ) {
+    this.lookupDw = new LookupDualWrite(this.lookupResolver);
+  }
 
   async create(user: AuthUser, dto: CreateReferralDto): Promise<ReferralResponseDto> {
     const child = await this.getAccessibleChild(user, dto.childId);
@@ -76,12 +82,12 @@ export class ReferralsService {
           id: randomUUID(),
           childId: child.id,
           centerId: dto.centerId,
-          sourceType: mapped.sourceType,
+          ...this.lookupDw.referralSourceType(mapped.sourceType),
           sourceId: dto.sourceId,
           referralDate: mapped.referralDate,
           reason: mapped.reason,
           destination: mapped.destination,
-          status: ReferralStatus.pending,
+          ...this.lookupDw.referralStatus(ReferralStatus.pending),
           notes: mapped.notes,
           recordedById: user.id,
           version: 1,
@@ -242,7 +248,7 @@ export class ReferralsService {
           deletedAt: null,
         },
         data: {
-          status: nextStatus,
+          ...this.lookupDw.referralStatus(nextStatus),
           implementedAt,
           ...(dto.notes !== undefined ? { notes: dto.notes?.trim() || null } : {}),
           updatedAt: now,
@@ -339,12 +345,12 @@ export class ReferralsService {
           id: randomUUID(),
           childId: input.childId,
           centerId: input.centerId,
-          sourceType,
+          ...this.lookupDw.referralSourceType(sourceType),
           sourceId: input.sourceId,
           referralDate: new Date(`${input.referralDate.slice(0, 10)}T00:00:00.000Z`),
           reason: input.reason.trim(),
           destination: input.destination.trim(),
-          status: ReferralStatus.pending,
+          ...this.lookupDw.referralStatus(ReferralStatus.pending),
           notes: input.notes?.trim() || null,
           recordedById: input.recordedById,
           version: 1,

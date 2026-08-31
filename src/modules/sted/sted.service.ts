@@ -8,6 +8,7 @@ import { DeviceStatus, RecordSyncStatus, UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
+import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateStedAssessmentDto } from './dto/create-sted-assessment.dto';
@@ -22,11 +23,16 @@ import { NotificationsService } from '../notifications/notifications.service';
  */
 @Injectable()
 export class StedService {
+  private readonly lookupDw: LookupDualWrite;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
-  ) {}
+    lookupResolver: LookupResolverService,
+  ) {
+    this.lookupDw = new LookupDualWrite(lookupResolver);
+  }
 
   async create(user: AuthUser, dto: CreateStedAssessmentDto): Promise<StedAssessmentResponseDto> {
     if (!dto.consentObtained) {
@@ -59,7 +65,7 @@ export class StedService {
           childId: child.id,
           centerId: dto.centerId,
           assessmentDate: new Date(`${dto.assessmentDate.slice(0, 10)}T00:00:00.000Z`),
-          ageBand: mapped.ageBand,
+          ...this.lookupDw.stedAgeBand(mapped.ageBand),
           consentObtained: mapped.consentObtained,
           physicalAssessment: mapped.physicalAssessment,
           milestoneResults: mapped.milestoneResults,

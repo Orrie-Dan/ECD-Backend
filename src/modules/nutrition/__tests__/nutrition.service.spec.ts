@@ -1,6 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { ChildStatus, NutritionStatus, Prisma, UserRole } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
+import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { SyncAccessService } from '../../sync/sync-access.service';
 import { CreateNutritionScreeningDto } from '../dto/create-nutrition-screening.dto';
 import { NutritionService } from '../nutrition.service';
@@ -56,6 +57,7 @@ function createService(prisma: object, syncAccess?: SyncAccessService) {
       log: async () => {},
     } as never,
     mockNotifications,
+    createMockLookupResolver(),
   );
 }
 

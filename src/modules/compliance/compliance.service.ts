@@ -19,6 +19,7 @@ import {
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
+import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import {
@@ -37,11 +38,16 @@ import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ComplianceService {
+  private readonly lookupDw: LookupDualWrite;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
-  ) {}
+    lookupResolver: LookupResolverService,
+  ) {
+    this.lookupDw = new LookupDualWrite(lookupResolver);
+  }
 
   async listAssessments(
     user: AuthUser,
@@ -118,9 +124,9 @@ export class ComplianceService {
         data: {
           centerId: dto.centerId,
           standardsVersion: dto.standardsVersion,
-          assessmentType: dto.assessmentType,
           assessmentDate,
-          status: AssessmentStatus.draft,
+          ...this.lookupDw.assessmentType(dto.assessmentType),
+          ...this.lookupDw.assessmentStatus(AssessmentStatus.draft),
           createdAt: now,
           updatedAt: now,
           version: 1,
@@ -189,27 +195,32 @@ export class ComplianceService {
     });
 
     const result = await this.prisma.$transaction(async (tx) => {
+      const data: Prisma.ComplianceAssessmentUncheckedUpdateManyInput = {
+        ...(dto.status === AssessmentStatus.submitted && {
+          submittedById: user.id,
+          submittedAt: now,
+        }),
+        ...(dto.status === AssessmentStatus.verified && {
+          verifiedById: user.id,
+          verifiedAt: now,
+        }),
+        updatedAt: now,
+        version: { increment: 1 },
+        syncStatus: RecordSyncStatus.synced,
+        lastModifiedAt: now,
+      };
+
+      if (dto.status != null) {
+        Object.assign(data, this.lookupDw.assessmentStatus(dto.status));
+      }
+
       const cas = await tx.complianceAssessment.updateMany({
         where: {
           id: existing.id,
           version: dto.version,
           deletedAt: null,
         },
-        data: {
-          ...(dto.status != null && { status: dto.status }),
-          ...(dto.status === AssessmentStatus.submitted && {
-            submittedById: user.id,
-            submittedAt: now,
-          }),
-          ...(dto.status === AssessmentStatus.verified && {
-            verifiedById: user.id,
-            verifiedAt: now,
-          }),
-          updatedAt: now,
-          version: { increment: 1 },
-          syncStatus: RecordSyncStatus.synced,
-          lastModifiedAt: now,
-        },
+        data,
       });
 
       await assertCasApplied(cas.count, 'compliance_assessment', () =>
@@ -335,14 +346,14 @@ export class ComplianceService {
         data: {
           assessmentId,
           standardId: dto.standardId,
-          response: dto.response,
           score: dto.score != null ? new Prisma.Decimal(dto.score) : null,
           evidenceNotes: dto.evidenceNotes ?? null,
-          gapSeverity: dto.gapSeverity ?? null,
           gapImprovementAction: dto.gapImprovementAction ?? null,
           gapTargetDate: dto.gapTargetDate ? new Date(dto.gapTargetDate) : null,
-          gapStatus: dto.gapStatus ?? null,
           gapResolvedAt: dto.gapResolvedAt ? new Date(dto.gapResolvedAt) : null,
+          ...this.lookupDw.itemResponse(dto.response),
+          ...this.lookupDw.optionalGapSeverity(dto.gapSeverity ?? null),
+          ...this.lookupDw.optionalGapStatus(dto.gapStatus ?? null),
           createdAt: now,
           updatedAt: now,
           version: 1,
@@ -412,40 +423,45 @@ export class ComplianceService {
     });
 
     const result = await this.prisma.$transaction(async (tx) => {
+      const data: Prisma.ComplianceAssessmentItemUncheckedUpdateManyInput = {
+        ...(dto.score !== undefined && {
+          score: dto.score != null ? new Prisma.Decimal(dto.score) : null,
+        }),
+        ...(dto.evidenceNotes !== undefined && {
+          evidenceNotes: dto.evidenceNotes ?? null,
+        }),
+        ...(dto.gapImprovementAction !== undefined && {
+          gapImprovementAction: dto.gapImprovementAction ?? null,
+        }),
+        ...(dto.gapTargetDate !== undefined && {
+          gapTargetDate: dto.gapTargetDate ? new Date(dto.gapTargetDate) : null,
+        }),
+        ...(dto.gapResolvedAt !== undefined && {
+          gapResolvedAt: dto.gapResolvedAt ? new Date(dto.gapResolvedAt) : null,
+        }),
+        updatedAt: now,
+        version: { increment: 1 },
+        syncStatus: RecordSyncStatus.synced,
+        lastModifiedAt: now,
+      };
+
+      if (dto.response != null) {
+        Object.assign(data, this.lookupDw.itemResponse(dto.response));
+      }
+      if (dto.gapSeverity !== undefined) {
+        Object.assign(data, this.lookupDw.optionalGapSeverity(dto.gapSeverity ?? null));
+      }
+      if (dto.gapStatus !== undefined) {
+        Object.assign(data, this.lookupDw.optionalGapStatus(dto.gapStatus ?? null));
+      }
+
       const cas = await tx.complianceAssessmentItem.updateMany({
         where: {
           id: existing.id,
           version: dto.version,
           deletedAt: null,
         },
-        data: {
-          ...(dto.response != null && { response: dto.response }),
-          ...(dto.score !== undefined && {
-            score: dto.score != null ? new Prisma.Decimal(dto.score) : null,
-          }),
-          ...(dto.evidenceNotes !== undefined && {
-            evidenceNotes: dto.evidenceNotes ?? null,
-          }),
-          ...(dto.gapSeverity !== undefined && {
-            gapSeverity: dto.gapSeverity ?? null,
-          }),
-          ...(dto.gapImprovementAction !== undefined && {
-            gapImprovementAction: dto.gapImprovementAction ?? null,
-          }),
-          ...(dto.gapTargetDate !== undefined && {
-            gapTargetDate: dto.gapTargetDate ? new Date(dto.gapTargetDate) : null,
-          }),
-          ...(dto.gapStatus !== undefined && {
-            gapStatus: dto.gapStatus ?? null,
-          }),
-          ...(dto.gapResolvedAt !== undefined && {
-            gapResolvedAt: dto.gapResolvedAt ? new Date(dto.gapResolvedAt) : null,
-          }),
-          updatedAt: now,
-          version: { increment: 1 },
-          syncStatus: RecordSyncStatus.synced,
-          lastModifiedAt: now,
-        },
+        data,
       });
 
       await assertCasApplied(cas.count, 'compliance_assessment_item', () =>

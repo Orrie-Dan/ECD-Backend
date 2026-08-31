@@ -14,6 +14,7 @@ import {
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
+import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -46,12 +47,17 @@ const OVERDUE_SCREENING_DAYS = 30;
  */
 @Injectable()
 export class NutritionService {
+  private readonly lookupDw: LookupDualWrite;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
-  ) {}
+    private readonly lookupResolver: LookupResolverService,
+  ) {
+    this.lookupDw = new LookupDualWrite(lookupResolver);
+  }
 
   async createScreening(
     user: AuthUser,
@@ -64,6 +70,12 @@ export class NutritionService {
     const requiresReferral = deriveRequiresReferral(dto.nutritionStatus, dto.requiresReferral);
 
     const created = await this.prisma.$transaction(async (tx) => {
+      const mealQuality = dto.mealQuality?.trim() ?? null;
+      const mealQualityId = await this.lookupResolver.resolveCodedLookupId(
+        tx,
+        'mealQuality',
+        mealQuality,
+      );
       const row = await tx.childNutritionScreening.create({
         data: {
           id: randomUUID(),
@@ -74,9 +86,10 @@ export class NutritionService {
           heightCm: dto.heightCm != null ? new Prisma.Decimal(dto.heightCm) : null,
           headCircumferenceCm:
             dto.headCircumferenceCm != null ? new Prisma.Decimal(dto.headCircumferenceCm) : null,
-          nutritionStatus: dto.nutritionStatus,
+          ...this.lookupDw.nutritionStatus(dto.nutritionStatus),
           requiresReferral,
-          mealQuality: dto.mealQuality?.trim() ?? null,
+          mealQuality,
+          mealQualityId,
           feedingConcern: dto.feedingConcern ?? false,
           dietNotes: dto.dietNotes?.trim() ?? null,
           recordedById: user.id,

@@ -183,8 +183,8 @@ export class GeoService {
     districtId: string | null;
     name: string;
     code: string;
-    latitude: Prisma.Decimal | null;
-    longitude: Prisma.Decimal | null;
+    latitude: number | null;
+    longitude: number | null;
     createdAt: Date;
   }): AdminUnitResponseDto {
     return {
@@ -194,8 +194,8 @@ export class GeoService {
       districtId: row.districtId,
       name: row.name,
       code: row.code,
-      latitude: row.latitude ? row.latitude.toNumber() : null,
-      longitude: row.longitude ? row.longitude.toNumber() : null,
+      latitude: row.latitude,
+      longitude: row.longitude,
       createdAt: row.createdAt,
     };
   }
@@ -228,8 +228,8 @@ export class GeoService {
     capacity: number | null;
     status: EcdCenterStatus;
     villageId: string;
-    latitude: Prisma.Decimal | null;
-    longitude: Prisma.Decimal | null;
+    latitude: number | null;
+    longitude: number | null;
     village: { id: string; name: string };
   }): CenterInDistrictResponseDto {
     return {
@@ -241,8 +241,8 @@ export class GeoService {
       status: row.status,
       villageId: row.villageId,
       villageName: row.village.name,
-      latitude: row.latitude ? row.latitude.toNumber() : null,
-      longitude: row.longitude ? row.longitude.toNumber() : null,
+      latitude: row.latitude,
+      longitude: row.longitude,
     };
   }
 }

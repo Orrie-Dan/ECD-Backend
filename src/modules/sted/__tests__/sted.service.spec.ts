@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { StedAgeBand, UserRole } from '@prisma/client';
 import { canAccessCenter } from '../../../common/auth/scope.util';
+import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateStedAssessmentDto } from '../dto/create-sted-assessment.dto';
 import { StedService } from '../sted.service';
@@ -115,6 +116,7 @@ async function run() {
       prisma as never,
       { log: async () => {} } as never,
       mockNotifications,
+      createMockLookupResolver(),
     ).create(caregiver, baseDto());
     eq(creates.length, 1);
     eq(creates[0].ageBand, StedAgeBand.band_1_3);
@@ -126,6 +128,7 @@ async function run() {
 
   await assert('History ordering newest first', async () => {
     const prisma = {
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
       child: {
         findFirst: async () => ({
           id: 'child-1',
@@ -186,6 +189,7 @@ async function run() {
             },
           ];
         },
+        count: async () => 2,
       },
     };
 
@@ -193,6 +197,7 @@ async function run() {
       prisma as never,
       { log: async () => {} } as never,
       mockNotifications,
+      createMockLookupResolver(),
     ).getHistory(caregiver, 'child-1');
     eq(history.items[0].id, 's2');
     eq(history.items[1].id, 's1');
@@ -223,6 +228,7 @@ async function run() {
         prisma as never,
         { log: async () => {} } as never,
         mockNotifications,
+        createMockLookupResolver(),
       ).create(caregiver, baseDto({ childId: 'child-x', centerId: 'center-b' }));
     } catch (err) {
       caught = err;
@@ -248,6 +254,7 @@ async function run() {
         prisma as never,
         { log: async () => {} } as never,
         mockNotifications,
+        createMockLookupResolver(),
       ).create(focal, baseDto({ childId: 'child-z', centerId: 'center-z' }));
     } catch (err) {
       caught = err;
@@ -289,6 +296,7 @@ async function run() {
       prisma as never,
       { log: async () => {} } as never,
       mockNotifications,
+      createMockLookupResolver(),
     ).create(
       ncda,
       baseDto({
@@ -317,6 +325,7 @@ async function run() {
         prisma as never,
         { log: async () => {} } as never,
         mockNotifications,
+        createMockLookupResolver(),
       ).create(caregiver, baseDto({ consentObtained: false }));
     } catch (err) {
       caught = err;
@@ -358,6 +367,7 @@ async function run() {
       prisma as never,
       { log: async () => {} } as never,
       mockNotifications,
+      createMockLookupResolver(),
     );
     await svc.create(caregiver, baseDto({ assessmentDate: '2026-08-01' }));
     await svc.create(caregiver, baseDto({ assessmentDate: '2026-08-15' }));

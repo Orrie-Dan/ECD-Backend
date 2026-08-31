@@ -3,6 +3,7 @@ import { Prisma, RecordSyncStatus, UserRole } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
+import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateWashIndicatorDto } from './dto/create-wash-indicator.dto';
@@ -15,10 +16,15 @@ import {
 
 @Injectable()
 export class WashService {
+  private readonly lookupResolver: LookupResolverService;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-  ) {}
+    lookupResolver: LookupResolverService,
+  ) {
+    this.lookupResolver = lookupResolver;
+  }
 
   async listIndicators(
     user: AuthUser,
@@ -87,12 +93,20 @@ export class WashService {
     const recordedDate = new Date(dto.recordedDate);
 
     const result = await this.prisma.$transaction(async (tx) => {
+      const waterSourceType = dto.waterSourceType ?? null;
+      const waterSourceTypeId = await this.lookupResolver.resolveCodedLookupId(
+        tx,
+        'waterSourceType',
+        waterSourceType,
+      );
+
       const created = await tx.washIndicator.create({
         data: {
           centerId: dto.centerId,
           recordedDate,
           waterSourceAvailable: dto.waterSourceAvailable,
-          waterSourceType: dto.waterSourceType ?? null,
+          waterSourceType,
+          waterSourceTypeId,
           sanitationFacilityAvailable: dto.sanitationFacilityAvailable,
           latrineCount: dto.latrineCount ?? null,
           handwashingFacilityAvailable: dto.handwashingFacilityAvailable,
@@ -165,38 +179,47 @@ export class WashService {
     });
 
     const result = await this.prisma.$transaction(async (tx) => {
+      const data: Prisma.WashIndicatorUncheckedUpdateManyInput = {
+        ...(dto.waterSourceAvailable != null && {
+          waterSourceAvailable: dto.waterSourceAvailable,
+        }),
+        ...(dto.sanitationFacilityAvailable != null && {
+          sanitationFacilityAvailable: dto.sanitationFacilityAvailable,
+        }),
+        ...(dto.latrineCount !== undefined && {
+          latrineCount: dto.latrineCount ?? null,
+        }),
+        ...(dto.handwashingFacilityAvailable != null && {
+          handwashingFacilityAvailable: dto.handwashingFacilityAvailable,
+        }),
+        ...(dto.wasteManagementAvailable != null && {
+          wasteManagementAvailable: dto.wasteManagementAvailable,
+        }),
+        ...(dto.notes !== undefined && {
+          notes: dto.notes ?? null,
+        }),
+        version: { increment: 1 },
+        syncStatus: RecordSyncStatus.synced,
+        lastModifiedAt: now,
+      };
+
+      if (dto.waterSourceType !== undefined) {
+        const waterSourceType = dto.waterSourceType ?? null;
+        data.waterSourceType = waterSourceType;
+        data.waterSourceTypeId = await this.lookupResolver.resolveCodedLookupId(
+          tx,
+          'waterSourceType',
+          waterSourceType,
+        );
+      }
+
       const cas = await tx.washIndicator.updateMany({
         where: {
           id: existing.id,
           version: dto.version,
           deletedAt: null,
         },
-        data: {
-          ...(dto.waterSourceAvailable != null && {
-            waterSourceAvailable: dto.waterSourceAvailable,
-          }),
-          ...(dto.waterSourceType !== undefined && {
-            waterSourceType: dto.waterSourceType ?? null,
-          }),
-          ...(dto.sanitationFacilityAvailable != null && {
-            sanitationFacilityAvailable: dto.sanitationFacilityAvailable,
-          }),
-          ...(dto.latrineCount !== undefined && {
-            latrineCount: dto.latrineCount ?? null,
-          }),
-          ...(dto.handwashingFacilityAvailable != null && {
-            handwashingFacilityAvailable: dto.handwashingFacilityAvailable,
-          }),
-          ...(dto.wasteManagementAvailable != null && {
-            wasteManagementAvailable: dto.wasteManagementAvailable,
-          }),
-          ...(dto.notes !== undefined && {
-            notes: dto.notes ?? null,
-          }),
-          version: { increment: 1 },
-          syncStatus: RecordSyncStatus.synced,
-          lastModifiedAt: now,
-        },
+        data,
       });
 
       await assertCasApplied(cas.count, 'wash_indicator', () =>

@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis(schema: "public")]
 }
 
 //////////////////////////////////////////////
@@ -283,12 +285,16 @@ enum CenterSupportCategory {
 model AdministrativeUnit {
   id         String              @id @default(uuid())
   level      AdministrativeLevel
+  levelId    String?             @map("level_id") @db.Uuid
+  levelLookup LookupAdministrativeLevel? @relation("UnitLevelLookup", fields: [levelId], references: [id])
   parentId   String?             @map("parent_id")
   districtId String?             @map("district_id")
   name       String
   code       String
-  latitude   Decimal?
-  longitude  Decimal?
+  latitude   Float?
+  longitude  Float?
+  geom       Unsupported("geometry(Point, 4326)")?
+  objectid   Int?    @unique @default(autoincrement()) @map("objectid")
   createdAt  DateTime            @default(now()) @map("created_at")
 
   parent   AdministrativeUnit?  @relation("AdministrativeUnitHierarchy", fields: [parentId], references: [id])
@@ -336,10 +342,16 @@ model EcdCenter {
   name                        String
   phone                       String?
   capacity                    Int?
-  latitude                    Decimal?
-  longitude                   Decimal?
+  latitude                    Float?
+  longitude                   Float?
+  geom                        Unsupported("geometry(Point, 4326)")?
+  objectid                    Int?                      @unique @default(autoincrement()) @map("objectid")
   status                      EcdCenterStatus           @default(active)
+  statusId                    String?                   @map("status_id") @db.Uuid
+  statusLookup                LookupEcdCenterStatus?    @relation("CenterStatusLookup", fields: [statusId], references: [id])
   currentComplianceLevel      ComplianceClassification? @map("current_compliance_level")
+  currentComplianceLevelId    String?                   @map("current_compliance_level_id") @db.Uuid
+  currentComplianceLevelLookup LookupComplianceClassification? @relation("CenterCurrentComplianceLevel", fields: [currentComplianceLevelId], references: [id])
   currentComplianceAssessedAt DateTime?                 @map("current_compliance_assessed_at") @db.Date
   createdAt                   DateTime                  @default(now()) @map("created_at")
   createdById                 String?                   @map("created_by")
@@ -377,6 +389,7 @@ model EcdCenter {
 
   @@index([districtId])
   @@index([status])
+  @@index([statusId])
   @@index([villageId])
   @@index([currentComplianceLevel])
   @@index([deletedAt])
@@ -394,6 +407,8 @@ model Classroom {
   id        String         @id @default(uuid())
   centerId  String         @map("center_id")
   grade     ClassroomGrade
+  gradeId   String?        @map("grade_id") @db.Uuid
+  gradeLookup LookupClassroomGrade? @relation("ClassroomGradeLookup", fields: [gradeId], references: [id])
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @default(now()) @map("updated_at")
 
@@ -404,6 +419,7 @@ model Classroom {
 
   @@unique([centerId, grade])
   @@index([centerId])
+  @@index([gradeId])
   @@map("classroom")
 }
 
@@ -622,7 +638,11 @@ model Child {
   classroomId            String?          @map("classroom_id")
   dateOfBirth            DateTime         @map("date_of_birth") @db.Date
   gender                 ChildGender
+  genderId               String?          @map("gender_id") @db.Uuid
+  genderLookup           LookupChildGender? @relation("ChildGenderLookup", fields: [genderId], references: [id])
   status                 ChildStatus      @default(active)
+  statusId               String?          @map("status_id") @db.Uuid
+  statusLookup           LookupChildStatus? @relation("ChildStatusLookup", fields: [statusId], references: [id])
   specialNeeds           String?          @map("special_needs") @db.Text
   disabilityNotes        String?          @map("disability_notes") @db.Text
   guardianName           String           @map("guardian_name")
@@ -682,6 +702,8 @@ model ChildTransfer {
   reason                 String
   notes                  String?          @db.Text
   status                 TransferStatus   @default(pending)
+  statusId               String?          @map("status_id") @db.Uuid
+  statusLookup           LookupTransferStatus? @relation("TransferStatusLookup", fields: [statusId], references: [id])
   initiatedById          String           @map("initiated_by")
   acceptedAt             DateTime?        @map("accepted_at")
   acceptedById           String?          @map("accepted_by")
@@ -720,10 +742,14 @@ model AttendanceRecord {
   centerId               String           @map("center_id")
   attendanceDate         DateTime         @map("attendance_date") @db.Date
   status                 AttendanceStatus
+  statusId               String?          @map("status_id") @db.Uuid
+  statusLookup           LookupAttendanceStatus? @relation("AttendanceStatusLookup", fields: [statusId], references: [id])
   broughtBy              String?          @map("brought_by")
   broughtByOther         String?          @map("brought_by_other")
   arrivedAt              DateTime?        @map("arrived_at")
   absentReason           AbsentReason?    @map("absent_reason")
+  absentReasonId         String?          @map("absent_reason_id") @db.Uuid
+  absentReasonLookup     LookupAbsentReason? @relation("AbsentReasonLookup", fields: [absentReasonId], references: [id])
   notes                  String?          @db.Text
   recordedById           String           @map("recorded_by")
   createdAt              DateTime         @default(now()) @map("created_at")
@@ -759,13 +785,17 @@ model ChildNutritionScreening {
   id                     String           @id @default(uuid())
   childId                String           @map("child_id")
   screeningDate          DateTime         @map("screening_date") @db.Date
-  weightKg               Decimal          @map("weight_kg")
-  muacCm                 Decimal          @map("muac_cm")
-  heightCm               Decimal?         @map("height_cm")
-  headCircumferenceCm    Decimal?         @map("head_circumference_cm")
+  weightKg               Decimal          @map("weight_kg") @db.Decimal(6, 2)
+  muacCm                 Decimal          @map("muac_cm") @db.Decimal(5, 1)
+  heightCm               Decimal?         @map("height_cm") @db.Decimal(5, 1)
+  headCircumferenceCm    Decimal?         @map("head_circumference_cm") @db.Decimal(5, 1)
   nutritionStatus        NutritionStatus  @map("nutrition_status")
+  nutritionStatusId      String?          @map("nutrition_status_id") @db.Uuid
+  nutritionStatusLookup  LookupNutritionStatus? @relation("ScreeningNutritionStatusLookup", fields: [nutritionStatusId], references: [id])
   requiresReferral       Boolean          @default(false) @map("requires_referral")
   mealQuality            String?          @map("meal_quality")
+  mealQualityId          String?          @map("meal_quality_id") @db.Uuid
+  mealQualityLookup      LookupMealQuality? @relation("ScreeningMealQualityLookup", fields: [mealQualityId], references: [id])
   feedingConcern         Boolean          @default(false) @map("feeding_concern")
   dietNotes              String?          @map("diet_notes") @db.Text
   recordedById           String           @map("recorded_by")
@@ -834,9 +864,11 @@ model CenterFeedingMonthSummary {
   id                     String           @id @default(uuid())
   centerId               String           @map("center_id")
   yearMonth              String           @map("year_month")
-  milkLiters             Decimal          @default(0) @map("milk_liters")
-  flourKg                Decimal          @default(0) @map("flour_kg")
+  milkLiters             Decimal          @default(0) @map("milk_liters") @db.Decimal(12, 3)
+  flourKg                Decimal          @default(0) @map("flour_kg") @db.Decimal(12, 3)
   foodSource             String           @map("food_source")
+  foodSourceId           String?          @map("food_source_id") @db.Uuid
+  foodSourceLookup       LookupFoodSource? @relation("FoodSourceLookup", fields: [foodSourceId], references: [id])
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @default(now()) @map("updated_at")
   updatedById            String?          @map("updated_by")
@@ -869,6 +901,8 @@ model StedAssessment {
   centerId               String           @map("center_id")
   assessmentDate         DateTime         @map("assessment_date") @db.Date
   ageBand                StedAgeBand      @map("age_band")
+  ageBandId              String?          @map("age_band_id") @db.Uuid
+  ageBandLookup          LookupStedAgeBand? @relation("StedAgeBandLookup", fields: [ageBandId], references: [id])
   consentObtained        Boolean          @default(false) @map("consent_obtained")
   physicalAssessment     Json             @map("physical_assessment")
   milestoneResults       Json             @map("milestone_results")
@@ -889,6 +923,9 @@ model StedAssessment {
   center               EcdCenter   @relation(fields: [centerId], references: [id])
   assessedBy           UserAccount @relation("StedAssessmentAssessedBy", fields: [assessedById], references: [id])
   lastModifiedByDevice Device?     @relation("StedAssessmentLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+  milestoneResultsRows StedMilestoneResult[]
+  physicalFindings     StedPhysicalFinding[]
+  outcomeSummary       StedOutcomeSummary?
 
   @@index([childId, assessmentDate])
   @@index([centerId])
@@ -902,6 +939,46 @@ model StedAssessment {
   @@map("sted_assessment")
 }
 
+model StedMilestoneResult {
+  id            String         @id @default(uuid()) @db.Uuid
+  assessmentId  String         @map("assessment_id")
+  assessment    StedAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  milestoneCode String         @map("milestone_code") @db.VarChar(100)
+  resultKind    String         @map("result_kind") @db.VarChar(20)
+  notes         String?        @db.Text
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  @@index([assessmentId])
+  @@map("sted_milestone_result")
+}
+
+model StedPhysicalFinding {
+  id           String         @id @default(uuid()) @db.Uuid
+  assessmentId String         @map("assessment_id")
+  assessment   StedAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  findingCode  String?        @map("finding_code") @db.VarChar(100)
+  findingKind  String         @map("finding_kind") @db.VarChar(20)
+  severity     String?        @db.VarChar(50)
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  @@index([assessmentId])
+  @@map("sted_physical_finding")
+}
+
+model StedOutcomeSummary {
+  id                  String         @id @default(uuid()) @db.Uuid
+  assessmentId        String         @unique @map("assessment_id")
+  assessment          StedAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  referralRequired    Boolean        @default(false) @map("referral_required")
+  hasPhysicalProblems Boolean        @default(false) @map("has_physical_problems")
+  hasFailedMilestones Boolean        @default(false) @map("has_failed_milestones")
+  outcomeCode         String?        @map("outcome_code") @db.VarChar(100)
+  delayLevel          String?        @map("delay_level") @db.VarChar(50)
+  createdAt           DateTime       @default(now()) @map("created_at")
+
+  @@map("sted_outcome_summary")
+}
+
 //////////////////////////////////////////////
 // REFERRALS
 //////////////////////////////////////////////
@@ -911,11 +988,15 @@ model Referral {
   childId                String             @map("child_id")
   centerId               String             @map("center_id")
   sourceType             ReferralSourceType @map("source_type")
+  sourceTypeId           String?            @map("source_type_id") @db.Uuid
+  sourceTypeLookup       LookupReferralSourceType? @relation("ReferralSourceTypeLookup", fields: [sourceTypeId], references: [id])
   sourceId               String             @map("source_id")
   referralDate           DateTime           @map("referral_date") @db.Date
   reason                 String
   destination            String
   status                 ReferralStatus     @default(pending)
+  statusId               String?            @map("status_id") @db.Uuid
+  statusLookup           LookupReferralStatus? @relation("ReferralStatusLookup", fields: [statusId], references: [id])
   implementedAt          DateTime?          @map("implemented_at") @db.Date
   notes                  String?            @db.Text
   recordedById           String             @map("recorded_by")
@@ -952,10 +1033,12 @@ model Referral {
 model EcdStandard {
   id          String         @id @default(uuid())
   domain      StandardDomain
+  domainId    String?        @map("domain_id") @db.Uuid
+  domainLookup LookupStandardDomain? @relation("StandardDomainLookup", fields: [domainId], references: [id])
   code        String         @unique
   title       String
   description String?        @db.Text
-  weight      Decimal?
+  weight      Decimal?       @db.Decimal(6, 3)
   version     String
   isActive    Boolean        @default(true) @map("is_active")
   createdAt   DateTime       @default(now()) @map("created_at")
@@ -973,13 +1056,19 @@ model ComplianceAssessment {
   centerId               String                    @map("center_id")
   standardsVersion       String                    @map("standards_version")
   assessmentType         AssessmentType            @map("assessment_type")
+  assessmentTypeId       String?                   @map("assessment_type_id") @db.Uuid
+  assessmentTypeLookup   LookupAssessmentType?     @relation("AssessmentTypeLookup", fields: [assessmentTypeId], references: [id])
   assessmentDate         DateTime                  @map("assessment_date") @db.Date
   status                 AssessmentStatus          @default(draft)
+  statusId               String?                   @map("status_id") @db.Uuid
+  statusLookup           LookupAssessmentStatus?   @relation("AssessmentStatusLookup", fields: [statusId], references: [id])
   submittedById          String?                   @map("submitted_by")
   submittedAt            DateTime?                 @map("submitted_at")
   verifiedById           String?                   @map("verified_by")
   verifiedAt             DateTime?                 @map("verified_at")
   overallClassification  ComplianceClassification? @map("overall_classification")
+  overallClassificationId String?                  @map("overall_classification_id") @db.Uuid
+  overallClassificationLookup LookupComplianceClassification? @relation("AssessmentOverallClassification", fields: [overallClassificationId], references: [id])
   createdAt              DateTime                  @default(now()) @map("created_at")
   updatedAt              DateTime                  @default(now()) @map("updated_at")
   deletedAt              DateTime?                 @map("deleted_at")
@@ -1010,12 +1099,18 @@ model ComplianceAssessmentItem {
   assessmentId           String           @map("assessment_id")
   standardId             String           @map("standard_id")
   response               ItemResponse
-  score                  Decimal?
+  responseId             String?          @map("response_id") @db.Uuid
+  responseLookup         LookupItemResponse? @relation("ItemResponseLookup", fields: [responseId], references: [id])
+  score                  Decimal?         @db.Decimal(8, 2)
   evidenceNotes          String?          @map("evidence_notes") @db.Text
   gapSeverity            GapSeverity?     @map("gap_severity")
+  gapSeverityId          String?          @map("gap_severity_id") @db.Uuid
+  gapSeverityLookup      LookupGapSeverity? @relation("GapSeverityLookup", fields: [gapSeverityId], references: [id])
   gapImprovementAction   String?          @map("gap_improvement_action") @db.Text
   gapTargetDate          DateTime?        @map("gap_target_date") @db.Date
   gapStatus              GapStatus?       @map("gap_status")
+  gapStatusId            String?          @map("gap_status_id") @db.Uuid
+  gapStatusLookup        LookupGapStatus? @relation("GapStatusLookup", fields: [gapStatusId], references: [id])
   gapResolvedAt          DateTime?        @map("gap_resolved_at") @db.Date
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @default(now()) @map("updated_at")
@@ -1049,6 +1144,8 @@ model WashIndicator {
   recordedDate                 DateTime         @map("recorded_date") @db.Date
   waterSourceAvailable         Boolean          @default(false) @map("water_source_available")
   waterSourceType              String?          @map("water_source_type")
+  waterSourceTypeId            String?          @map("water_source_type_id") @db.Uuid
+  waterSourceTypeLookup        LookupWaterSourceType? @relation("WaterSourceTypeLookup", fields: [waterSourceTypeId], references: [id])
   sanitationFacilityAvailable  Boolean          @default(false) @map("sanitation_facility_available")
   latrineCount                 Int?             @map("latrine_count")
   handwashingFacilityAvailable Boolean          @default(false) @map("handwashing_facility_available")
@@ -1087,8 +1184,12 @@ model ParentContribution {
   contributorPhone       String?                @map("contributor_phone")
   contributionDate       DateTime               @map("contribution_date") @db.Date
   contributionType       ParentContributionType @map("contribution_type")
+  contributionTypeId     String?                @map("contribution_type_id") @db.Uuid
+  contributionTypeLookup LookupParentContributionType? @relation("ContributionTypeLookup", fields: [contributionTypeId], references: [id])
   amount                 Decimal?               @db.Decimal(14, 2)
   itemType               InKindItemType?        @map("item_type")
+  itemTypeId             String?                @map("item_type_id") @db.Uuid
+  itemTypeLookup         LookupInKindItemType?  @relation("InKindItemTypeLookup", fields: [itemTypeId], references: [id])
   quantity               Decimal?               @db.Decimal(14, 3)
   unit                   String?
   description            String?                @db.Text
@@ -1194,6 +1295,8 @@ model CenterSupport {
   centerId               String                @map("center_id")
   receivedDate           DateTime              @map("received_date") @db.Date
   supportCategory        CenterSupportCategory @map("support_category")
+  supportCategoryId      String?               @map("support_category_id") @db.Uuid
+  supportCategoryLookup  LookupCenterSupportCategory? @relation("SupportCategoryLookup", fields: [supportCategoryId], references: [id])
   description            String
   quantity               Decimal?              @db.Decimal(14, 3)
   unit                   String?
@@ -1295,6 +1398,261 @@ model StaffTraining {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("staff_training")
+}
+
+//////////////////////////////////////////////
+// GIS LOOKUP TABLES (Scenario C — dual-write with enums)
+//////////////////////////////////////////////
+
+model LookupEcdCenterStatus {
+  id        String      @id @default(uuid()) @db.Uuid
+  code      String      @unique
+  labelEn   String      @map("label_en")
+  sortOrder Int         @default(0) @map("sort_order")
+  centers   EcdCenter[] @relation("CenterStatusLookup")
+
+  @@map("lookup_ecd_center_status")
+}
+
+model LookupComplianceClassification {
+  id                  String                 @id @default(uuid()) @db.Uuid
+  code                String                 @unique
+  labelEn             String                 @map("label_en")
+  sortOrder           Int                    @default(0) @map("sort_order")
+  centersCurrentLevel EcdCenter[]            @relation("CenterCurrentComplianceLevel")
+  assessmentsOverall  ComplianceAssessment[] @relation("AssessmentOverallClassification")
+
+  @@map("lookup_compliance_classification")
+}
+
+model LookupAdministrativeLevel {
+  id        String               @id @default(uuid()) @db.Uuid
+  code      String               @unique
+  labelEn   String               @map("label_en")
+  sortOrder Int                  @default(0) @map("sort_order")
+  units     AdministrativeUnit[] @relation("UnitLevelLookup")
+
+  @@map("lookup_administrative_level")
+}
+
+model LookupNutritionStatus {
+  id         String                    @id @default(uuid()) @db.Uuid
+  code       String                    @unique
+  labelEn    String                    @map("label_en")
+  sortOrder  Int                       @default(0) @map("sort_order")
+  screenings ChildNutritionScreening[] @relation("ScreeningNutritionStatusLookup")
+
+  @@map("lookup_nutrition_status")
+}
+
+model LookupMealQuality {
+  id         String                    @id @default(uuid()) @db.Uuid
+  code       String                    @unique
+  labelEn    String                    @map("label_en")
+  sortOrder  Int                       @default(0) @map("sort_order")
+  screenings ChildNutritionScreening[] @relation("ScreeningMealQualityLookup")
+
+  @@map("lookup_meal_quality")
+}
+
+model LookupAssessmentType {
+  id          String                 @id @default(uuid()) @db.Uuid
+  code        String                 @unique
+  labelEn     String                 @map("label_en")
+  sortOrder   Int                    @default(0) @map("sort_order")
+  assessments ComplianceAssessment[] @relation("AssessmentTypeLookup")
+
+  @@map("lookup_assessment_type")
+}
+
+model LookupAssessmentStatus {
+  id          String                 @id @default(uuid()) @db.Uuid
+  code        String                 @unique
+  labelEn     String                 @map("label_en")
+  sortOrder   Int                    @default(0) @map("sort_order")
+  assessments ComplianceAssessment[] @relation("AssessmentStatusLookup")
+
+  @@map("lookup_assessment_status")
+}
+
+model LookupItemResponse {
+  id        String                     @id @default(uuid()) @db.Uuid
+  code      String                     @unique
+  labelEn   String                     @map("label_en")
+  sortOrder Int                        @default(0) @map("sort_order")
+  items     ComplianceAssessmentItem[] @relation("ItemResponseLookup")
+
+  @@map("lookup_item_response")
+}
+
+model LookupGapSeverity {
+  id        String                     @id @default(uuid()) @db.Uuid
+  code      String                     @unique
+  labelEn   String                     @map("label_en")
+  sortOrder Int                        @default(0) @map("sort_order")
+  items     ComplianceAssessmentItem[] @relation("GapSeverityLookup")
+
+  @@map("lookup_gap_severity")
+}
+
+model LookupGapStatus {
+  id        String                     @id @default(uuid()) @db.Uuid
+  code      String                     @unique
+  labelEn   String                     @map("label_en")
+  sortOrder Int                        @default(0) @map("sort_order")
+  items     ComplianceAssessmentItem[] @relation("GapStatusLookup")
+
+  @@map("lookup_gap_status")
+}
+
+model LookupStandardDomain {
+  id        String        @id @default(uuid()) @db.Uuid
+  code      String        @unique
+  labelEn   String        @map("label_en")
+  sortOrder Int           @default(0) @map("sort_order")
+  standards EcdStandard[] @relation("StandardDomainLookup")
+
+  @@map("lookup_standard_domain")
+}
+
+model LookupChildGender {
+  id       String  @id @default(uuid()) @db.Uuid
+  code     String  @unique
+  labelEn  String  @map("label_en")
+  sortOrder Int    @default(0) @map("sort_order")
+  children Child[] @relation("ChildGenderLookup")
+
+  @@map("lookup_child_gender")
+}
+
+model LookupChildStatus {
+  id       String  @id @default(uuid()) @db.Uuid
+  code     String  @unique
+  labelEn  String  @map("label_en")
+  sortOrder Int    @default(0) @map("sort_order")
+  children Child[] @relation("ChildStatusLookup")
+
+  @@map("lookup_child_status")
+}
+
+model LookupAttendanceStatus {
+  id      String             @id @default(uuid()) @db.Uuid
+  code    String             @unique
+  labelEn String             @map("label_en")
+  sortOrder Int              @default(0) @map("sort_order")
+  records AttendanceRecord[] @relation("AttendanceStatusLookup")
+
+  @@map("lookup_attendance_status")
+}
+
+model LookupAbsentReason {
+  id      String             @id @default(uuid()) @db.Uuid
+  code    String             @unique
+  labelEn String             @map("label_en")
+  sortOrder Int              @default(0) @map("sort_order")
+  records AttendanceRecord[] @relation("AbsentReasonLookup")
+
+  @@map("lookup_absent_reason")
+}
+
+model LookupStedAgeBand {
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @unique
+  labelEn     String           @map("label_en")
+  sortOrder   Int              @default(0) @map("sort_order")
+  assessments StedAssessment[] @relation("StedAgeBandLookup")
+
+  @@map("lookup_sted_age_band")
+}
+
+model LookupReferralSourceType {
+  id        String     @id @default(uuid()) @db.Uuid
+  code      String     @unique
+  labelEn   String     @map("label_en")
+  sortOrder Int        @default(0) @map("sort_order")
+  referrals Referral[] @relation("ReferralSourceTypeLookup")
+
+  @@map("lookup_referral_source_type")
+}
+
+model LookupReferralStatus {
+  id        String     @id @default(uuid()) @db.Uuid
+  code      String     @unique
+  labelEn   String     @map("label_en")
+  sortOrder Int        @default(0) @map("sort_order")
+  referrals Referral[] @relation("ReferralStatusLookup")
+
+  @@map("lookup_referral_status")
+}
+
+model LookupTransferStatus {
+  id        String          @id @default(uuid()) @db.Uuid
+  code      String          @unique
+  labelEn   String          @map("label_en")
+  sortOrder Int             @default(0) @map("sort_order")
+  transfers ChildTransfer[] @relation("TransferStatusLookup")
+
+  @@map("lookup_transfer_status")
+}
+
+model LookupClassroomGrade {
+  id         String      @id @default(uuid()) @db.Uuid
+  code       String      @unique
+  labelEn    String      @map("label_en")
+  sortOrder  Int         @default(0) @map("sort_order")
+  classrooms Classroom[] @relation("ClassroomGradeLookup")
+
+  @@map("lookup_classroom_grade")
+}
+
+model LookupParentContributionType {
+  id            String               @id @default(uuid()) @db.Uuid
+  code          String               @unique
+  labelEn       String               @map("label_en")
+  sortOrder     Int                  @default(0) @map("sort_order")
+  contributions ParentContribution[] @relation("ContributionTypeLookup")
+
+  @@map("lookup_parent_contribution_type")
+}
+
+model LookupInKindItemType {
+  id            String               @id @default(uuid()) @db.Uuid
+  code          String               @unique
+  labelEn       String               @map("label_en")
+  sortOrder     Int                  @default(0) @map("sort_order")
+  contributions ParentContribution[] @relation("InKindItemTypeLookup")
+
+  @@map("lookup_in_kind_item_type")
+}
+
+model LookupCenterSupportCategory {
+  id       String          @id @default(uuid()) @db.Uuid
+  code     String          @unique
+  labelEn  String          @map("label_en")
+  sortOrder Int            @default(0) @map("sort_order")
+  supports CenterSupport[] @relation("SupportCategoryLookup")
+
+  @@map("lookup_center_support_category")
+}
+
+model LookupWaterSourceType {
+  id         String          @id @default(uuid()) @db.Uuid
+  code       String          @unique
+  labelEn    String          @map("label_en")
+  sortOrder  Int             @default(0) @map("sort_order")
+  indicators WashIndicator[] @relation("WaterSourceTypeLookup")
+
+  @@map("lookup_water_source_type")
+}
+
+model LookupFoodSource {
+  id        String                      @id @default(uuid()) @db.Uuid
+  code      String                      @unique
+  labelEn   String                      @map("label_en")
+  sortOrder Int                         @default(0) @map("sort_order")
+  summaries CenterFeedingMonthSummary[] @relation("FoodSourceLookup")
+
+  @@map("lookup_food_source")
 }
 
 //////////////////////////////////////////////

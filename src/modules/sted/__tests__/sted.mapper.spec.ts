@@ -52,6 +52,7 @@ async function run() {
       centerId: 'center-1',
       assessmentDate: new Date('2026-08-01T00:00:00.000Z'),
       ageBand: StedAgeBand.band_1_3,
+      ageBandId: null,
       consentObtained: true,
       physicalAssessment: { hearing: 'ok' },
       milestoneResults: { walk: true },

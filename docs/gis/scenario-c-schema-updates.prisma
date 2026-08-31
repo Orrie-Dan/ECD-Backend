@@ -1,0 +1,318 @@
+// ============================================================================
+// Scenario C — Prisma schema updates (ADDITIVE / dual-write period)
+// ============================================================================
+// Apply alongside existing models. Keep enum fields until app cutover (Phase 7).
+// After cutover, remove enum columns + enum blocks in a separate migration.
+//
+// Requires in schema.prisma generator/datasource:
+//   previewFeatures = ["postgresqlExtensions"]
+//   extensions = [postgis]
+// ============================================================================
+
+// --- Tier 1 lookup models ---
+
+model LookupEcdCenterStatus {
+  id        String      @id @default(uuid())
+  code      String      @unique
+  labelEn   String      @map("label_en")
+  sortOrder Int         @default(0) @map("sort_order")
+  centers   EcdCenter[] @relation("CenterStatusLookup")
+
+  @@map("lookup_ecd_center_status")
+}
+
+model LookupComplianceClassification {
+  id                 String                 @id @default(uuid())
+  code               String                 @unique
+  labelEn            String                 @map("label_en")
+  sortOrder          Int                    @default(0) @map("sort_order")
+  centersCurrentLevel EcdCenter[]           @relation("CenterCurrentComplianceLevel")
+  assessmentsOverall ComplianceAssessment[] @relation("AssessmentOverallClassification")
+
+  @@map("lookup_compliance_classification")
+}
+
+model LookupAdministrativeLevel {
+  id        String               @id @default(uuid())
+  code      String               @unique
+  labelEn   String               @map("label_en")
+  sortOrder Int                  @default(0) @map("sort_order")
+  units     AdministrativeUnit[] @relation("UnitLevelLookup")
+
+  @@map("lookup_administrative_level")
+}
+
+model LookupNutritionStatus {
+  id         String                    @id @default(uuid())
+  code       String                    @unique
+  labelEn    String                    @map("label_en")
+  sortOrder  Int                       @default(0) @map("sort_order")
+  screenings ChildNutritionScreening[] @relation("ScreeningNutritionStatusLookup")
+
+  @@map("lookup_nutrition_status")
+}
+
+model LookupMealQuality {
+  id         String                    @id @default(uuid())
+  code       String                    @unique
+  labelEn    String                    @map("label_en")
+  sortOrder  Int                       @default(0) @map("sort_order")
+  screenings ChildNutritionScreening[] @relation("ScreeningMealQualityLookup")
+
+  @@map("lookup_meal_quality")
+}
+
+model LookupAssessmentType {
+  id          String                 @id @default(uuid())
+  code        String                 @unique
+  labelEn     String                 @map("label_en")
+  sortOrder   Int                    @default(0) @map("sort_order")
+  assessments ComplianceAssessment[] @relation("AssessmentTypeLookup")
+
+  @@map("lookup_assessment_type")
+}
+
+model LookupAssessmentStatus {
+  id          String                 @id @default(uuid())
+  code        String                 @unique
+  labelEn     String                 @map("label_en")
+  sortOrder   Int                    @default(0) @map("sort_order")
+  assessments ComplianceAssessment[] @relation("AssessmentStatusLookup")
+
+  @@map("lookup_assessment_status")
+}
+
+model LookupItemResponse {
+  id        String                     @id @default(uuid())
+  code      String                     @unique
+  labelEn   String                     @map("label_en")
+  sortOrder Int                        @default(0) @map("sort_order")
+  items     ComplianceAssessmentItem[] @relation("ItemResponseLookup")
+
+  @@map("lookup_item_response")
+}
+
+model LookupGapSeverity {
+  id        String                     @id @default(uuid())
+  code      String                     @unique
+  labelEn   String                     @map("label_en")
+  sortOrder Int                        @default(0) @map("sort_order")
+  items     ComplianceAssessmentItem[] @relation("GapSeverityLookup")
+
+  @@map("lookup_gap_severity")
+}
+
+model LookupGapStatus {
+  id        String                     @id @default(uuid())
+  code      String                     @unique
+  labelEn   String                     @map("label_en")
+  sortOrder Int                        @default(0) @map("sort_order")
+  items     ComplianceAssessmentItem[] @relation("GapStatusLookup")
+
+  @@map("lookup_gap_status")
+}
+
+model LookupStandardDomain {
+  id        String        @id @default(uuid())
+  code      String        @unique
+  labelEn   String        @map("label_en")
+  sortOrder Int           @default(0) @map("sort_order")
+  standards EcdStandard[] @relation("StandardDomainLookup")
+
+  @@map("lookup_standard_domain")
+}
+
+// --- Tier 2 + optional lookups (same pattern) ---
+
+model LookupChildGender {
+  id      String  @id @default(uuid())
+  code    String  @unique
+  labelEn String  @map("label_en")
+  sortOrder Int   @default(0) @map("sort_order")
+  children Child[] @relation("ChildGenderLookup")
+  @@map("lookup_child_gender")
+}
+
+model LookupChildStatus {
+  id      String  @id @default(uuid())
+  code    String  @unique
+  labelEn String  @map("label_en")
+  sortOrder Int   @default(0) @map("sort_order")
+  children Child[] @relation("ChildStatusLookup")
+  @@map("lookup_child_status")
+}
+
+model LookupAttendanceStatus {
+  id      String             @id @default(uuid())
+  code    String             @unique
+  labelEn String             @map("label_en")
+  sortOrder Int              @default(0) @map("sort_order")
+  records AttendanceRecord[] @relation("AttendanceStatusLookup")
+  @@map("lookup_attendance_status")
+}
+
+model LookupAbsentReason {
+  id      String             @id @default(uuid())
+  code    String             @unique
+  labelEn String             @map("label_en")
+  sortOrder Int              @default(0) @map("sort_order")
+  records AttendanceRecord[] @relation("AbsentReasonLookup")
+  @@map("lookup_absent_reason")
+}
+
+model LookupStedAgeBand {
+  id           String           @id @default(uuid())
+  code         String           @unique
+  labelEn      String           @map("label_en")
+  sortOrder    Int              @default(0) @map("sort_order")
+  assessments  StedAssessment[] @relation("StedAgeBandLookup")
+  @@map("lookup_sted_age_band")
+}
+
+model LookupReferralSourceType {
+  id        String     @id @default(uuid())
+  code      String     @unique
+  labelEn   String     @map("label_en")
+  sortOrder Int        @default(0) @map("sort_order")
+  referrals Referral[] @relation("ReferralSourceTypeLookup")
+  @@map("lookup_referral_source_type")
+}
+
+model LookupReferralStatus {
+  id        String     @id @default(uuid())
+  code      String     @unique
+  labelEn   String     @map("label_en")
+  sortOrder Int        @default(0) @map("sort_order")
+  referrals Referral[] @relation("ReferralStatusLookup")
+  @@map("lookup_referral_status")
+}
+
+model LookupTransferStatus {
+  id        String          @id @default(uuid())
+  code      String          @unique
+  labelEn   String          @map("label_en")
+  sortOrder Int             @default(0) @map("sort_order")
+  transfers ChildTransfer[] @relation("TransferStatusLookup")
+  @@map("lookup_transfer_status")
+}
+
+model LookupClassroomGrade {
+  id         String      @id @default(uuid())
+  code       String      @unique
+  labelEn    String      @map("label_en")
+  sortOrder  Int         @default(0) @map("sort_order")
+  classrooms Classroom[] @relation("ClassroomGradeLookup")
+  @@map("lookup_classroom_grade")
+}
+
+model LookupParentContributionType {
+  id            String               @id @default(uuid())
+  code          String               @unique
+  labelEn       String               @map("label_en")
+  sortOrder     Int                  @default(0) @map("sort_order")
+  contributions ParentContribution[] @relation("ContributionTypeLookup")
+  @@map("lookup_parent_contribution_type")
+}
+
+model LookupInKindItemType {
+  id            String               @id @default(uuid())
+  code          String               @unique
+  labelEn       String               @map("label_en")
+  sortOrder     Int                  @default(0) @map("sort_order")
+  contributions ParentContribution[] @relation("InKindItemTypeLookup")
+  @@map("lookup_in_kind_item_type")
+}
+
+model LookupCenterSupportCategory {
+  id       String          @id @default(uuid())
+  code     String          @unique
+  labelEn  String          @map("label_en")
+  sortOrder Int            @default(0) @map("sort_order")
+  supports CenterSupport[] @relation("SupportCategoryLookup")
+  @@map("lookup_center_support_category")
+}
+
+model LookupWaterSourceType {
+  id          String          @id @default(uuid())
+  code        String          @unique
+  labelEn     String          @map("label_en")
+  sortOrder   Int             @default(0) @map("sort_order")
+  indicators  WashIndicator[] @relation("WaterSourceTypeLookup")
+  @@map("lookup_water_source_type")
+}
+
+model LookupFoodSource {
+  id        String                      @id @default(uuid())
+  code      String                      @unique
+  labelEn   String                      @map("label_en")
+  sortOrder Int                         @default(0) @map("sort_order")
+  summaries CenterFeedingMonthSummary[] @relation("FoodSourceLookup")
+  @@map("lookup_food_source")
+}
+
+// --- Example: additive fields on EcdCenter (keep enum during dual-write) ---
+
+// model EcdCenter {
+//   ...
+//   latitude   Float?
+//   longitude  Float?
+//   geom       Unsupported("geometry(Point, 4326)")?
+//   objectid   Int @unique @default(autoincrement()) @map("objectid")
+//
+//   status     EcdCenterStatus @default(active)           // remove at cutover
+//   statusId   String?         @map("status_id")          // NOT NULL after backfill QA
+//   statusLookup LookupEcdCenterStatus? @relation("CenterStatusLookup", fields: [statusId], references: [id])
+//
+//   currentComplianceLevel     ComplianceClassification? @map("current_compliance_level") // remove at cutover
+//   currentComplianceLevelId   String? @map("current_compliance_level_id")
+//   currentComplianceLevelLookup LookupComplianceClassification? @relation("CenterCurrentComplianceLevel", fields: [currentComplianceLevelId], references: [id])
+//   ...
+// }
+
+// --- STED normalized tables (Phase 5) ---
+
+model StedMilestoneResult {
+  id            String         @id @default(uuid())
+  assessmentId  String         @map("assessment_id")
+  assessment    StedAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  milestoneCode String         @map("milestone_code")
+  resultKind    String         @map("result_kind")
+  notes         String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  @@map("sted_milestone_result")
+}
+
+model StedPhysicalFinding {
+  id           String         @id @default(uuid())
+  assessmentId String         @map("assessment_id")
+  assessment   StedAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  findingCode  String?        @map("finding_code")
+  findingKind  String         @map("finding_kind")
+  severity     String?
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  @@map("sted_physical_finding")
+}
+
+model StedOutcomeSummary {
+  id                  String         @id @default(uuid())
+  assessmentId        String         @unique @map("assessment_id")
+  assessment          StedAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  referralRequired    Boolean        @default(false) @map("referral_required")
+  hasPhysicalProblems Boolean        @default(false) @map("has_physical_problems")
+  hasFailedMilestones Boolean        @default(false) @map("has_failed_milestones")
+  outcomeCode         String?        @map("outcome_code")
+  delayLevel          String?        @map("delay_level")
+  createdAt           DateTime       @default(now()) @map("created_at")
+
+  @@map("sted_outcome_summary")
+}
+
+// StedAssessment — add during Phase 5:
+//   ageBandId String? @map("age_band_id")
+//   ageBandLookup LookupStedAgeBand? @relation("StedAgeBandLookup", ...)
+//   milestoneRows StedMilestoneResult[]
+//   physicalFindings StedPhysicalFinding[]
+//   outcomeSummary StedOutcomeSummary?
+//   (keep physicalAssessment, milestoneResults, outcome Json until cutover)

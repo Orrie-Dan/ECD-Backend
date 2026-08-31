@@ -1,5 +1,6 @@
 import { Prisma, SyncOperationStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { SyncApplyService } from '../sync-apply.service';
 
 function assert(name: string, fn: () => void | Promise<void>) {
@@ -78,7 +79,7 @@ function createApplyHarness(opts?: { childExists?: boolean; existing?: Attendanc
     },
   };
 
-  const service = new SyncApplyService(db as never, {} as never);
+  const service = new SyncApplyService(db as never, {} as never, createMockLookupResolver());
   return { service, created, updated, getExisting: () => existing };
 }
 

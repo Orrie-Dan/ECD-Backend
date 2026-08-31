@@ -3,6 +3,7 @@ import { ParentContributionType, Prisma, RecordSyncStatus } from '@prisma/client
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
+import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CenterRegisterAccessService } from './center-register-access.service';
@@ -28,11 +29,16 @@ type ContributionRow = Prisma.ParentContributionGetPayload<{
 
 @Injectable()
 export class ParentContributionsService {
+  private readonly lookupDw: LookupDualWrite;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly access: CenterRegisterAccessService,
-  ) {}
+    lookupResolver: LookupResolverService,
+  ) {
+    this.lookupDw = new LookupDualWrite(lookupResolver);
+  }
 
   async list(
     user: AuthUser,
@@ -130,9 +136,13 @@ export class ParentContributionsService {
           contributorName: dto.contributorName.trim(),
           contributorPhone: dto.contributorPhone?.trim() || null,
           contributionDate: new Date(dto.contributionDate),
-          contributionType: dto.contributionType,
-          amount: dto.contributionType === ParentContributionType.cash ? dto.amount! : null,
-          itemType: dto.contributionType === ParentContributionType.in_kind ? dto.itemType! : null,
+          ...this.lookupDw.parentContributionType(dto.contributionType),
+          ...(dto.contributionType === ParentContributionType.cash
+            ? { amount: dto.amount!, itemType: null, itemTypeId: null }
+            : {
+                amount: null,
+                ...this.lookupDw.optionalInKindItemType(dto.itemType!),
+              }),
           quantity: dto.quantity ?? null,
           unit: dto.unit?.trim() || null,
           description: dto.description?.trim() || null,
@@ -194,32 +204,37 @@ export class ParentContributionsService {
     });
 
     const updated = await this.prisma.$transaction(async (tx) => {
+      const data: Prisma.ParentContributionUncheckedUpdateManyInput = {
+        ...(dto.contributorName !== undefined && {
+          contributorName: dto.contributorName.trim(),
+        }),
+        ...(dto.contributorPhone !== undefined && {
+          contributorPhone: dto.contributorPhone?.trim() || null,
+        }),
+        ...(dto.amount !== undefined && { amount: dto.amount }),
+        ...(dto.quantity !== undefined && { quantity: dto.quantity }),
+        ...(dto.unit !== undefined && { unit: dto.unit?.trim() || null }),
+        ...(dto.description !== undefined && {
+          description: dto.description?.trim() || null,
+        }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+        ...(nextType === ParentContributionType.cash ? { itemType: null, itemTypeId: null } : { amount: null }),
+        version: { increment: 1 },
+        updatedAt: now,
+        syncStatus: RecordSyncStatus.synced,
+        lastModifiedAt: now,
+      };
+
+      if (dto.contributionType !== undefined) {
+        Object.assign(data, this.lookupDw.parentContributionType(dto.contributionType));
+      }
+      if (nextType === ParentContributionType.in_kind && dto.itemType !== undefined) {
+        Object.assign(data, this.lookupDw.optionalInKindItemType(dto.itemType));
+      }
+
       const cas = await tx.parentContribution.updateMany({
         where: { id: existing.id, version: dto.version, deletedAt: null },
-        data: {
-          ...(dto.contributorName !== undefined && {
-            contributorName: dto.contributorName.trim(),
-          }),
-          ...(dto.contributorPhone !== undefined && {
-            contributorPhone: dto.contributorPhone?.trim() || null,
-          }),
-          ...(dto.contributionType !== undefined && {
-            contributionType: dto.contributionType,
-          }),
-          ...(dto.amount !== undefined && { amount: dto.amount }),
-          ...(dto.itemType !== undefined && { itemType: dto.itemType }),
-          ...(dto.quantity !== undefined && { quantity: dto.quantity }),
-          ...(dto.unit !== undefined && { unit: dto.unit?.trim() || null }),
-          ...(dto.description !== undefined && {
-            description: dto.description?.trim() || null,
-          }),
-          ...(dto.notes !== undefined && { notes: dto.notes }),
-          ...(nextType === ParentContributionType.cash ? { itemType: null } : { amount: null }),
-          version: { increment: 1 },
-          updatedAt: now,
-          syncStatus: RecordSyncStatus.synced,
-          lastModifiedAt: now,
-        },
+        data,
       });
 
       await assertCasApplied(cas.count, 'parent_contribution', () =>

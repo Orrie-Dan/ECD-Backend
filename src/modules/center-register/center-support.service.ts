@@ -3,6 +3,7 @@ import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
+import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CenterRegisterAccessService } from './center-register-access.service';
@@ -26,11 +27,16 @@ type SupportRow = Prisma.CenterSupportGetPayload<{
 
 @Injectable()
 export class CenterSupportService {
+  private readonly lookupDw: LookupDualWrite;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly access: CenterRegisterAccessService,
-  ) {}
+    lookupResolver: LookupResolverService,
+  ) {
+    this.lookupDw = new LookupDualWrite(lookupResolver);
+  }
 
   async list(
     user: AuthUser,
@@ -81,7 +87,7 @@ export class CenterSupportService {
         data: {
           centerId: dto.centerId,
           receivedDate: new Date(dto.receivedDate),
-          supportCategory: dto.supportCategory,
+          ...this.lookupDw.centerSupportCategory(dto.supportCategory),
           description: dto.description.trim(),
           quantity: dto.quantity ?? null,
           unit: dto.unit?.trim() || null,
@@ -132,29 +138,32 @@ export class CenterSupportService {
     const now = new Date();
 
     return this.prisma.$transaction(async (tx) => {
+      const data: Prisma.CenterSupportUncheckedUpdateManyInput = {
+        ...(dto.description !== undefined && {
+          description: dto.description.trim(),
+        }),
+        ...(dto.quantity !== undefined && { quantity: dto.quantity }),
+        ...(dto.unit !== undefined && { unit: dto.unit?.trim() || null }),
+        ...(dto.providerName !== undefined && {
+          providerName: dto.providerName.trim(),
+        }),
+        ...(dto.providerOrganization !== undefined && {
+          providerOrganization: dto.providerOrganization?.trim() || null,
+        }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+        version: { increment: 1 },
+        updatedAt: now,
+        syncStatus: RecordSyncStatus.synced,
+        lastModifiedAt: now,
+      };
+
+      if (dto.supportCategory !== undefined) {
+        Object.assign(data, this.lookupDw.centerSupportCategory(dto.supportCategory));
+      }
+
       const cas = await tx.centerSupport.updateMany({
         where: { id: existing.id, version: dto.version, deletedAt: null },
-        data: {
-          ...(dto.supportCategory !== undefined && {
-            supportCategory: dto.supportCategory,
-          }),
-          ...(dto.description !== undefined && {
-            description: dto.description.trim(),
-          }),
-          ...(dto.quantity !== undefined && { quantity: dto.quantity }),
-          ...(dto.unit !== undefined && { unit: dto.unit?.trim() || null }),
-          ...(dto.providerName !== undefined && {
-            providerName: dto.providerName.trim(),
-          }),
-          ...(dto.providerOrganization !== undefined && {
-            providerOrganization: dto.providerOrganization?.trim() || null,
-          }),
-          ...(dto.notes !== undefined && { notes: dto.notes }),
-          version: { increment: 1 },
-          updatedAt: now,
-          syncStatus: RecordSyncStatus.synced,
-          lastModifiedAt: now,
-        },
+        data,
       });
 
       await assertCasApplied(cas.count, 'center_support', () =>

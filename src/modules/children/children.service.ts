@@ -15,6 +15,7 @@ import {
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
+import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { assertDistrictAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -32,12 +33,17 @@ import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ChildrenService {
+  private readonly lookupDw: LookupDualWrite;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
-  ) {}
+    private readonly lookupResolver: LookupResolverService,
+  ) {
+    this.lookupDw = new LookupDualWrite(this.lookupResolver);
+  }
 
   async create(user: AuthUser, dto: CreateChildDto): Promise<ChildDetailResponseDto> {
     if (!dto.fullName && !dto.firstName) {
@@ -68,7 +74,7 @@ export class ChildrenService {
           middleName: mapped.middleName,
           lastName: mapped.lastName,
           dateOfBirth: new Date(dto.dateOfBirth),
-          gender: mapped.gender,
+          ...this.lookupDw.childGender(mapped.gender),
           centerId: mapped.centerId,
           nationalId: dto.nationalId.trim(),
           homeVillageId: dto.homeVillageId,
@@ -82,7 +88,7 @@ export class ChildrenService {
           disabilityNotes: mapped.disabilityNotes,
           classroomId: dto.classroomId ?? null,
           registeredAt: dto.registeredAt ? new Date(dto.registeredAt) : now,
-          status: ChildStatus.active,
+          ...this.lookupDw.childStatus(ChildStatus.active),
           createdById: user.id,
           updatedById: user.id,
           version: 1,
@@ -264,7 +270,7 @@ export class ChildrenService {
           ...(dto.dateOfBirth != null && {
             dateOfBirth: new Date(dto.dateOfBirth),
           }),
-          ...(mapped.gender != null && { gender: mapped.gender }),
+          ...(mapped.gender != null && this.lookupDw.childGender(mapped.gender)),
           ...(mapped.centerId != null && { centerId: mapped.centerId }),
           ...(dto.homeVillageId != null && { homeVillageId: dto.homeVillageId }),
           ...(dto.guardianName != null && {
@@ -366,7 +372,7 @@ export class ChildrenService {
           status: { not: ChildStatus.archived },
         },
         data: {
-          status: ChildStatus.archived,
+          ...this.lookupDw.childStatus(ChildStatus.archived),
           archivedAt: now,
           archiveReason: dto.archiveReason?.trim() ?? existing.archiveReason,
           updatedAt: now,
@@ -452,7 +458,7 @@ export class ChildrenService {
           status: ChildStatus.archived,
         },
         data: {
-          status: ChildStatus.active,
+          ...this.lookupDw.childStatus(ChildStatus.active),
           archivedAt: null,
           archiveReason: null,
           updatedAt: now,

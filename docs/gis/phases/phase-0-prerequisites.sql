@@ -1,0 +1,3 @@
+-- Phase 0 — PostGIS + gis schema
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE SCHEMA IF NOT EXISTS gis;

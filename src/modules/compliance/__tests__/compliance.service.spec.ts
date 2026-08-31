@@ -5,6 +5,7 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { AssessmentStatus, AssessmentType, UserRole } from '@prisma/client';
 import { OptimisticLockConflictException } from '../../../common/concurrency/optimistic-lock.exception';
+import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ComplianceService } from '../compliance.service';
 
@@ -87,7 +88,12 @@ async function main() {
       create: async () => ({}),
       createForMultipleUsers: async () => 0,
     } as any;
-    const service = new ComplianceService(prisma as never, audit as never, mockNotifications);
+    const service = new ComplianceService(
+      prisma as never,
+      audit as never,
+      mockNotifications,
+      createMockLookupResolver(),
+    );
 
     const result = await service.listAssessments(
       user({ role: UserRole.caregiver, centerId: 'center-1' }),
@@ -121,6 +127,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       mockNotifications,
+      createMockLookupResolver(),
     );
 
     await service.listAssessments(
@@ -162,7 +169,12 @@ async function main() {
       create: async () => ({}),
       createForMultipleUsers: async () => 0,
     } as any;
-    const service = new ComplianceService(prisma as never, audit as never, mockNotifications);
+    const service = new ComplianceService(
+      prisma as never,
+      audit as never,
+      mockNotifications,
+      createMockLookupResolver(),
+    );
 
     const result = await service.createAssessment(user({ role: UserRole.ncda_admin }), {
       centerId: 'center-1',
@@ -199,6 +211,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       mockNotifications,
+      createMockLookupResolver(),
     );
 
     const result = await service.updateAssessment(
@@ -227,6 +240,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       mockNotifications,
+      createMockLookupResolver(),
     );
 
     let threw = false;
@@ -266,6 +280,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       mockNotifications,
+      createMockLookupResolver(),
     );
 
     let threw = false;
@@ -300,6 +315,7 @@ async function main() {
       prisma as never,
       { log: async () => undefined } as never,
       mockNotifications,
+      createMockLookupResolver(),
     );
 
     let threw = false;
