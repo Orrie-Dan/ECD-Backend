@@ -7,7 +7,6 @@ const NOTIFICATION_TYPES = [
   'transfer_cancelled',
   'child_enrolled',
   'child_archived',
-  'assessment_due',
   'referral_created',
   'referral_updated',
   'nutrition_alert',
@@ -16,6 +15,7 @@ const NOTIFICATION_TYPES = [
   'capacity_warning',
   'attendance_absence',
   'attendance_low_rate',
+  'center_created',
   'general',
 ] as const;
 
@@ -51,4 +51,10 @@ export class CreateNotificationDto {
   @ApiPropertyOptional({ type: Object })
   @IsOptional()
   metadata?: Record<string, unknown>;
+
+  /** Logical event identity — enforced unique per user at DB level when set. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  dedupeKey?: string;
 }

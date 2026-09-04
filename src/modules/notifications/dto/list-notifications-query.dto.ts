@@ -8,7 +8,6 @@ const NOTIFICATION_TYPES = [
   'transfer_cancelled',
   'child_enrolled',
   'child_archived',
-  'assessment_due',
   'referral_created',
   'referral_updated',
   'nutrition_alert',
@@ -17,8 +16,11 @@ const NOTIFICATION_TYPES = [
   'capacity_warning',
   'attendance_absence',
   'attendance_low_rate',
+  'center_created',
   'general',
 ] as const;
+
+const NOTIFICATION_PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
 
 export class ListNotificationsQueryDto {
   @ApiPropertyOptional({ minimum: 1, default: 1 })
@@ -46,4 +48,12 @@ export class ListNotificationsQueryDto {
   @Type(() => Boolean)
   @IsBoolean()
   isRead?: boolean;
+
+  @ApiPropertyOptional({
+    enum: NOTIFICATION_PRIORITIES,
+    description: 'Filter by derived priority level',
+  })
+  @IsOptional()
+  @IsIn(NOTIFICATION_PRIORITIES)
+  priority?: (typeof NOTIFICATION_PRIORITIES)[number];
 }

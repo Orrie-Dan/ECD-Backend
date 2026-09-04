@@ -1,6 +1,13 @@
+import {
+  AttendanceStatus,
+  ChildStatus,
+  GapStatus,
+  TransferStatus,
+  UserRole,
+} from '../../common/domain';
+import { ReferralStatus } from '@prisma/client';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { AttendanceStatus, ChildStatus, GapStatus, TransferStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   ATTENDANCE_ABSENT_THRESHOLD,
@@ -11,10 +18,16 @@ import {
   startOfUtcDay,
 } from '../alerts/attendance-alert.constants';
 import { NotificationsService } from './notifications.service';
+import { NotificationDedupeKeys } from './notification-dedupe';
 
 const STED_UPCOMING_DAYS = 7;
 const STALE_TRANSFER_DAYS = 7;
 const ATTENDANCE_NOTIFY_LIMIT = 500;
+
+/** Matches alerts.service.ts STALE_REFERRAL_DAYS */
+const STALE_REFERRAL_DAYS = 7;
+/** Matches alerts.service.ts OVERDUE_SCREENING_DAYS */
+const OVERDUE_SCREENING_DAYS = 30;
 
 @Injectable()
 export class NotificationCronService {
@@ -30,14 +43,27 @@ export class NotificationCronService {
     this.logger.log('Running daily notification cron job');
     const batchDate = new Date().toISOString().slice(0, 10);
 
-    await Promise.allSettled([
-      this.notifyStedFollowUps(batchDate),
-      this.notifyComplianceGaps(batchDate),
-      this.notifyStaleTransfers(batchDate),
-      this.notifyCapacity(batchDate),
-      this.notifyAttendanceAbsence(batchDate),
-      this.notifyAttendanceLowRate(batchDate),
-    ]);
+    const jobs = [
+      { name: 'sted_followup_due_soon', run: () => this.notifyStedFollowUps(batchDate) },
+      { name: 'compliance_gap_overdue', run: () => this.notifyComplianceGaps(batchDate) },
+      { name: 'stale_transfer_requests', run: () => this.notifyStaleTransfers(batchDate) },
+      { name: 'stale_referrals', run: () => this.notifyStaleReferrals(batchDate) },
+      { name: 'nutrition_overdue_screening', run: () => this.notifyNutritionOverdue(batchDate) },
+      { name: 'capacity_warnings', run: () => this.notifyCapacity(batchDate) },
+      { name: 'attendance_absence_risk', run: () => this.notifyAttendanceAbsence(batchDate) },
+      { name: 'attendance_low_rate', run: () => this.notifyAttendanceLowRate(batchDate) },
+    ] as const;
+
+    const results = await Promise.allSettled(jobs.map((j) => j.run()));
+    results.forEach((result, idx) => {
+      if (result.status === 'rejected') {
+        const err = result.reason;
+        this.logger.error(
+          `Daily notification cron branch failed (job=${jobs[idx].name}, batchDate=${batchDate})`,
+          err instanceof Error ? err.stack : String(err),
+        );
+      }
+    });
 
     this.logger.log('Daily notification cron job completed');
   }
@@ -75,6 +101,7 @@ export class NotificationCronService {
         message: `${childName} STED follow-up due ${a.followUpDueDate!.toISOString().slice(0, 10)}.`,
         entityType: 'sted_assessment',
         entityId: a.id,
+        dedupeKey: NotificationDedupeKeys.stedFollowUpCronUpcoming(a.id),
         metadata: { cronBatchDate: batchDate },
       });
     }
@@ -115,6 +142,7 @@ export class NotificationCronService {
         message: `${item.standard.title} gap at ${item.assessment.center.name} is past its target date.`,
         entityType: 'compliance_assessment_item',
         entityId: item.id,
+        dedupeKey: NotificationDedupeKeys.complianceGapCronOverdue(item.id),
         metadata: { cronBatchDate: batchDate },
       });
     }
@@ -151,11 +179,189 @@ export class NotificationCronService {
         message: `Transfer for ${childName} has been pending for ${STALE_TRANSFER_DAYS}+ days.`,
         entityType: 'child_transfer',
         entityId: t.id,
+        dedupeKey: NotificationDedupeKeys.transferCronStale(t.id),
         metadata: { cronBatchDate: batchDate },
       });
     }
 
     this.logger.log(`Sent stale transfer notifications for ${transfers.length} transfers`);
+  }
+
+  private async notifyStaleReferrals(batchDate: string): Promise<void> {
+    const cutoff = startOfUtcDay(new Date());
+    cutoff.setUTCDate(cutoff.getUTCDate() - STALE_REFERRAL_DAYS);
+
+    const referrals = await this.prisma.referral.findMany({
+      where: {
+        deletedAt: null,
+        status: ReferralStatus.pending,
+        referralDate: { lte: cutoff },
+      },
+      select: {
+        id: true,
+        centerId: true,
+        childId: true,
+        referralDate: true,
+        sourceType: true,
+        child: { select: { firstName: true, lastName: true } },
+        center: {
+          select: {
+            name: true,
+            districtId: true,
+            district: { select: { name: true } },
+          },
+        },
+      },
+      take: 1000,
+    });
+
+    let sent = 0;
+    for (const r of referrals) {
+      const childName = `${r.child.firstName} ${r.child.lastName ?? ''}`.trim();
+      const ageDays = Math.floor((Date.now() - r.referralDate.getTime()) / (24 * 60 * 60 * 1000));
+
+      const [centerUserIds, districtUserIds] = await Promise.all([
+        this.notifications.findUserIdsByRoleAndCenter(r.centerId, [
+          UserRole.ecd_director,
+          UserRole.caregiver,
+        ]),
+        this.notifications.findUserIdsByRoleAndDistrict(r.center.districtId, [
+          UserRole.district_focal_person,
+        ]),
+      ]);
+      const userIds = [...new Set([...centerUserIds, ...districtUserIds])];
+
+      await this.notifications.createForMultipleUsers(userIds, {
+        type: 'referral_updated',
+        title: 'Referral pending follow-up',
+        message: `${childName}'s referral has been pending for ${ageDays} days.`,
+        entityType: 'referral',
+        entityId: r.id,
+        dedupeKey: NotificationDedupeKeys.referralCronStale(r.id),
+        metadata: {
+          cronBatchDate: batchDate,
+          code: 'REFERRAL_STALE',
+          childId: r.childId,
+          childName,
+          centerName: r.center.name,
+          districtName: r.center.district?.name ?? null,
+          ageDays,
+          threshold: STALE_REFERRAL_DAYS,
+          priority: ageDays >= 14 ? 'high' : 'medium',
+        },
+      });
+      sent += 1;
+    }
+
+    this.logger.log(`Sent stale referral notifications for ${sent} referrals`);
+  }
+
+  private async notifyNutritionOverdue(batchDate: string): Promise<void> {
+    const cutoff = startOfUtcDay(new Date());
+    cutoff.setUTCDate(cutoff.getUTCDate() - OVERDUE_SCREENING_DAYS);
+
+    const activeChildren = await this.prisma.child.findMany({
+      where: {
+        deletedAt: null,
+        status: ChildStatus.active,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        centerId: true,
+        center: {
+          select: {
+            name: true,
+            districtId: true,
+            district: { select: { name: true } },
+          },
+        },
+        nutritionScreenings: {
+          where: { deletedAt: null },
+          orderBy: { screeningDate: 'desc' as const },
+          take: 1,
+          select: { id: true, screeningDate: true },
+        },
+      },
+      take: 2000,
+    });
+
+    let sent = 0;
+    for (const child of activeChildren) {
+      const latest = child.nutritionScreenings[0];
+      const childName = `${child.firstName} ${child.lastName ?? ''}`.trim();
+
+      if (!latest) {
+        // Never screened — distinct condition
+        const [centerUserIds, districtUserIds] = await Promise.all([
+          this.notifications.findUserIdsByRoleAndCenter(child.centerId, [
+            UserRole.ecd_director,
+            UserRole.caregiver,
+          ]),
+          this.notifications.findUserIdsByRoleAndDistrict(child.center.districtId, [
+            UserRole.district_focal_person,
+          ]),
+        ]);
+        const userIds = [...new Set([...centerUserIds, ...districtUserIds])];
+
+        await this.notifications.createForMultipleUsers(userIds, {
+          type: 'nutrition_alert',
+          title: 'Nutrition screening required',
+          message: `${childName} has never been screened for nutrition.`,
+          entityType: 'child',
+          entityId: child.id,
+          dedupeKey: NotificationDedupeKeys.nutritionNeverScreenedCron(child.id),
+          metadata: {
+            cronBatchDate: batchDate,
+            code: 'NUTRITION_NEVER_SCREENED',
+            childId: child.id,
+            childName,
+            centerName: child.center.name,
+            districtName: child.center.district?.name ?? null,
+          },
+        });
+        sent += 1;
+        continue;
+      }
+
+      if (latest.screeningDate < cutoff) {
+        // Overdue screening
+        const lastScreeningDate = latest.screeningDate.toISOString().slice(0, 10);
+        const [centerUserIds, districtUserIds] = await Promise.all([
+          this.notifications.findUserIdsByRoleAndCenter(child.centerId, [
+            UserRole.ecd_director,
+            UserRole.caregiver,
+          ]),
+          this.notifications.findUserIdsByRoleAndDistrict(child.center.districtId, [
+            UserRole.district_focal_person,
+          ]),
+        ]);
+        const userIds = [...new Set([...centerUserIds, ...districtUserIds])];
+
+        await this.notifications.createForMultipleUsers(userIds, {
+          type: 'nutrition_alert',
+          title: 'Overdue nutrition screening',
+          message: `${childName} has not been screened in ${OVERDUE_SCREENING_DAYS}+ days (last: ${lastScreeningDate}).`,
+          entityType: 'child',
+          entityId: child.id,
+          dedupeKey: NotificationDedupeKeys.nutritionOverdueCron(child.id, lastScreeningDate),
+          metadata: {
+            cronBatchDate: batchDate,
+            code: 'NUTRITION_OVERDUE',
+            childId: child.id,
+            childName,
+            centerName: child.center.name,
+            districtName: child.center.district?.name ?? null,
+            lastScreeningDate,
+            threshold: OVERDUE_SCREENING_DAYS,
+          },
+        });
+        sent += 1;
+      }
+    }
+
+    this.logger.log(`Sent nutrition overdue/never-screened notifications for ${sent} children`);
   }
 
   private async notifyCapacity(batchDate: string): Promise<void> {
@@ -192,6 +398,7 @@ export class NotificationCronService {
         message: `${c.name} has ${c._count.children} children (capacity: ${c.capacity}).`,
         entityType: 'ecd_center',
         entityId: c.id,
+        dedupeKey: NotificationDedupeKeys.capacityCronAtCapacity(c.id),
         metadata: { cronBatchDate: batchDate },
       });
     }
@@ -253,6 +460,7 @@ export class NotificationCronService {
         message: `${childName} was absent ${absentDays} days in the last ${ATTENDANCE_RISK_DAYS} days.`,
         entityType: 'child',
         entityId: child.id,
+        dedupeKey: NotificationDedupeKeys.attendanceAbsenceCron(child.id, to),
         metadata: {
           cronBatchDate: batchDate,
           code: 'ATTENDANCE_ABSENCE_RISK',
@@ -330,6 +538,7 @@ export class NotificationCronService {
         message: `${c.name} attendance is ${rate}% over the last ${ATTENDANCE_RISK_DAYS} days.`,
         entityType: 'ecd_center',
         entityId: c.id,
+        dedupeKey: NotificationDedupeKeys.attendanceLowRateCron(c.id, to),
         metadata: {
           cronBatchDate: batchDate,
           code: 'ATTENDANCE_LOW_RATE',
