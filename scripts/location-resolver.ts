@@ -52,14 +52,14 @@ async function upsertAdminUnit(
   u: { level: string; code: string; name: string; parentId: string | null; districtId: string | null },
 ): Promise<string> {
   const existing = await client.query(
-    `SELECT id FROM administrative_unit WHERE level = $1 AND code = $2`,
+    `SELECT id FROM sde.administrative_unit WHERE level = $1 AND code = $2`,
     [u.level, u.code],
   );
   if (existing.rows.length > 0) return existing.rows[0].id;
 
   const id = randomUUID();
   await client.query(
-    `INSERT INTO administrative_unit (id, level, code, name, parent_id, district_id)
+    `INSERT INTO sde.administrative_unit (id, level, code, name, parent_id, district_id)
      VALUES ($1, $2, $3, $4, $5, $6)`,
     [id, u.level, u.code, u.name, u.parentId, u.districtId],
   );
@@ -70,12 +70,12 @@ async function upsertDistrict(
   client: Client,
   u: { code: string; name: string; provinceId: string },
 ): Promise<string> {
-  const existing = await client.query(`SELECT id FROM district WHERE code = $1`, [u.code]);
+  const existing = await client.query(`SELECT id FROM sde.district WHERE code = $1`, [u.code]);
   if (existing.rows.length > 0) return existing.rows[0].id;
 
   const id = randomUUID();
   await client.query(
-    `INSERT INTO district (id, province_id, code, name) VALUES ($1, $2, $3, $4)`,
+    `INSERT INTO sde.district (id, province_id, code, name) VALUES ($1, $2, $3, $4)`,
     [id, u.provinceId, u.code, u.name],
   );
   return id;
@@ -152,7 +152,7 @@ async function main() {
       let cellId = cellCache.get(cellCode);
       if (!cellId) {
         cellId = await upsertAdminUnit(client, {
-          level: 'cell', code: cellCode, name: cellName, parentId: sectorId, districtId: null,
+          level: 'cell', code: cellCode, name: cellName, parentId: sectorId, districtId,
         });
         cellCache.set(cellCode, cellId);
       }
@@ -161,7 +161,7 @@ async function main() {
       let villageId = villageCache.get(villageCode);
       if (!villageId) {
         villageId = await upsertAdminUnit(client, {
-          level: 'village', code: villageCode, name: villageName, parentId: cellId, districtId: null,
+          level: 'village', code: villageCode, name: villageName, parentId: cellId, districtId,
         });
         villageCache.set(villageCode, villageId);
       }

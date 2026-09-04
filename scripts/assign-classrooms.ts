@@ -22,7 +22,8 @@
  * Add --dry-run to preview without writing.
  */
 
-import { PrismaClient, ClassroomGrade, ClassroomAssignmentReason, ChildStatus } from '@prisma/client';
+import { ClassroomGrade, ClassroomAssignmentReason, ChildStatus } from '../src/common/domain';
+import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();

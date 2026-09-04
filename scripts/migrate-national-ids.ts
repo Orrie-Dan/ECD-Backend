@@ -14,9 +14,10 @@
  *   npm run migrate:national-ids -- --dry-run
  */
 
+import { ChildGender, ChildStatus } from '../src/common/domain';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
-import { ChildGender, ChildStatus, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import {
   buildPlaceholderNationalId,
 } from '../src/modules/children/mappers/child.mapper';

@@ -5,7 +5,7 @@
  *
  * Run: npx ts-node scripts/sprint-54b-local-scope-timing.ts
  */
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../src/common/domain';
 import { AuthUser } from '../src/modules/auth/interfaces/jwt-payload.interface';
 import { MonitoringService } from '../src/modules/monitoring/monitoring.service';
 
