@@ -2,8 +2,8 @@
  * Analytics dashboard tests.
  * Run: npx ts-node src/modules/analytics/__tests__/analytics.service.spec.ts
  */
+import { UserRole } from '../../../common/domain';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { AnalyticsService } from '../analytics.service';
 
