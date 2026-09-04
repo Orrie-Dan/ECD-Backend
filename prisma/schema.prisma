@@ -6,6 +6,7 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
+  schemas    = ["sde", "public"]
   extensions = [postgis(schema: "public")]
 }
 
@@ -13,91 +14,12 @@ datasource db {
 // ENUMS
 //////////////////////////////////////////////
 
-enum EcdCenterStatus {
-  active
-  inactive
-
-  @@map("ecd_center_status")
-}
-
-enum UserRole {
-  caregiver
-  district_focal_person
-  ncda_admin
-  ecd_director
-
-  @@map("user_role")
-}
-
-enum UserAccountStatus {
-  active
-  inactive
-
-  @@map("user_account_status")
-}
-
-enum ChildGender {
-  male
-  female
-
-  @@map("child_gender")
-}
-
-enum ChildStatus {
-  active
-  transferred
-  archived
-
-  @@map("child_status")
-}
-
-enum AttendanceStatus {
-  present
-  absent
-
-  @@map("attendance_status")
-}
-
-enum AbsentReason {
-  sick
-  family
-  transport
-  weather
-  unknown
-  other
-
-  @@map("absent_reason")
-}
-
-enum NutritionStatus {
-  normal
-  at_risk
-  moderate
-  severe
-
-  @@map("nutrition_status")
-}
-
-enum TransferStatus {
-  pending
-  accepted
-  cancelled
-
-  @@map("transfer_status")
-}
-
-enum StedAgeBand {
-  band_1_3
-  band_4_6
-
-  @@map("sted_age_band")
-}
-
 enum ReferralSourceType {
   nutrition
   sted
 
   @@map("referral_source_type")
+  @@schema("public")
 }
 
 enum ReferralStatus {
@@ -106,6 +28,7 @@ enum ReferralStatus {
   cancelled
 
   @@map("referral_status")
+  @@schema("public")
 }
 
 enum AuditAction {
@@ -114,23 +37,7 @@ enum AuditAction {
   delete
 
   @@map("audit_action")
-}
-
-enum AssessmentType {
-  self_assessment
-  supportive_supervision
-  external_audit
-
-  @@map("assessment_type")
-}
-
-enum AssessmentStatus {
-  draft
-  submitted
-  verified
-  rejected
-
-  @@map("assessment_status")
+  @@schema("public")
 }
 
 enum ComplianceClassification {
@@ -139,40 +46,7 @@ enum ComplianceClassification {
   non_compliant
 
   @@map("compliance_classification")
-}
-
-enum ItemResponse {
-  met
-  partially_met
-  not_met
-  not_applicable
-
-  @@map("item_response")
-}
-
-enum GapSeverity {
-  low
-  medium
-  high
-
-  @@map("gap_severity")
-}
-
-enum GapStatus {
-  open
-  in_progress
-  resolved
-
-  @@map("gap_status")
-}
-
-enum StandardDomain {
-  wash
-  safety
-  nutrition
-  learning_environment
-
-  @@map("standard_domain")
+  @@schema("public")
 }
 
 enum RecordSyncStatus {
@@ -181,13 +55,7 @@ enum RecordSyncStatus {
   conflict
 
   @@map("record_sync_status")
-}
-
-enum DeviceStatus {
-  active
-  inactive
-
-  @@map("device_status")
+  @@schema("public")
 }
 
 enum SyncOperationStatus {
@@ -197,85 +65,7 @@ enum SyncOperationStatus {
   failed
 
   @@map("sync_operation_status")
-}
-
-enum SyncSessionStatus {
-  started
-  completed
-  failed
-
-  @@map("sync_session_status")
-}
-
-enum AdministrativeLevel {
-  province
-  sector
-  cell
-  village
-
-  @@map("administrative_level")
-}
-
-enum ClassroomGrade {
-  grade_1
-  grade_2
-  grade_3
-
-  @@map("classroom_grade")
-}
-
-enum ClassroomAssignmentReason {
-  initial_enrollment
-  promotion
-  manual_reassignment
-
-  @@map("classroom_assignment_reason")
-}
-
-enum PersonSex {
-  male
-  female
-
-  @@map("person_sex")
-}
-
-enum EducationLevel {
-  none
-  primary
-  secondary
-  vocational
-  diploma
-  bachelor
-  postgraduate
-  other
-
-  @@map("education_level")
-}
-
-enum ParentContributionType {
-  cash
-  in_kind
-
-  @@map("parent_contribution_type")
-}
-
-enum InKindItemType {
-  flour
-  potatoes
-  maize
-  milk
-  firewood
-  other
-
-  @@map("in_kind_item_type")
-}
-
-enum CenterSupportCategory {
-  food
-  equipment
-  other
-
-  @@map("center_support_category")
+  @@schema("public")
 }
 
 //////////////////////////////////////////////
@@ -284,17 +74,13 @@ enum CenterSupportCategory {
 
 model AdministrativeUnit {
   id         String              @id @default(uuid())
-  level      AdministrativeLevel
-  levelId    String?             @map("level_id") @db.Uuid
-  levelLookup LookupAdministrativeLevel? @relation("UnitLevelLookup", fields: [levelId], references: [id])
+  level      String
   parentId   String?             @map("parent_id")
   districtId String?             @map("district_id")
   name       String
   code       String
   latitude   Float?
   longitude  Float?
-  geom       Unsupported("geometry(Point, 4326)")?
-  objectid   Int?    @unique @default(autoincrement()) @map("objectid")
   createdAt  DateTime            @default(now()) @map("created_at")
 
   parent   AdministrativeUnit?  @relation("AdministrativeUnitHierarchy", fields: [parentId], references: [id])
@@ -309,6 +95,7 @@ model AdministrativeUnit {
   @@index([parentId])
   @@index([districtId])
   @@map("administrative_unit")
+  @@schema("sde")
 }
 
 model District {
@@ -328,6 +115,7 @@ model District {
 
   @@index([code])
   @@map("district")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -344,14 +132,9 @@ model EcdCenter {
   capacity                    Int?
   latitude                    Float?
   longitude                   Float?
-  geom                        Unsupported("geometry(Point, 4326)")?
   objectid                    Int?                      @unique @default(autoincrement()) @map("objectid")
-  status                      EcdCenterStatus           @default(active)
-  statusId                    String?                   @map("status_id") @db.Uuid
-  statusLookup                LookupEcdCenterStatus?    @relation("CenterStatusLookup", fields: [statusId], references: [id])
-  currentComplianceLevel      ComplianceClassification? @map("current_compliance_level")
-  currentComplianceLevelId    String?                   @map("current_compliance_level_id") @db.Uuid
-  currentComplianceLevelLookup LookupComplianceClassification? @relation("CenterCurrentComplianceLevel", fields: [currentComplianceLevelId], references: [id])
+  status                      String           @default("active")
+  currentComplianceLevel      String? @map("current_compliance_level")
   currentComplianceAssessedAt DateTime?                 @map("current_compliance_assessed_at") @db.Date
   createdAt                   DateTime                  @default(now()) @map("created_at")
   createdById                 String?                   @map("created_by")
@@ -359,7 +142,7 @@ model EcdCenter {
   updatedById                 String?                   @map("updated_by")
   deletedAt                   DateTime?                 @map("deleted_at")
   version                     Int                       @default(1)
-  syncStatus                  RecordSyncStatus          @default(synced) @map("sync_status")
+  syncStatus                  String          @default("synced") @map("sync_status")
   lastModifiedByDeviceId      String?                   @map("last_modified_by_device_id")
   lastModifiedAt              DateTime                  @default(now()) @map("last_modified_at")
 
@@ -389,7 +172,6 @@ model EcdCenter {
 
   @@index([districtId])
   @@index([status])
-  @@index([statusId])
   @@index([villageId])
   @@index([currentComplianceLevel])
   @@index([deletedAt])
@@ -397,6 +179,7 @@ model EcdCenter {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("ecd_center")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -406,9 +189,7 @@ model EcdCenter {
 model Classroom {
   id        String         @id @default(uuid())
   centerId  String         @map("center_id")
-  grade     ClassroomGrade
-  gradeId   String?        @map("grade_id") @db.Uuid
-  gradeLookup LookupClassroomGrade? @relation("ClassroomGradeLookup", fields: [gradeId], references: [id])
+  grade     String
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @default(now()) @map("updated_at")
 
@@ -419,8 +200,8 @@ model Classroom {
 
   @@unique([centerId, grade])
   @@index([centerId])
-  @@index([gradeId])
   @@map("classroom")
+  @@schema("sde")
 }
 
 model ClassroomAssignmentHistory {
@@ -428,7 +209,7 @@ model ClassroomAssignmentHistory {
   childId         String                    @map("child_id")
   fromClassroomId String?                   @map("from_classroom_id")
   toClassroomId   String                    @map("to_classroom_id")
-  reason          ClassroomAssignmentReason
+  reason          String
   effectiveDate   DateTime                  @map("effective_date") @db.Date
   createdAt       DateTime                  @default(now()) @map("created_at")
   createdById     String?                   @map("created_by")
@@ -442,6 +223,7 @@ model ClassroomAssignmentHistory {
   @@index([fromClassroomId])
   @@index([toClassroomId])
   @@map("classroom_assignment_history")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -455,12 +237,12 @@ model UserAccount {
   fullName            String            @map("full_name")
   phone               String?
   email               String?
-  gender              PersonSex?
-  educationLevel      EducationLevel?   @map("education_level")
-  role                UserRole
+  gender              String?
+  educationLevel      String?   @map("education_level")
+  role                String
   districtId          String?           @map("district_id")
   centerId            String?           @map("center_id")
-  status              UserAccountStatus @default(active)
+  status              String @default("active")
   lastLoginAt         DateTime?         @map("last_login_at")
   failedLoginAttempts Int               @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime?         @map("locked_until")
@@ -517,6 +299,7 @@ model UserAccount {
   @@index([role])
   @@index([status])
   @@map("user_account")
+  @@schema("sde")
 }
 
 model PasswordResetToken {
@@ -530,6 +313,7 @@ model PasswordResetToken {
   user UserAccount @relation(fields: [userId], references: [id])
 
   @@map("password_reset_token")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -542,7 +326,7 @@ model Device {
   deviceUuid   String       @unique @map("device_uuid")
   platform     String?
   appVersion   String?      @map("app_version")
-  status       DeviceStatus @default(active)
+  status       String @default("active")
   lastSyncAt   DateTime?    @map("last_sync_at")
   registeredAt DateTime     @default(now()) @map("registered_at")
 
@@ -572,6 +356,7 @@ model Device {
   @@index([userId])
   @@index([deviceUuid])
   @@map("device")
+  @@schema("sde")
 }
 
 model SyncSession {
@@ -582,7 +367,7 @@ model SyncSession {
   totalOperations      Int               @default(0) @map("total_operations")
   successfulOperations Int               @default(0) @map("successful_operations")
   failedOperations     Int               @default(0) @map("failed_operations")
-  status               SyncSessionStatus @default(started)
+  status               String @default("started")
   /// Recovery requeue attempts for stuck pending sessions.
   retryCount           Int               @default(0) @map("retry_count")
   lastRetryAt          DateTime?         @map("last_retry_at")
@@ -594,6 +379,7 @@ model SyncSession {
   @@index([status])
   @@index([status, startedAt])
   @@map("sync_session")
+  @@schema("sde")
 }
 
 model SyncOperation {
@@ -622,6 +408,7 @@ model SyncOperation {
   @@index([entityType, entityId])
   @@index([status])
   @@map("sync_operation")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -637,12 +424,8 @@ model Child {
   centerId               String           @map("center_id")
   classroomId            String?          @map("classroom_id")
   dateOfBirth            DateTime         @map("date_of_birth") @db.Date
-  gender                 ChildGender
-  genderId               String?          @map("gender_id") @db.Uuid
-  genderLookup           LookupChildGender? @relation("ChildGenderLookup", fields: [genderId], references: [id])
-  status                 ChildStatus      @default(active)
-  statusId               String?          @map("status_id") @db.Uuid
-  statusLookup           LookupChildStatus? @relation("ChildStatusLookup", fields: [statusId], references: [id])
+  gender                 String
+  status                 String      @default("active")
   specialNeeds           String?          @map("special_needs") @db.Text
   disabilityNotes        String?          @map("disability_notes") @db.Text
   guardianName           String           @map("guardian_name")
@@ -661,7 +444,7 @@ model Child {
   updatedById            String?          @map("updated_by")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -691,6 +474,7 @@ model Child {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("child")
+  @@schema("sde")
 }
 
 model ChildTransfer {
@@ -701,9 +485,7 @@ model ChildTransfer {
   transferDate           DateTime         @map("transfer_date") @db.Date
   reason                 String
   notes                  String?          @db.Text
-  status                 TransferStatus   @default(pending)
-  statusId               String?          @map("status_id") @db.Uuid
-  statusLookup           LookupTransferStatus? @relation("TransferStatusLookup", fields: [statusId], references: [id])
+  status                 String   @default("pending")
   initiatedById          String           @map("initiated_by")
   acceptedAt             DateTime?        @map("accepted_at")
   acceptedById           String?          @map("accepted_by")
@@ -711,7 +493,7 @@ model ChildTransfer {
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -734,6 +516,7 @@ model ChildTransfer {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("child_transfer")
+  @@schema("sde")
 }
 
 model AttendanceRecord {
@@ -741,15 +524,11 @@ model AttendanceRecord {
   childId                String           @map("child_id")
   centerId               String           @map("center_id")
   attendanceDate         DateTime         @map("attendance_date") @db.Date
-  status                 AttendanceStatus
-  statusId               String?          @map("status_id") @db.Uuid
-  statusLookup           LookupAttendanceStatus? @relation("AttendanceStatusLookup", fields: [statusId], references: [id])
+  status                 String
   broughtBy              String?          @map("brought_by")
   broughtByOther         String?          @map("brought_by_other")
   arrivedAt              DateTime?        @map("arrived_at")
-  absentReason           AbsentReason?    @map("absent_reason")
-  absentReasonId         String?          @map("absent_reason_id") @db.Uuid
-  absentReasonLookup     LookupAbsentReason? @relation("AbsentReasonLookup", fields: [absentReasonId], references: [id])
+  absentReason           String?    @map("absent_reason")
   notes                  String?          @db.Text
   recordedById           String           @map("recorded_by")
   createdAt              DateTime         @default(now()) @map("created_at")
@@ -757,7 +536,7 @@ model AttendanceRecord {
   updatedById            String?          @map("updated_by")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -775,6 +554,7 @@ model AttendanceRecord {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("attendance_record")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -789,20 +569,16 @@ model ChildNutritionScreening {
   muacCm                 Decimal          @map("muac_cm") @db.Decimal(5, 1)
   heightCm               Decimal?         @map("height_cm") @db.Decimal(5, 1)
   headCircumferenceCm    Decimal?         @map("head_circumference_cm") @db.Decimal(5, 1)
-  nutritionStatus        NutritionStatus  @map("nutrition_status")
-  nutritionStatusId      String?          @map("nutrition_status_id") @db.Uuid
-  nutritionStatusLookup  LookupNutritionStatus? @relation("ScreeningNutritionStatusLookup", fields: [nutritionStatusId], references: [id])
+  nutritionStatus        String  @map("nutrition_status")
   requiresReferral       Boolean          @default(false) @map("requires_referral")
   mealQuality            String?          @map("meal_quality")
-  mealQualityId          String?          @map("meal_quality_id") @db.Uuid
-  mealQualityLookup      LookupMealQuality? @relation("ScreeningMealQualityLookup", fields: [mealQualityId], references: [id])
   feedingConcern         Boolean          @default(false) @map("feeding_concern")
   dietNotes              String?          @map("diet_notes") @db.Text
   recordedById           String           @map("recorded_by")
   createdAt              DateTime         @default(now()) @map("created_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -819,6 +595,7 @@ model ChildNutritionScreening {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("child_nutrition_screening")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -843,7 +620,7 @@ model CenterFeedingDay {
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -858,6 +635,7 @@ model CenterFeedingDay {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("center_feeding_day")
+  @@schema("sde")
 }
 
 model CenterFeedingMonthSummary {
@@ -867,14 +645,12 @@ model CenterFeedingMonthSummary {
   milkLiters             Decimal          @default(0) @map("milk_liters") @db.Decimal(12, 3)
   flourKg                Decimal          @default(0) @map("flour_kg") @db.Decimal(12, 3)
   foodSource             String           @map("food_source")
-  foodSourceId           String?          @map("food_source_id") @db.Uuid
-  foodSourceLookup       LookupFoodSource? @relation("FoodSourceLookup", fields: [foodSourceId], references: [id])
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @default(now()) @map("updated_at")
   updatedById            String?          @map("updated_by")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -889,6 +665,7 @@ model CenterFeedingMonthSummary {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("center_feeding_month_summary")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -900,9 +677,7 @@ model StedAssessment {
   childId                String           @map("child_id")
   centerId               String           @map("center_id")
   assessmentDate         DateTime         @map("assessment_date") @db.Date
-  ageBand                StedAgeBand      @map("age_band")
-  ageBandId              String?          @map("age_band_id") @db.Uuid
-  ageBandLookup          LookupStedAgeBand? @relation("StedAgeBandLookup", fields: [ageBandId], references: [id])
+  ageBand                String      @map("age_band")
   consentObtained        Boolean          @default(false) @map("consent_obtained")
   physicalAssessment     Json             @map("physical_assessment")
   milestoneResults       Json             @map("milestone_results")
@@ -915,14 +690,14 @@ model StedAssessment {
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
-  child                Child       @relation(fields: [childId], references: [id])
-  center               EcdCenter   @relation(fields: [centerId], references: [id])
-  assessedBy           UserAccount @relation("StedAssessmentAssessedBy", fields: [assessedById], references: [id])
-  lastModifiedByDevice Device?     @relation("StedAssessmentLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
+  child                Child                 @relation(fields: [childId], references: [id])
+  center               EcdCenter             @relation(fields: [centerId], references: [id])
+  assessedBy           UserAccount           @relation("StedAssessmentAssessedBy", fields: [assessedById], references: [id])
+  lastModifiedByDevice Device?               @relation("StedAssessmentLastModifiedByDevice", fields: [lastModifiedByDeviceId], references: [id])
   milestoneResultsRows StedMilestoneResult[]
   physicalFindings     StedPhysicalFinding[]
   outcomeSummary       StedOutcomeSummary?
@@ -937,6 +712,7 @@ model StedAssessment {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("sted_assessment")
+  @@schema("sde")
 }
 
 model StedMilestoneResult {
@@ -950,6 +726,7 @@ model StedMilestoneResult {
 
   @@index([assessmentId])
   @@map("sted_milestone_result")
+  @@schema("sde")
 }
 
 model StedPhysicalFinding {
@@ -963,6 +740,7 @@ model StedPhysicalFinding {
 
   @@index([assessmentId])
   @@map("sted_physical_finding")
+  @@schema("sde")
 }
 
 model StedOutcomeSummary {
@@ -977,6 +755,7 @@ model StedOutcomeSummary {
   createdAt           DateTime       @default(now()) @map("created_at")
 
   @@map("sted_outcome_summary")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -988,15 +767,11 @@ model Referral {
   childId                String             @map("child_id")
   centerId               String             @map("center_id")
   sourceType             ReferralSourceType @map("source_type")
-  sourceTypeId           String?            @map("source_type_id") @db.Uuid
-  sourceTypeLookup       LookupReferralSourceType? @relation("ReferralSourceTypeLookup", fields: [sourceTypeId], references: [id])
   sourceId               String             @map("source_id")
   referralDate           DateTime           @map("referral_date") @db.Date
   reason                 String
   destination            String
   status                 ReferralStatus     @default(pending)
-  statusId               String?            @map("status_id") @db.Uuid
-  statusLookup           LookupReferralStatus? @relation("ReferralStatusLookup", fields: [statusId], references: [id])
   implementedAt          DateTime?          @map("implemented_at") @db.Date
   notes                  String?            @db.Text
   recordedById           String             @map("recorded_by")
@@ -1024,6 +799,7 @@ model Referral {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("referral")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -1032,9 +808,7 @@ model Referral {
 
 model EcdStandard {
   id          String         @id @default(uuid())
-  domain      StandardDomain
-  domainId    String?        @map("domain_id") @db.Uuid
-  domainLookup LookupStandardDomain? @relation("StandardDomainLookup", fields: [domainId], references: [id])
+  domain      String
   code        String         @unique
   title       String
   description String?        @db.Text
@@ -1049,31 +823,26 @@ model EcdStandard {
   @@index([domain])
   @@index([version])
   @@map("ecd_standard")
+  @@schema("sde")
 }
 
 model ComplianceAssessment {
   id                     String                    @id @default(uuid())
   centerId               String                    @map("center_id")
   standardsVersion       String                    @map("standards_version")
-  assessmentType         AssessmentType            @map("assessment_type")
-  assessmentTypeId       String?                   @map("assessment_type_id") @db.Uuid
-  assessmentTypeLookup   LookupAssessmentType?     @relation("AssessmentTypeLookup", fields: [assessmentTypeId], references: [id])
+  assessmentType         String            @map("assessment_type")
   assessmentDate         DateTime                  @map("assessment_date") @db.Date
-  status                 AssessmentStatus          @default(draft)
-  statusId               String?                   @map("status_id") @db.Uuid
-  statusLookup           LookupAssessmentStatus?   @relation("AssessmentStatusLookup", fields: [statusId], references: [id])
+  status                 String          @default("draft")
   submittedById          String?                   @map("submitted_by")
   submittedAt            DateTime?                 @map("submitted_at")
   verifiedById           String?                   @map("verified_by")
   verifiedAt             DateTime?                 @map("verified_at")
   overallClassification  ComplianceClassification? @map("overall_classification")
-  overallClassificationId String?                  @map("overall_classification_id") @db.Uuid
-  overallClassificationLookup LookupComplianceClassification? @relation("AssessmentOverallClassification", fields: [overallClassificationId], references: [id])
   createdAt              DateTime                  @default(now()) @map("created_at")
   updatedAt              DateTime                  @default(now()) @map("updated_at")
   deletedAt              DateTime?                 @map("deleted_at")
   version                Int                       @default(1)
-  syncStatus             RecordSyncStatus          @default(synced) @map("sync_status")
+  syncStatus             String          @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?                   @map("last_modified_by_device_id")
   lastModifiedAt         DateTime                  @default(now()) @map("last_modified_at")
 
@@ -1092,31 +861,26 @@ model ComplianceAssessment {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("compliance_assessment")
+  @@schema("sde")
 }
 
 model ComplianceAssessmentItem {
   id                     String           @id @default(uuid())
   assessmentId           String           @map("assessment_id")
   standardId             String           @map("standard_id")
-  response               ItemResponse
-  responseId             String?          @map("response_id") @db.Uuid
-  responseLookup         LookupItemResponse? @relation("ItemResponseLookup", fields: [responseId], references: [id])
+  response               String
   score                  Decimal?         @db.Decimal(8, 2)
   evidenceNotes          String?          @map("evidence_notes") @db.Text
-  gapSeverity            GapSeverity?     @map("gap_severity")
-  gapSeverityId          String?          @map("gap_severity_id") @db.Uuid
-  gapSeverityLookup      LookupGapSeverity? @relation("GapSeverityLookup", fields: [gapSeverityId], references: [id])
+  gapSeverity            String?     @map("gap_severity")
   gapImprovementAction   String?          @map("gap_improvement_action") @db.Text
   gapTargetDate          DateTime?        @map("gap_target_date") @db.Date
-  gapStatus              GapStatus?       @map("gap_status")
-  gapStatusId            String?          @map("gap_status_id") @db.Uuid
-  gapStatusLookup        LookupGapStatus? @relation("GapStatusLookup", fields: [gapStatusId], references: [id])
+  gapStatus              String?       @map("gap_status")
   gapResolvedAt          DateTime?        @map("gap_resolved_at") @db.Date
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -1132,6 +896,7 @@ model ComplianceAssessmentItem {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("compliance_assessment_item")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -1144,8 +909,6 @@ model WashIndicator {
   recordedDate                 DateTime         @map("recorded_date") @db.Date
   waterSourceAvailable         Boolean          @default(false) @map("water_source_available")
   waterSourceType              String?          @map("water_source_type")
-  waterSourceTypeId            String?          @map("water_source_type_id") @db.Uuid
-  waterSourceTypeLookup        LookupWaterSourceType? @relation("WaterSourceTypeLookup", fields: [waterSourceTypeId], references: [id])
   sanitationFacilityAvailable  Boolean          @default(false) @map("sanitation_facility_available")
   latrineCount                 Int?             @map("latrine_count")
   handwashingFacilityAvailable Boolean          @default(false) @map("handwashing_facility_available")
@@ -1155,7 +918,7 @@ model WashIndicator {
   createdAt                    DateTime         @default(now()) @map("created_at")
   deletedAt                    DateTime?        @map("deleted_at")
   version                      Int              @default(1)
-  syncStatus                   RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus                   String @default("synced") @map("sync_status")
   lastModifiedByDeviceId       String?          @map("last_modified_by_device_id")
   lastModifiedAt               DateTime         @default(now()) @map("last_modified_at")
 
@@ -1170,6 +933,7 @@ model WashIndicator {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("wash_indicator")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -1183,13 +947,9 @@ model ParentContribution {
   contributorName        String                 @map("contributor_name")
   contributorPhone       String?                @map("contributor_phone")
   contributionDate       DateTime               @map("contribution_date") @db.Date
-  contributionType       ParentContributionType @map("contribution_type")
-  contributionTypeId     String?                @map("contribution_type_id") @db.Uuid
-  contributionTypeLookup LookupParentContributionType? @relation("ContributionTypeLookup", fields: [contributionTypeId], references: [id])
+  contributionType       String @map("contribution_type")
   amount                 Decimal?               @db.Decimal(14, 2)
-  itemType               InKindItemType?        @map("item_type")
-  itemTypeId             String?                @map("item_type_id") @db.Uuid
-  itemTypeLookup         LookupInKindItemType?  @relation("InKindItemTypeLookup", fields: [itemTypeId], references: [id])
+  itemType               String?                @map("item_type")
   quantity               Decimal?               @db.Decimal(14, 3)
   unit                   String?
   description            String?                @db.Text
@@ -1199,7 +959,7 @@ model ParentContribution {
   updatedAt              DateTime               @default(now()) @map("updated_at")
   deletedAt              DateTime?              @map("deleted_at")
   version                Int                    @default(1)
-  syncStatus             RecordSyncStatus       @default(synced) @map("sync_status")
+  syncStatus             String                 @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?                @map("last_modified_by_device_id")
   lastModifiedAt         DateTime               @default(now()) @map("last_modified_at")
 
@@ -1217,6 +977,7 @@ model ParentContribution {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("parent_contribution")
+  @@schema("sde")
 }
 
 model ParentingSession {
@@ -1236,7 +997,7 @@ model ParentingSession {
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -1253,6 +1014,7 @@ model ParentingSession {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("parenting_session")
+  @@schema("sde")
 }
 
 model EcdCommitteeMember {
@@ -1271,7 +1033,7 @@ model EcdCommitteeMember {
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -1288,15 +1050,14 @@ model EcdCommitteeMember {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("ecd_committee_member")
+  @@schema("sde")
 }
 
 model CenterSupport {
   id                     String                @id @default(uuid())
   centerId               String                @map("center_id")
   receivedDate           DateTime              @map("received_date") @db.Date
-  supportCategory        CenterSupportCategory @map("support_category")
-  supportCategoryId      String?               @map("support_category_id") @db.Uuid
-  supportCategoryLookup  LookupCenterSupportCategory? @relation("SupportCategoryLookup", fields: [supportCategoryId], references: [id])
+  supportCategory        String @map("support_category")
   description            String
   quantity               Decimal?              @db.Decimal(14, 3)
   unit                   String?
@@ -1310,7 +1071,7 @@ model CenterSupport {
   updatedAt              DateTime              @default(now()) @map("updated_at")
   deletedAt              DateTime?             @map("deleted_at")
   version                Int                   @default(1)
-  syncStatus             RecordSyncStatus      @default(synced) @map("sync_status")
+  syncStatus             String      @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?               @map("last_modified_by_device_id")
   lastModifiedAt         DateTime              @default(now()) @map("last_modified_at")
 
@@ -1328,6 +1089,7 @@ model CenterSupport {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("center_support")
+  @@schema("sde")
 }
 
 model CenterVisit {
@@ -1345,7 +1107,7 @@ model CenterVisit {
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -1362,6 +1124,7 @@ model CenterVisit {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("center_visit")
+  @@schema("sde")
 }
 
 model StaffTraining {
@@ -1381,7 +1144,7 @@ model StaffTraining {
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
   version                Int              @default(1)
-  syncStatus             RecordSyncStatus @default(synced) @map("sync_status")
+  syncStatus             String @default("synced") @map("sync_status")
   lastModifiedByDeviceId String?          @map("last_modified_by_device_id")
   lastModifiedAt         DateTime         @default(now()) @map("last_modified_at")
 
@@ -1398,261 +1161,7 @@ model StaffTraining {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("staff_training")
-}
-
-//////////////////////////////////////////////
-// GIS LOOKUP TABLES (Scenario C — dual-write with enums)
-//////////////////////////////////////////////
-
-model LookupEcdCenterStatus {
-  id        String      @id @default(uuid()) @db.Uuid
-  code      String      @unique
-  labelEn   String      @map("label_en")
-  sortOrder Int         @default(0) @map("sort_order")
-  centers   EcdCenter[] @relation("CenterStatusLookup")
-
-  @@map("lookup_ecd_center_status")
-}
-
-model LookupComplianceClassification {
-  id                  String                 @id @default(uuid()) @db.Uuid
-  code                String                 @unique
-  labelEn             String                 @map("label_en")
-  sortOrder           Int                    @default(0) @map("sort_order")
-  centersCurrentLevel EcdCenter[]            @relation("CenterCurrentComplianceLevel")
-  assessmentsOverall  ComplianceAssessment[] @relation("AssessmentOverallClassification")
-
-  @@map("lookup_compliance_classification")
-}
-
-model LookupAdministrativeLevel {
-  id        String               @id @default(uuid()) @db.Uuid
-  code      String               @unique
-  labelEn   String               @map("label_en")
-  sortOrder Int                  @default(0) @map("sort_order")
-  units     AdministrativeUnit[] @relation("UnitLevelLookup")
-
-  @@map("lookup_administrative_level")
-}
-
-model LookupNutritionStatus {
-  id         String                    @id @default(uuid()) @db.Uuid
-  code       String                    @unique
-  labelEn    String                    @map("label_en")
-  sortOrder  Int                       @default(0) @map("sort_order")
-  screenings ChildNutritionScreening[] @relation("ScreeningNutritionStatusLookup")
-
-  @@map("lookup_nutrition_status")
-}
-
-model LookupMealQuality {
-  id         String                    @id @default(uuid()) @db.Uuid
-  code       String                    @unique
-  labelEn    String                    @map("label_en")
-  sortOrder  Int                       @default(0) @map("sort_order")
-  screenings ChildNutritionScreening[] @relation("ScreeningMealQualityLookup")
-
-  @@map("lookup_meal_quality")
-}
-
-model LookupAssessmentType {
-  id          String                 @id @default(uuid()) @db.Uuid
-  code        String                 @unique
-  labelEn     String                 @map("label_en")
-  sortOrder   Int                    @default(0) @map("sort_order")
-  assessments ComplianceAssessment[] @relation("AssessmentTypeLookup")
-
-  @@map("lookup_assessment_type")
-}
-
-model LookupAssessmentStatus {
-  id          String                 @id @default(uuid()) @db.Uuid
-  code        String                 @unique
-  labelEn     String                 @map("label_en")
-  sortOrder   Int                    @default(0) @map("sort_order")
-  assessments ComplianceAssessment[] @relation("AssessmentStatusLookup")
-
-  @@map("lookup_assessment_status")
-}
-
-model LookupItemResponse {
-  id        String                     @id @default(uuid()) @db.Uuid
-  code      String                     @unique
-  labelEn   String                     @map("label_en")
-  sortOrder Int                        @default(0) @map("sort_order")
-  items     ComplianceAssessmentItem[] @relation("ItemResponseLookup")
-
-  @@map("lookup_item_response")
-}
-
-model LookupGapSeverity {
-  id        String                     @id @default(uuid()) @db.Uuid
-  code      String                     @unique
-  labelEn   String                     @map("label_en")
-  sortOrder Int                        @default(0) @map("sort_order")
-  items     ComplianceAssessmentItem[] @relation("GapSeverityLookup")
-
-  @@map("lookup_gap_severity")
-}
-
-model LookupGapStatus {
-  id        String                     @id @default(uuid()) @db.Uuid
-  code      String                     @unique
-  labelEn   String                     @map("label_en")
-  sortOrder Int                        @default(0) @map("sort_order")
-  items     ComplianceAssessmentItem[] @relation("GapStatusLookup")
-
-  @@map("lookup_gap_status")
-}
-
-model LookupStandardDomain {
-  id        String        @id @default(uuid()) @db.Uuid
-  code      String        @unique
-  labelEn   String        @map("label_en")
-  sortOrder Int           @default(0) @map("sort_order")
-  standards EcdStandard[] @relation("StandardDomainLookup")
-
-  @@map("lookup_standard_domain")
-}
-
-model LookupChildGender {
-  id       String  @id @default(uuid()) @db.Uuid
-  code     String  @unique
-  labelEn  String  @map("label_en")
-  sortOrder Int    @default(0) @map("sort_order")
-  children Child[] @relation("ChildGenderLookup")
-
-  @@map("lookup_child_gender")
-}
-
-model LookupChildStatus {
-  id       String  @id @default(uuid()) @db.Uuid
-  code     String  @unique
-  labelEn  String  @map("label_en")
-  sortOrder Int    @default(0) @map("sort_order")
-  children Child[] @relation("ChildStatusLookup")
-
-  @@map("lookup_child_status")
-}
-
-model LookupAttendanceStatus {
-  id      String             @id @default(uuid()) @db.Uuid
-  code    String             @unique
-  labelEn String             @map("label_en")
-  sortOrder Int              @default(0) @map("sort_order")
-  records AttendanceRecord[] @relation("AttendanceStatusLookup")
-
-  @@map("lookup_attendance_status")
-}
-
-model LookupAbsentReason {
-  id      String             @id @default(uuid()) @db.Uuid
-  code    String             @unique
-  labelEn String             @map("label_en")
-  sortOrder Int              @default(0) @map("sort_order")
-  records AttendanceRecord[] @relation("AbsentReasonLookup")
-
-  @@map("lookup_absent_reason")
-}
-
-model LookupStedAgeBand {
-  id          String           @id @default(uuid()) @db.Uuid
-  code        String           @unique
-  labelEn     String           @map("label_en")
-  sortOrder   Int              @default(0) @map("sort_order")
-  assessments StedAssessment[] @relation("StedAgeBandLookup")
-
-  @@map("lookup_sted_age_band")
-}
-
-model LookupReferralSourceType {
-  id        String     @id @default(uuid()) @db.Uuid
-  code      String     @unique
-  labelEn   String     @map("label_en")
-  sortOrder Int        @default(0) @map("sort_order")
-  referrals Referral[] @relation("ReferralSourceTypeLookup")
-
-  @@map("lookup_referral_source_type")
-}
-
-model LookupReferralStatus {
-  id        String     @id @default(uuid()) @db.Uuid
-  code      String     @unique
-  labelEn   String     @map("label_en")
-  sortOrder Int        @default(0) @map("sort_order")
-  referrals Referral[] @relation("ReferralStatusLookup")
-
-  @@map("lookup_referral_status")
-}
-
-model LookupTransferStatus {
-  id        String          @id @default(uuid()) @db.Uuid
-  code      String          @unique
-  labelEn   String          @map("label_en")
-  sortOrder Int             @default(0) @map("sort_order")
-  transfers ChildTransfer[] @relation("TransferStatusLookup")
-
-  @@map("lookup_transfer_status")
-}
-
-model LookupClassroomGrade {
-  id         String      @id @default(uuid()) @db.Uuid
-  code       String      @unique
-  labelEn    String      @map("label_en")
-  sortOrder  Int         @default(0) @map("sort_order")
-  classrooms Classroom[] @relation("ClassroomGradeLookup")
-
-  @@map("lookup_classroom_grade")
-}
-
-model LookupParentContributionType {
-  id            String               @id @default(uuid()) @db.Uuid
-  code          String               @unique
-  labelEn       String               @map("label_en")
-  sortOrder     Int                  @default(0) @map("sort_order")
-  contributions ParentContribution[] @relation("ContributionTypeLookup")
-
-  @@map("lookup_parent_contribution_type")
-}
-
-model LookupInKindItemType {
-  id            String               @id @default(uuid()) @db.Uuid
-  code          String               @unique
-  labelEn       String               @map("label_en")
-  sortOrder     Int                  @default(0) @map("sort_order")
-  contributions ParentContribution[] @relation("InKindItemTypeLookup")
-
-  @@map("lookup_in_kind_item_type")
-}
-
-model LookupCenterSupportCategory {
-  id       String          @id @default(uuid()) @db.Uuid
-  code     String          @unique
-  labelEn  String          @map("label_en")
-  sortOrder Int            @default(0) @map("sort_order")
-  supports CenterSupport[] @relation("SupportCategoryLookup")
-
-  @@map("lookup_center_support_category")
-}
-
-model LookupWaterSourceType {
-  id         String          @id @default(uuid()) @db.Uuid
-  code       String          @unique
-  labelEn    String          @map("label_en")
-  sortOrder  Int             @default(0) @map("sort_order")
-  indicators WashIndicator[] @relation("WaterSourceTypeLookup")
-
-  @@map("lookup_water_source_type")
-}
-
-model LookupFoodSource {
-  id        String                      @id @default(uuid()) @db.Uuid
-  code      String                      @unique
-  labelEn   String                      @map("label_en")
-  sortOrder Int                         @default(0) @map("sort_order")
-  summaries CenterFeedingMonthSummary[] @relation("FoodSourceLookup")
-
-  @@map("lookup_food_source")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -1674,9 +1183,11 @@ enum NotificationType {
   capacity_warning
   attendance_absence
   attendance_low_rate
+  center_created
   general
 
   @@map("notification_type")
+  @@schema("public")
 }
 
 model Notification {
@@ -1689,15 +1200,18 @@ model Notification {
   readAt     DateTime?        @map("read_at")
   entityType String?          @map("entity_type")
   entityId   String?          @map("entity_id")
+  dedupeKey  String?          @map("dedupe_key")
   metadata   Json?
   createdAt  DateTime         @default(now()) @map("created_at")
 
   user UserAccount @relation("NotificationUser", fields: [userId], references: [id])
 
+  @@unique([userId, dedupeKey])
   @@index([userId, isRead])
   @@index([userId, createdAt])
   @@index([type])
   @@map("notification")
+  @@schema("sde")
 }
 
 //////////////////////////////////////////////
@@ -1717,6 +1231,7 @@ model AppSetting {
 
   @@unique([districtId, key])
   @@map("app_setting")
+  @@schema("sde")
 }
 
 model AuditLog {
@@ -1736,4 +1251,5 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([changedAt])
   @@map("audit_log")
+  @@schema("sde")
 }

@@ -39,3 +39,22 @@ If a database was previously created with `db push` and has no `_prisma_migratio
 3. If the DB is empty, use `npx prisma migrate deploy` as usual.
 
 Never run a full `CREATE TABLE` init migration against a database that already contains those tables unless you intend to recreate them (data loss).
+
+## Enterprise Geodatabase (PostgreSQL + `sde` schema)
+
+When app tables live in **`sde`** but PostgreSQL enums live in **`public`**:
+
+- `schema.prisma` uses `schemas = ["sde", "public"]`, `@@schema("sde")` on models, `@@schema("public")` on enums.
+- **`DATABASE_URL` must not include `?schema=sde`** (multi-schema mode sets this in the schema file).
+- After pulling schema changes: stop the dev server, run `npx prisma generate`, then restart.
+
+Seeding uses raw SQL with `public.*` enum casts (`npm run seed:admin`). Survey123 sync SQL is under `docs/survey123-sync.md`.
+
+## Enum values vs GIS lookup tables (Scenario C cleanup)
+
+PostgreSQL enums in the **`public`** schema are the **single source of truth** for fixed values (center status, classroom grade, administrative level, child gender, etc.). The former GIS Scenario C architecture duplicated each enum with an `sde.lookup_*` table and a parallel `*_id` UUID column on business tables; that dual-write layer has been **removed**.
+
+- **API clients** send enum **codes** (e.g. `"status": "active"`, `"grade": "grade_1"`) — not lookup UUIDs.
+- **Survey123** sync writes enum columns directly (`ecd_center.status`, `classroom.grade`, `administrative_unit.level`); it never depended on lookup tables.
+- **Historical migrations** under `prisma/migrations/` that created lookup tables must **not** be edited; cleanup is in `20260902120000_remove_scenario_c_lookup_dual_write`.
+- Coded string fields without enums (`meal_quality`, `food_source`, `water_source_type`) remain plain text columns only.
