@@ -1,20 +1,20 @@
+import { DeviceStatus } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DeviceStatus, RecordSyncStatus, UserRole } from '@prisma/client';
+import { RecordSyncStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateStedAssessmentDto } from './dto/create-sted-assessment.dto';
 import { StedAssessmentResponseDto, StedHistoryResponseDto } from './dto/sted-response.dto';
 import { extractStedReferralSignals, stedMapper } from './mappers/sted.mapper';
-import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationEventsService } from '../notifications/notification-events.service';
 
 /**
  * STED assessments are append-only clinical records.
@@ -23,16 +23,11 @@ import { NotificationsService } from '../notifications/notifications.service';
  */
 @Injectable()
 export class StedService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-    private readonly notifications: NotificationsService,
-    lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(lookupResolver);
-  }
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   async create(user: AuthUser, dto: CreateStedAssessmentDto): Promise<StedAssessmentResponseDto> {
     if (!dto.consentObtained) {
@@ -65,7 +60,7 @@ export class StedService {
           childId: child.id,
           centerId: dto.centerId,
           assessmentDate: new Date(`${dto.assessmentDate.slice(0, 10)}T00:00:00.000Z`),
-          ...this.lookupDw.stedAgeBand(mapped.ageBand),
+          ageBand: mapped.ageBand,
           consentObtained: mapped.consentObtained,
           physicalAssessment: mapped.physicalAssessment,
           milestoneResults: mapped.milestoneResults,
@@ -96,20 +91,11 @@ export class StedService {
       return row;
     });
 
-    if (mapped.followUpIn6Months) {
-      this.notifications
-        .findUserIdsByRoleAndCenter(dto.centerId, [UserRole.ecd_director, UserRole.caregiver])
-        .then((ids) => {
-          this.notifications.notifyAsync(ids, {
-            type: 'sted_followup',
-            title: 'STED follow-up scheduled',
-            message: `A STED assessment requires a 6-month follow-up.`,
-            entityType: 'sted_assessment',
-            entityId: created.id,
-          });
-        })
-        .catch(() => {});
-    }
+    void this.notificationEvents.onStedAssessmentCreated({
+      assessmentId: created.id,
+      centerId: dto.centerId,
+      followUpIn6Months: mapped.followUpIn6Months,
+    });
 
     return stedMapper.toDto(created);
   }

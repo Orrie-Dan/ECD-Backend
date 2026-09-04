@@ -2,7 +2,8 @@
  * Audit logs module tests.
  * Run: npx ts-node src/modules/audit-logs/__tests__/audit-logs.service.spec.ts
  */
-import { AuditAction, UserRole } from '@prisma/client';
+import { UserRole } from '../../../common/domain';
+import { AuditAction } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { AuditLogsService } from '../audit-logs.service';
 

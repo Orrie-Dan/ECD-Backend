@@ -2,7 +2,8 @@
  * Pending sync operation recovery tests.
  * Run: npx ts-node src/modules/sync/__tests__/sync-recovery.spec.ts
  */
-import { SyncOperationStatus, SyncSessionStatus } from '@prisma/client';
+import { SyncSessionStatus } from '../../../common/domain';
+import { SyncOperationStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { SyncService } from '../sync.service';
 import {

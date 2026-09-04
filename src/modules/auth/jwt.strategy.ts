@@ -1,7 +1,7 @@
+import { UserAccountStatus, UserRole, asDomainEnum } from '../../common/domain';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { UserAccountStatus } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser, JwtPayload } from './interfaces/jwt-payload.interface';
@@ -52,7 +52,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       username: user.username,
       email: user.email,
       fullName: user.fullName,
-      role: user.role,
+      role: asDomainEnum<UserRole>(user.role),
       centerId: user.centerId,
       districtId: user.districtId,
       status: user.status,

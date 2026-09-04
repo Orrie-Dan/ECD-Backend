@@ -1,15 +1,15 @@
+import { DeviceStatus } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DeviceStatus, Prisma, RecordSyncStatus, SyncOperationStatus } from '@prisma/client';
+import { Prisma, RecordSyncStatus, SyncOperationStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson, toPrismaAuditAction } from '../../common/audit';
 import { assertCenterAccess, canAccessCenter } from '../../common/auth/scope.util';
 import { assertCasApplied, classifyCasMiss } from '../../common/concurrency/cas.util';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from '../sync/sync-access.service';
@@ -29,16 +29,11 @@ import {
 
 @Injectable()
 export class AttendanceService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
-    lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(lookupResolver);
-  }
+  ) {}
 
   async createBatch(user: AuthUser, dto: AttendanceBatchDto): Promise<AttendanceBatchResultDto> {
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
@@ -194,8 +189,8 @@ export class AttendanceService {
                 childId: item.record.childId,
                 centerId: item.centerId,
                 attendanceDate: item.attendanceDate,
-                ...this.lookupDw.attendanceStatus(mapped.status),
-                ...this.lookupDw.absentReason(mapped.absentReason),
+                status: mapped.status,
+                absentReason: mapped.absentReason,
                 notes: mapped.notes,
                 recordedById: user.id,
                 updatedById: user.id,
@@ -232,8 +227,8 @@ export class AttendanceService {
                 version: item.record.version!,
               },
               data: {
-                ...this.lookupDw.attendanceStatus(mapped.status),
-                ...this.lookupDw.absentReason(mapped.absentReason),
+                status: mapped.status,
+                absentReason: mapped.absentReason,
                 notes: mapped.notes,
                 deletedAt: null,
                 updatedById: user.id,
@@ -414,7 +409,8 @@ export class AttendanceService {
         action: AuditAction.DELETE,
         now,
         oldValues: (() => {
-          const { center: _center, ...plain } = existing;
+          const { center, ...plain } = existing;
+          void center;
           return plain;
         })(),
         newValues: row,

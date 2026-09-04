@@ -1,5 +1,4 @@
-import { UserRole } from '@prisma/client';
-
+import { UserRole } from '../domain';
 /**
  * Minimal authenticated user fields required for scope checks.
  * Aligns with JWT / CurrentUser context without pulling auth-module types.

@@ -1,6 +1,5 @@
+import { TransferStatus } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TransferStatus } from '@prisma/client';
-
 export class TransferResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;

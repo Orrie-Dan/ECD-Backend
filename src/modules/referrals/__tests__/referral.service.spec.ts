@@ -1,7 +1,7 @@
+import { UserRole } from '../../../common/domain';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { ReferralSourceType, ReferralStatus, UserRole } from '@prisma/client';
+import { ReferralSourceType, ReferralStatus } from '@prisma/client';
 import { canAccessCenter } from '../../../common/auth/scope.util';
-import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateReferralDto } from '../dto/create-referral.dto';
 import { ReferralsService } from '../referrals.service';
@@ -44,13 +44,11 @@ function referralRow(overrides: Record<string, unknown> = {}): Record<string, un
     childId: 'child-1',
     centerId: 'center-a',
     sourceType: ReferralSourceType.nutrition,
-    sourceTypeId: null,
     sourceId: 'screen-1',
     referralDate: new Date('2026-08-01T00:00:00.000Z'),
     reason: 'Severe MUAC',
     destination: 'Health post',
     status: ReferralStatus.pending,
-    statusId: null,
     implementedAt: null,
     notes: null,
     recordedById: 'cg-1',
@@ -87,13 +85,10 @@ async function run() {
     }
   };
 
-  const mockNotifications = {
-    findUserIdsByRoleAndCenter: async () => [],
-    findUserIdsByRoleAndDistrict: async () => [],
-    notifyAsync: () => {},
-    create: async () => ({}),
-    createForMultipleUsers: async () => 0,
-  } as any;
+  const mockNotificationEvents = {
+    onReferralCreated: async () => {},
+    onReferralStatusUpdated: async () => {},
+  } as never;
 
   const caregiver = user({
     role: UserRole.caregiver,
@@ -151,8 +146,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).create(caregiver, baseDto());
 
     eq(creates.length, 1);
@@ -187,8 +181,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).create(caregiver, baseDto({ sourceId: 'missing' }));
     } catch (err) {
       caught = err;
@@ -221,8 +214,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).getChildHistory(caregiver, 'child-1');
 
     eq(history.items[0].id, 'ref-2');
@@ -276,8 +268,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).updateStatus(caregiver, 'ref-1', { status: 'completed', version: 1 });
 
     eq(result.status, 'completed');
@@ -307,8 +298,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).updateStatus(caregiver, 'ref-1', { status: 'cancelled', version: 1 });
 
     eq(result.status, 'cancelled');
@@ -340,8 +330,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).updateStatus(caregiver, 'ref-1', { status: 'completed', version: 5 });
     } catch (err) {
       caught = err;
@@ -366,8 +355,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).updateStatus(caregiver, 'ref-1', { status: 'cancelled', version: 1 });
     } catch (err) {
       caught = err;
@@ -393,8 +381,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).create(caregiver, baseDto({ childId: 'child-x', centerId: 'center-b' }));
     } catch (err) {
       caught = err;
@@ -420,8 +407,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).create(focal, baseDto({ childId: 'child-z', centerId: 'center-z' }));
     } catch (err) {
       caught = err;
@@ -459,8 +445,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).create(
       ncda,
       baseDto({
@@ -490,8 +475,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).findAll(focal, {
       from: '2026-08-01',
       to: '2026-08-31',
@@ -524,8 +508,7 @@ async function run() {
       prisma as never,
       syncAccess as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).findAll(focal, { page: 1, pageSize: 50 });
 
     eq(capturedWhere != null && !('referralDate' in capturedWhere), true);
@@ -542,8 +525,7 @@ async function run() {
         prisma as never,
         syncAccess as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).findAll(focal, { from: '2026-08-31', to: '2026-08-01' });
     } catch (err) {
       message = (err as Error).message;

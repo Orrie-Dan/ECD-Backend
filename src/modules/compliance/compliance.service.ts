@@ -1,25 +1,24 @@
 import {
+  AssessmentStatus,
+  AssessmentType,
+  GapSeverity,
+  GapStatus,
+  ItemResponse,
+  StandardDomain,
+  UserRole,
+  asDomainEnum,
+  asDomainEnumNullable,
+} from '../../common/domain';
+import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  AssessmentStatus,
-  AssessmentType,
-  ComplianceClassification,
-  GapSeverity,
-  GapStatus,
-  ItemResponse,
-  Prisma,
-  RecordSyncStatus,
-  StandardDomain,
-  UserRole,
-} from '@prisma/client';
+import { ComplianceClassification, Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import {
@@ -34,20 +33,15 @@ import { CreateAssessmentItemDto } from './dto/create-assessment-item.dto';
 import { ListAssessmentsQueryDto } from './dto/list-assessments-query.dto';
 import { UpdateAssessmentDto } from './dto/update-assessment.dto';
 import { UpdateAssessmentItemDto } from './dto/update-assessment-item.dto';
-import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationEventsService } from '../notifications/notification-events.service';
 
 @Injectable()
 export class ComplianceService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-    private readonly notifications: NotificationsService,
-    lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(lookupResolver);
-  }
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   async listAssessments(
     user: AuthUser,
@@ -125,8 +119,8 @@ export class ComplianceService {
           centerId: dto.centerId,
           standardsVersion: dto.standardsVersion,
           assessmentDate,
-          ...this.lookupDw.assessmentType(dto.assessmentType),
-          ...this.lookupDw.assessmentStatus(AssessmentStatus.draft),
+          assessmentType: dto.assessmentType,
+          status: AssessmentStatus.draft,
           createdAt: now,
           updatedAt: now,
           version: 1,
@@ -181,7 +175,7 @@ export class ComplianceService {
     assertCenterAccess(user, existing.centerId, existing.center.districtId);
 
     if (dto.status) {
-      this.validateStatusTransition(existing.status, dto.status);
+      this.validateStatusTransition(asDomainEnum<AssessmentStatus>(existing.status), dto.status);
     }
 
     const now = new Date();
@@ -211,7 +205,7 @@ export class ComplianceService {
       };
 
       if (dto.status != null) {
-        Object.assign(data, this.lookupDw.assessmentStatus(dto.status));
+        data.status = dto.status;
       }
 
       const cas = await tx.complianceAssessment.updateMany({
@@ -261,39 +255,15 @@ export class ComplianceService {
       return updated;
     });
 
-    if (dto.status && dto.status !== existing.status) {
-      const centerId = existing.centerId;
-      const districtId = existing.center.districtId;
-
-      if (dto.status === AssessmentStatus.submitted) {
-        this.notifications
-          .findUserIdsByRoleAndDistrict(districtId, [UserRole.district_focal_person])
-          .then((ids) => {
-            this.notifications.notifyAsync(ids, {
-              type: 'compliance_update',
-              title: 'Compliance assessment submitted',
-              message: `A compliance assessment for ${existing.center.name} has been submitted for review.`,
-              entityType: 'compliance_assessment',
-              entityId: existing.id,
-            });
-          })
-          .catch(() => {});
-      }
-
-      if (dto.status === AssessmentStatus.verified || dto.status === AssessmentStatus.rejected) {
-        this.notifications
-          .findUserIdsByRoleAndCenter(centerId, [UserRole.ecd_director])
-          .then((ids) => {
-            this.notifications.notifyAsync(ids, {
-              type: 'compliance_update',
-              title: `Compliance assessment ${dto.status}`,
-              message: `Your compliance assessment has been ${dto.status}.`,
-              entityType: 'compliance_assessment',
-              entityId: existing.id,
-            });
-          })
-          .catch(() => {});
-      }
+    if (dto.status && dto.status !== asDomainEnum<AssessmentStatus>(existing.status)) {
+      void this.notificationEvents.onComplianceAssessmentStatusChanged({
+        assessmentId: existing.id,
+        centerId: existing.centerId,
+        centerName: existing.center.name,
+        districtId: existing.center.districtId,
+        previousStatus: asDomainEnum<AssessmentStatus>(existing.status),
+        newStatus: dto.status,
+      });
     }
 
     return this.toAssessmentDto(result);
@@ -351,9 +321,9 @@ export class ComplianceService {
           gapImprovementAction: dto.gapImprovementAction ?? null,
           gapTargetDate: dto.gapTargetDate ? new Date(dto.gapTargetDate) : null,
           gapResolvedAt: dto.gapResolvedAt ? new Date(dto.gapResolvedAt) : null,
-          ...this.lookupDw.itemResponse(dto.response),
-          ...this.lookupDw.optionalGapSeverity(dto.gapSeverity ?? null),
-          ...this.lookupDw.optionalGapStatus(dto.gapStatus ?? null),
+          response: dto.response,
+          gapSeverity: dto.gapSeverity ?? null,
+          gapStatus: dto.gapStatus ?? null,
           createdAt: now,
           updatedAt: now,
           version: 1,
@@ -446,13 +416,13 @@ export class ComplianceService {
       };
 
       if (dto.response != null) {
-        Object.assign(data, this.lookupDw.itemResponse(dto.response));
+        data.response = dto.response;
       }
       if (dto.gapSeverity !== undefined) {
-        Object.assign(data, this.lookupDw.optionalGapSeverity(dto.gapSeverity ?? null));
+        data.gapSeverity = dto.gapSeverity ?? null;
       }
       if (dto.gapStatus !== undefined) {
-        Object.assign(data, this.lookupDw.optionalGapStatus(dto.gapStatus ?? null));
+        data.gapStatus = dto.gapStatus ?? null;
       }
 
       const cas = await tx.complianceAssessmentItem.updateMany({
@@ -564,9 +534,9 @@ export class ComplianceService {
     id: string;
     centerId: string;
     standardsVersion: string;
-    assessmentType: AssessmentType;
+    assessmentType: string;
     assessmentDate: Date;
-    status: AssessmentStatus;
+    status: string;
     submittedById: string | null;
     submittedAt: Date | null;
     verifiedById: string | null;
@@ -583,9 +553,9 @@ export class ComplianceService {
       centerName: row.center.name,
       districtId: row.center.districtId,
       standardsVersion: row.standardsVersion,
-      assessmentType: row.assessmentType,
+      assessmentType: asDomainEnum<AssessmentType>(row.assessmentType),
       assessmentDate: row.assessmentDate,
-      status: row.status,
+      status: asDomainEnum<AssessmentStatus>(row.status),
       submittedById: row.submittedById,
       submittedAt: row.submittedAt,
       verifiedById: row.verifiedById,
@@ -601,13 +571,13 @@ export class ComplianceService {
     id: string;
     assessmentId: string;
     standardId: string;
-    response: ItemResponse;
+    response: string;
     score: Prisma.Decimal | null;
     evidenceNotes: string | null;
-    gapSeverity: GapSeverity | null;
+    gapSeverity: string | null;
     gapImprovementAction: string | null;
     gapTargetDate: Date | null;
-    gapStatus: GapStatus | null;
+    gapStatus: string | null;
     gapResolvedAt: Date | null;
     version: number;
     createdAt: Date;
@@ -617,13 +587,13 @@ export class ComplianceService {
       id: row.id,
       assessmentId: row.assessmentId,
       standardId: row.standardId,
-      response: row.response,
+      response: asDomainEnum<ItemResponse>(row.response),
       score: row.score ? row.score.toNumber() : null,
       evidenceNotes: row.evidenceNotes,
-      gapSeverity: row.gapSeverity,
+      gapSeverity: asDomainEnumNullable<GapSeverity>(row.gapSeverity),
       gapImprovementAction: row.gapImprovementAction,
       gapTargetDate: row.gapTargetDate,
-      gapStatus: row.gapStatus,
+      gapStatus: asDomainEnumNullable<GapStatus>(row.gapStatus),
       gapResolvedAt: row.gapResolvedAt,
       version: row.version,
       createdAt: row.createdAt,
@@ -633,7 +603,7 @@ export class ComplianceService {
 
   private toStandardDto(row: {
     id: string;
-    domain: StandardDomain;
+    domain: string;
     code: string;
     title: string;
     description: string | null;
@@ -645,7 +615,7 @@ export class ComplianceService {
   }): StandardResponseDto {
     return {
       id: row.id,
-      domain: row.domain,
+      domain: asDomainEnum<StandardDomain>(row.domain),
       code: row.code,
       title: row.title,
       description: row.description,

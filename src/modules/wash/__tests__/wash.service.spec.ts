@@ -2,10 +2,9 @@
  * WASH module tests.
  * Run: npx ts-node src/modules/wash/__tests__/wash.service.spec.ts
  */
+import { UserRole } from '../../../common/domain';
 import { ForbiddenException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import { OptimisticLockConflictException } from '../../../common/concurrency/optimistic-lock.exception';
-import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { WashService } from '../wash.service';
 
@@ -80,7 +79,7 @@ async function main() {
       },
     };
     const audit = { log: async () => undefined };
-    const service = new WashService(prisma as never, audit as never, createMockLookupResolver());
+    const service = new WashService(prisma as never, audit as never);
 
     const result = await service.listIndicators(
       user({ role: UserRole.caregiver, centerId: 'center-1' }),
@@ -103,11 +102,7 @@ async function main() {
         count: async () => 0,
       },
     };
-    const service = new WashService(
-      prisma as never,
-      { log: async () => undefined } as never,
-      createMockLookupResolver(),
-    );
+    const service = new WashService(prisma as never, { log: async () => undefined } as never);
 
     await service.listIndicators(
       user({ role: UserRole.district_focal_person, districtId: 'district-1' }),
@@ -139,7 +134,7 @@ async function main() {
         auditLogs.push(args);
       },
     };
-    const service = new WashService(prisma as never, audit as never, createMockLookupResolver());
+    const service = new WashService(prisma as never, audit as never);
 
     const result = await service.createIndicator(
       user({ role: UserRole.district_focal_person, districtId: 'district-1' }),
@@ -171,11 +166,7 @@ async function main() {
         return fn(tx);
       },
     };
-    const service = new WashService(
-      prisma as never,
-      { log: async () => undefined } as never,
-      createMockLookupResolver(),
-    );
+    const service = new WashService(prisma as never, { log: async () => undefined } as never);
 
     let threw = false;
     try {
@@ -198,11 +189,7 @@ async function main() {
           }),
       },
     };
-    const service = new WashService(
-      prisma as never,
-      { log: async () => undefined } as never,
-      createMockLookupResolver(),
-    );
+    const service = new WashService(prisma as never, { log: async () => undefined } as never);
 
     let threw = false;
     try {

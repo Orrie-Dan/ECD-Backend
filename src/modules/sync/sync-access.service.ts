@@ -1,5 +1,6 @@
+import { UserRole } from '../../common/domain';
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
-import { AuditAction, UserRole } from '@prisma/client';
+import { AuditAction } from '@prisma/client';
 import { isCenterStaffRole } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -144,6 +145,24 @@ export class SyncAccessService {
 
     if (!this.isCenterInScope(scope, centerId)) {
       return { allowed: false, reason: 'center out of scope' };
+    }
+
+    if (entityType === 'child' && operation === AuditAction.create) {
+      const homeVillageId =
+        typeof payload.homeVillageId === 'string' ? payload.homeVillageId : null;
+      if (!homeVillageId) {
+        return { allowed: false, reason: 'homeVillageId is required' };
+      }
+      const village = await this.prisma.administrativeUnit.findFirst({
+        where: { id: homeVillageId, level: 'village' },
+        select: { id: true },
+      });
+      if (!village) {
+        return {
+          allowed: false,
+          reason: 'homeVillageId does not reference an existing village',
+        };
+      }
     }
 
     return { allowed: true };

@@ -2,8 +2,8 @@
  * Children list districtId filter tests.
  * Run: npx ts-node src/modules/children/__tests__/children.list-district.spec.ts
  */
+import { UserRole } from '../../../common/domain';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ChildrenService } from '../children.service';
 

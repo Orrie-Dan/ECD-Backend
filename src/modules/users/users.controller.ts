@@ -1,3 +1,4 @@
+import { UserRole } from '../../common/domain';
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -7,7 +8,6 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
 import { ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';

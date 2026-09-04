@@ -1,6 +1,5 @@
+import { AdministrativeLevel, EcdCenterStatus } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { AdministrativeLevel, EcdCenterStatus } from '@prisma/client';
-
 export class AdminUnitResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;

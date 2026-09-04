@@ -1,6 +1,5 @@
+import { NutritionStatus } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { NutritionStatus } from '@prisma/client';
-
 export class NutritionScreeningResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;

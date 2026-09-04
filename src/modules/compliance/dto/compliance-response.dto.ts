@@ -1,14 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
 import {
   AssessmentStatus,
   AssessmentType,
-  ComplianceClassification,
   GapSeverity,
   GapStatus,
   ItemResponse,
   StandardDomain,
-} from '@prisma/client';
-
+} from '../../../common/domain';
+import { ApiProperty } from '@nestjs/swagger';
+import { ComplianceClassification } from '@prisma/client';
 export class AssessmentItemResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;

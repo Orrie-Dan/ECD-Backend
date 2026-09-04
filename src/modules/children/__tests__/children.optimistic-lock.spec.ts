@@ -1,5 +1,5 @@
+import { ChildStatus, UserRole } from '../../../common/domain';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { ChildStatus, UserRole } from '@prisma/client';
 import { assertCasApplied, classifyCasMiss } from '../../../common/concurrency/cas.util';
 import { OptimisticLockConflictException } from '../../../common/concurrency/optimistic-lock.exception';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
@@ -83,6 +83,8 @@ function createService(prisma: object) {
     centerFilter: () => ({ centerId: { in: ['center-a'] } }),
   };
   const mockNotifications = {
+    onChildEnrolled: async () => undefined,
+    onChildArchived: async () => undefined,
     findUserIdsByRoleAndCenter: async () => [],
     findUserIdsByRoleAndDistrict: async () => [],
     notifyAsync: () => {},

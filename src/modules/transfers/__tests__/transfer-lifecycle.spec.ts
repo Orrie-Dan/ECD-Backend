@@ -1,4 +1,4 @@
-import { ChildStatus, TransferStatus, UserRole } from '@prisma/client';
+import { ChildStatus, TransferStatus, UserRole } from '../../../common/domain';
 import { assertCenterAccess, canAccessCenter } from '../../../common/auth/scope.util';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { transferMapper } from '../mappers/transfer.mapper';

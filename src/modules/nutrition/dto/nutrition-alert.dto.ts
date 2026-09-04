@@ -1,6 +1,5 @@
+import { NutritionStatus } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { NutritionStatus } from '@prisma/client';
-
 export type NutritionAlertType = 'overdue_screening' | 'requires_referral' | 'severe_nutrition';
 
 export class NutritionAlertDto {

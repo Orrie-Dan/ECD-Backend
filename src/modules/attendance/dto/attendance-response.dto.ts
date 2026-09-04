@@ -1,4 +1,4 @@
-import { AbsentReason } from '@prisma/client';
+import { AbsentReason } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AttendanceResponseDto {

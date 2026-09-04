@@ -1,5 +1,6 @@
+import { ClassroomAssignmentReason, ClassroomGrade, ChildStatus } from '../../common/domain';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ClassroomAssignmentReason, ClassroomGrade, ChildStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -48,7 +49,7 @@ export class ClassroomsService {
       id: c.id,
       centerId: c.centerId,
       grade: c.grade,
-      label: GRADE_LABELS[c.grade],
+      label: GRADE_LABELS[c.grade as ClassroomGrade],
       childrenCount: c._count.children,
       createdAt: c.createdAt,
     }));
@@ -76,7 +77,7 @@ export class ClassroomsService {
       id: classroom.id,
       centerId: classroom.centerId,
       grade: classroom.grade,
-      label: GRADE_LABELS[classroom.grade],
+      label: GRADE_LABELS[classroom.grade as ClassroomGrade],
       childrenCount: classroom._count.children,
       createdAt: classroom.createdAt,
     };

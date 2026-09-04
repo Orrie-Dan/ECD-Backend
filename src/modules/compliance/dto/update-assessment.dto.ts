@@ -1,5 +1,5 @@
+import { AssessmentStatus } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { AssessmentStatus } from '@prisma/client';
 import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
 
 export class UpdateAssessmentDto {

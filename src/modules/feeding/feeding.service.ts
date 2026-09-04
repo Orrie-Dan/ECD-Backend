@@ -1,3 +1,4 @@
+import { DeviceStatus } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
@@ -5,13 +6,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { DeviceStatus, Prisma, RecordSyncStatus } from '@prisma/client';
+import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
-import { LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { FeedingDayResponseDto, FeedingMonthSummaryResponseDto } from './dto/feeding-response.dto';
@@ -26,7 +26,6 @@ export class FeedingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-    private readonly lookupResolver: LookupResolverService,
   ) {}
 
   async upsertDaily(user: AuthUser, dto: UpsertFeedingDayDto): Promise<FeedingDayResponseDto> {
@@ -190,12 +189,7 @@ export class FeedingService {
     const writeData = feedingMapper.toMonthWriteData(dto);
 
     const row = await this.prisma.$transaction(async (tx) => {
-      const foodSourceId = await this.lookupResolver.resolveCodedLookupId(
-        tx,
-        'foodSource',
-        writeData.foodSource,
-      );
-      const monthData = { ...writeData, foodSourceId };
+      const monthData = { ...writeData };
       const existing = await tx.centerFeedingMonthSummary.findFirst({
         where: {
           centerId: dto.centerId,

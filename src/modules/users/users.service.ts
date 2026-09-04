@@ -1,3 +1,4 @@
+import { UserAccountStatus, UserRole } from '../../common/domain';
 import {
   BadRequestException,
   ConflictException,
@@ -7,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, UserAccountStatus, UserRole } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
 import {
   assertCenterAccess,
@@ -29,6 +30,7 @@ import {
 } from './dto/user-response.dto';
 import { UserWithRelations, userMapper } from './mappers/user.mapper';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationDedupeKeys } from '../notifications/notification-dedupe';
 
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 /** Readable temp password length (unambiguous alphabet → ~59 bits at 10 chars). */
@@ -105,7 +107,7 @@ export class UsersService {
     this.logProvisioningSecrets(created.id, rawResetToken);
 
     if (centerId) {
-      this.notifications
+      void this.notifications
         .findUserIdsByRoleAndCenter(centerId, [UserRole.ecd_director])
         .then((ids) => {
           const filtered = ids.filter((id) => id !== created.id);
@@ -115,9 +117,15 @@ export class UsersService {
             message: `${created.fullName} (${mapped.role}) has been added to your center.`,
             entityType: 'user_account',
             entityId: created.id,
+            dedupeKey: NotificationDedupeKeys.userProvisioned(created.id),
           });
         })
-        .catch(() => {});
+        .catch((error: unknown) => {
+          this.logger.error(
+            `Failed to emit 'general' notification (event=user_provisioned) for created user ${created.id} (center=${centerId})`,
+            error instanceof Error ? error.stack : String(error),
+          );
+        });
     }
 
     return {

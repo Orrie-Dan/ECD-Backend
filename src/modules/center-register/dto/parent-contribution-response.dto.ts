@@ -1,6 +1,5 @@
+import { InKindItemType, ParentContributionType } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { InKindItemType, ParentContributionType } from '@prisma/client';
-
 export class ParentContributionResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;

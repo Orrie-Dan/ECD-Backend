@@ -1,6 +1,6 @@
+import { EcdCenterStatus } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { ComplianceClassification, EcdCenterStatus } from '@prisma/client';
-
+import { ComplianceClassification } from '@prisma/client';
 export class CenterResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;

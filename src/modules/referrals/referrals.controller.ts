@@ -1,3 +1,4 @@
+import { UserRole } from '../../common/domain';
 import {
   Body,
   Controller,
@@ -17,7 +18,6 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
 import {
   ApiDeviceIdHeader,
   ApiNotFoundError,

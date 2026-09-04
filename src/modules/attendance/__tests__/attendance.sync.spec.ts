@@ -1,4 +1,4 @@
-import { AbsentReason, AttendanceStatus } from '@prisma/client';
+import { AbsentReason, AttendanceStatus } from '../../../common/domain';
 import { SYNCABLE_ENTITY_TYPES } from '../../sync/sync.constants';
 import {
   presentToStatus,

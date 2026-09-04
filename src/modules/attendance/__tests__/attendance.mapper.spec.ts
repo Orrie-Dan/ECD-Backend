@@ -1,4 +1,4 @@
-import { AbsentReason, AttendanceStatus } from '@prisma/client';
+import { AbsentReason, AttendanceStatus } from '../../../common/domain';
 import {
   attendanceMapper,
   presentToStatus,

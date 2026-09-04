@@ -2,7 +2,7 @@
  * Reports service tests.
  * Run: npx ts-node src/modules/reports/__tests__/reports.service.spec.ts
  */
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../common/domain';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ReportsService } from '../reports.service';
 

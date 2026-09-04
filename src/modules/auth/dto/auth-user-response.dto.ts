@@ -1,6 +1,5 @@
+import { UserRole } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
-
 export class AuthCenterSummaryDto {
   @ApiProperty({ format: 'uuid' })
   id: string;

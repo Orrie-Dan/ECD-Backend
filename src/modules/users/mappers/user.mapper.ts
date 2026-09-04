@@ -1,10 +1,12 @@
 import {
   EducationLevel,
   PersonSex,
-  UserAccount,
   UserAccountStatus,
   UserRole,
-} from '@prisma/client';
+  asDomainEnum,
+  asDomainEnumNullable,
+} from '../../../common/domain';
+import { UserAccount } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -42,10 +44,10 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
       username: entity.username,
       fullName: entity.fullName,
       phone: entity.phone,
-      gender: entity.gender,
-      educationLevel: entity.educationLevel,
-      role: entity.role,
-      status: this.toApiStatus(entity.status),
+      gender: asDomainEnumNullable<PersonSex>(entity.gender),
+      educationLevel: asDomainEnumNullable<EducationLevel>(entity.educationLevel),
+      role: asDomainEnum<UserRole>(entity.role),
+      status: this.toApiStatus(asDomainEnum<UserAccountStatus>(entity.status)),
       district: entity.district ? { id: entity.district.id, name: entity.district.name } : null,
       center: entity.center
         ? {

@@ -1,4 +1,4 @@
-import { StedAgeBand } from '@prisma/client';
+import { StedAgeBand } from '../../../common/domain';
 import { SYNCABLE_ENTITY_TYPES } from '../../sync/sync.constants';
 import { resolveStedAgeBandFromPayload, toApiAgeBand } from '../mappers/sted.mapper';
 

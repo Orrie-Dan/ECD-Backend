@@ -1,4 +1,4 @@
-import { ChildGender, ChildStatus } from '@prisma/client';
+import { ChildGender, ChildStatus } from '../../../common/domain';
 import {
   childMapper,
   resolveChildGenderFromPayload,

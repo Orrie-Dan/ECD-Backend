@@ -2,7 +2,7 @@
  * Sync pull keyset pagination tests.
  * Run: npx ts-node src/modules/sync/__tests__/sync-pull-pagination.spec.ts
  */
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../common/domain';
 import { randomUUID } from 'crypto';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { SyncService } from '../sync.service';
@@ -77,7 +77,6 @@ function createPullHarness(children: ChildRow[]) {
     child: {
       findMany: async ({
         where,
-        orderBy,
         take,
       }: {
         where: Record<string, unknown>;

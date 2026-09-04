@@ -1,5 +1,5 @@
+import { AdministrativeLevel } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { AdministrativeLevel } from '@prisma/client';
 import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 
 export class ListAdminUnitsQueryDto {

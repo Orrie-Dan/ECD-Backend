@@ -1,9 +1,9 @@
+import { UserRole } from '../../common/domain';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, RecordSyncStatus, UserRole } from '@prisma/client';
+import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateWashIndicatorDto } from './dto/create-wash-indicator.dto';
@@ -16,15 +16,10 @@ import {
 
 @Injectable()
 export class WashService {
-  private readonly lookupResolver: LookupResolverService;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-    lookupResolver: LookupResolverService,
-  ) {
-    this.lookupResolver = lookupResolver;
-  }
+  ) {}
 
   async listIndicators(
     user: AuthUser,
@@ -94,11 +89,6 @@ export class WashService {
 
     const result = await this.prisma.$transaction(async (tx) => {
       const waterSourceType = dto.waterSourceType ?? null;
-      const waterSourceTypeId = await this.lookupResolver.resolveCodedLookupId(
-        tx,
-        'waterSourceType',
-        waterSourceType,
-      );
 
       const created = await tx.washIndicator.create({
         data: {
@@ -106,7 +96,6 @@ export class WashService {
           recordedDate,
           waterSourceAvailable: dto.waterSourceAvailable,
           waterSourceType,
-          waterSourceTypeId,
           sanitationFacilityAvailable: dto.sanitationFacilityAvailable,
           latrineCount: dto.latrineCount ?? null,
           handwashingFacilityAvailable: dto.handwashingFacilityAvailable,
@@ -204,13 +193,7 @@ export class WashService {
       };
 
       if (dto.waterSourceType !== undefined) {
-        const waterSourceType = dto.waterSourceType ?? null;
-        data.waterSourceType = waterSourceType;
-        data.waterSourceTypeId = await this.lookupResolver.resolveCodedLookupId(
-          tx,
-          'waterSourceType',
-          waterSourceType,
-        );
+        data.waterSourceType = dto.waterSourceType ?? null;
       }
 
       const cas = await tx.washIndicator.updateMany({

@@ -1,4 +1,10 @@
-import { AbsentReason, AttendanceRecord, AttendanceStatus } from '@prisma/client';
+import {
+  AbsentReason,
+  asDomainEnum,
+  asDomainEnumNullable,
+  AttendanceStatus,
+} from '../../../common/domain';
+import { AttendanceRecord } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { AttendanceBatchRecordDto } from '../dto/attendance-batch.dto';
 import { AttendanceResponseDto } from '../dto/attendance-response.dto';
@@ -77,8 +83,8 @@ export class AttendanceMapper implements Mapper<AttendanceEntity, AttendanceResp
       childId: entity.childId,
       centerId: entity.centerId,
       date: toAttendanceDateKey(entity.attendanceDate),
-      present: statusToPresent(entity.status),
-      absentReason: entity.absentReason,
+      present: statusToPresent(asDomainEnum<AttendanceStatus>(entity.status)),
+      absentReason: asDomainEnumNullable<AbsentReason>(entity.absentReason),
       notes: entity.notes,
       recordedBy: entity.recordedById,
       version: entity.version,

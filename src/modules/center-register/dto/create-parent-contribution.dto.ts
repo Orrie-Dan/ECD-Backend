@@ -1,5 +1,5 @@
+import { InKindItemType, ParentContributionType } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { InKindItemType, ParentContributionType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsDateString,

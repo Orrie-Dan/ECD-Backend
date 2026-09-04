@@ -2,8 +2,8 @@
  * Settings module tests.
  * Run: npx ts-node src/modules/settings/__tests__/settings.service.spec.ts
  */
+import { UserRole } from '../../../common/domain';
 import { ForbiddenException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { SettingsService } from '../settings.service';
 

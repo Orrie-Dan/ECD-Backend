@@ -1,6 +1,5 @@
+import { EducationLevel, PersonSex, UserRole } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { EducationLevel, PersonSex, UserRole } from '@prisma/client';
-
 /** API lifecycle status (maps from Prisma active/inactive). */
 export type ApiUserStatus = 'ACTIVE' | 'SUSPENDED';
 

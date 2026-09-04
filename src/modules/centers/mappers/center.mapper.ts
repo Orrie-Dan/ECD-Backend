@@ -1,4 +1,5 @@
-import { EcdCenter, Prisma } from '@prisma/client';
+import { EcdCenterStatus, asDomainEnum, asDomainEnumNullable } from '../../../common/domain';
+import { EcdCenter, ComplianceClassification, Prisma } from '@prisma/client';
 import { CenterDetailResponseDto, CenterResponseDto } from '../dto/center-response.dto';
 
 export type CenterListRow = EcdCenter & {
@@ -36,12 +37,14 @@ export const centerMapper = {
       capacity: row.capacity,
       latitude: decimalToNumber(row.latitude),
       longitude: decimalToNumber(row.longitude),
-      status: row.status,
+      status: asDomainEnum<EcdCenterStatus>(row.status),
       districtId: row.districtId,
       districtName: row.district?.name ?? null,
       villageId: row.villageId,
       villageName: row.village?.name ?? null,
-      currentComplianceLevel: row.currentComplianceLevel,
+      currentComplianceLevel: asDomainEnumNullable<ComplianceClassification>(
+        row.currentComplianceLevel,
+      ),
       currentComplianceAssessedAt: row.currentComplianceAssessedAt,
       activeChildrenCount: row._count?.children ?? 0,
       version: row.version,

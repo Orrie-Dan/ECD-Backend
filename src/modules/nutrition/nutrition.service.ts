@@ -1,20 +1,13 @@
+import { ChildStatus, DeviceStatus, NutritionStatus, asDomainEnum } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  ChildStatus,
-  DeviceStatus,
-  NutritionStatus,
-  Prisma,
-  RecordSyncStatus,
-  UserRole,
-} from '@prisma/client';
+import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -35,7 +28,7 @@ import {
   deriveRequiresReferral,
   nutritionMapper,
 } from './mappers/nutrition.mapper';
-import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationEventsService } from '../notifications/notification-events.service';
 
 /** Active children with no screening within this window are overdue. */
 const OVERDUE_SCREENING_DAYS = 30;
@@ -47,17 +40,12 @@ const OVERDUE_SCREENING_DAYS = 30;
  */
 @Injectable()
 export class NutritionService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
-    private readonly notifications: NotificationsService,
-    private readonly lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(lookupResolver);
-  }
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   async createScreening(
     user: AuthUser,
@@ -71,11 +59,6 @@ export class NutritionService {
 
     const created = await this.prisma.$transaction(async (tx) => {
       const mealQuality = dto.mealQuality?.trim() ?? null;
-      const mealQualityId = await this.lookupResolver.resolveCodedLookupId(
-        tx,
-        'mealQuality',
-        mealQuality,
-      );
       const row = await tx.childNutritionScreening.create({
         data: {
           id: randomUUID(),
@@ -86,10 +69,9 @@ export class NutritionService {
           heightCm: dto.heightCm != null ? new Prisma.Decimal(dto.heightCm) : null,
           headCircumferenceCm:
             dto.headCircumferenceCm != null ? new Prisma.Decimal(dto.headCircumferenceCm) : null,
-          ...this.lookupDw.nutritionStatus(dto.nutritionStatus),
+          nutritionStatus: dto.nutritionStatus,
           requiresReferral,
           mealQuality,
-          mealQualityId,
           feedingConcern: dto.feedingConcern ?? false,
           dietNotes: dto.dietNotes?.trim() ?? null,
           recordedById: user.id,
@@ -115,33 +97,13 @@ export class NutritionService {
       return row;
     });
 
-    if (
-      dto.nutritionStatus === NutritionStatus.severe ||
-      dto.nutritionStatus === NutritionStatus.moderate
-    ) {
-      const statusLabel = dto.nutritionStatus === NutritionStatus.severe ? 'severe' : 'moderate';
-      const notifData = {
-        type: 'nutrition_alert' as const,
-        title: `${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)} nutrition status`,
-        message: `A child has been screened with ${statusLabel} nutrition status.`,
-        entityType: 'child_nutrition_screening',
-        entityId: created.id,
-      };
-
-      Promise.all([
-        this.notifications.findUserIdsByRoleAndCenter(child.centerId, [UserRole.ecd_director]),
-        child.center.districtId
-          ? this.notifications.findUserIdsByRoleAndDistrict(child.center.districtId, [
-              UserRole.district_focal_person,
-            ])
-          : Promise.resolve([]),
-      ])
-        .then(([centerIds, districtIds]) => {
-          const allIds = [...new Set([...centerIds, ...districtIds])];
-          this.notifications.notifyAsync(allIds, notifData);
-        })
-        .catch(() => {});
-    }
+    void this.notificationEvents.onNutritionScreeningCreated({
+      screeningId: created.id,
+      nutritionStatus: dto.nutritionStatus,
+      requiresReferral,
+      centerId: child.centerId,
+      districtId: child.center.districtId,
+    });
 
     return nutritionMapper.toDto(created);
   }
@@ -362,7 +324,7 @@ export class NutritionService {
             centerName: row.child.center.name,
             screeningId: row.id,
             screeningDate: row.screeningDate,
-            nutritionStatus: row.nutritionStatus,
+            nutritionStatus: asDomainEnum<NutritionStatus>(row.nutritionStatus),
             requiresReferral: row.requiresReferral,
             message: 'Child has a severe nutrition screening',
           });
@@ -378,7 +340,7 @@ export class NutritionService {
             centerName: row.child.center.name,
             screeningId: row.id,
             screeningDate: row.screeningDate,
-            nutritionStatus: row.nutritionStatus,
+            nutritionStatus: asDomainEnum<NutritionStatus>(row.nutritionStatus),
             requiresReferral: true,
             message: 'Child requires nutrition referral',
           });
@@ -436,7 +398,9 @@ export class NutritionService {
           centerName: child.center.name,
           screeningId: latest?.id ?? null,
           screeningDate: latest?.screeningDate ?? null,
-          nutritionStatus: latest?.nutritionStatus ?? null,
+          nutritionStatus: latest?.nutritionStatus
+            ? asDomainEnum<NutritionStatus>(latest.nutritionStatus)
+            : null,
           requiresReferral: latest?.requiresReferral ?? null,
           message: latest
             ? `No nutrition screening within the last ${OVERDUE_SCREENING_DAYS} days`
@@ -502,7 +466,7 @@ export class NutritionService {
     muacCm: Prisma.Decimal | number;
     heightCm: Prisma.Decimal | number | null;
     headCircumferenceCm: Prisma.Decimal | number | null;
-    nutritionStatus: NutritionStatus;
+    nutritionStatus: string;
     requiresReferral: boolean;
     recordedById: string;
     version: number;
@@ -512,7 +476,7 @@ export class NutritionService {
       middleName: string | null;
       lastName: string | null;
       dateOfBirth: Date;
-      gender: NutritionScreeningListItemDto['childGender'];
+      gender: string;
       centerId: string;
       center: { id: string; name: string };
     };
@@ -532,7 +496,7 @@ export class NutritionService {
       childId: row.childId,
       childFullName,
       childDateOfBirth: row.child.dateOfBirth,
-      childGender: row.child.gender,
+      childGender: asDomainEnum(row.child.gender) as NutritionScreeningListItemDto['childGender'],
       centerId: row.child.centerId,
       centerName: row.child.center.name,
       screeningDate: row.screeningDate,
@@ -540,7 +504,7 @@ export class NutritionService {
       muacCm,
       heightCm: decimalToNumber(row.heightCm),
       headCircumferenceCm: decimalToNumber(row.headCircumferenceCm),
-      nutritionStatus: row.nutritionStatus,
+      nutritionStatus: asDomainEnum<NutritionStatus>(row.nutritionStatus),
       requiresReferral: row.requiresReferral,
       recordedById: row.recordedById,
       version: row.version,

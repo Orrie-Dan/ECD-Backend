@@ -1,5 +1,5 @@
+import { AssessmentType } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { AssessmentType } from '@prisma/client';
 import { IsDateString, IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateAssessmentDto {

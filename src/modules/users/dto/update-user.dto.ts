@@ -1,5 +1,5 @@
+import { EducationLevel, PersonSex } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { EducationLevel, PersonSex } from '@prisma/client';
 import { IsEnum, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ApiUserStatus } from './user-response.dto';
 

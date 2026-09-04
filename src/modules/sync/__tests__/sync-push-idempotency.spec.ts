@@ -1,4 +1,5 @@
-import { AuditAction, DeviceStatus, SyncOperationStatus } from '@prisma/client';
+import { DeviceStatus } from '../../../common/domain';
+import { AuditAction, Prisma, SyncOperationStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { SyncService } from '../sync.service';
 
@@ -18,6 +19,8 @@ type OpRow = {
   createdAt: Date;
   processedAt: Date | null;
 };
+
+type FindManyFn = (...args: unknown[]) => unknown;
 
 function assert(name: string, fn: () => void | Promise<void>) {
   return (async () => {
@@ -136,7 +139,6 @@ function createHarness() {
   };
 
   // Patch create to use a Prisma-like error class the service recognizes.
-  const { Prisma } = require('@prisma/client');
   prisma.syncOperation.create = async ({ data }: { data: OpRow }) => {
     if (data.clientOperationId) {
       const key = `${data.deviceId}|${data.clientOperationId}`;
@@ -299,10 +301,10 @@ async function main() {
 
     // Clear findMany prefetch so push thinks it's new, then create hits P2002.
     const originalFindMany = (
-      service as unknown as { prisma: { syncOperation: { findMany: Function } } }
+      service as unknown as { prisma: { syncOperation: { findMany: FindManyFn } } }
     ).prisma.syncOperation.findMany;
     (
-      service as unknown as { prisma: { syncOperation: { findMany: Function } } }
+      service as unknown as { prisma: { syncOperation: { findMany: FindManyFn } } }
     ).prisma.syncOperation.findMany = async () => [];
 
     const result = await service.push(user as never, {
@@ -319,7 +321,7 @@ async function main() {
     });
 
     (
-      service as unknown as { prisma: { syncOperation: { findMany: Function } } }
+      service as unknown as { prisma: { syncOperation: { findMany: FindManyFn } } }
     ).prisma.syncOperation.findMany = originalFindMany;
 
     eq(result.operations[0].replayed, true);

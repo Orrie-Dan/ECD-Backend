@@ -1,6 +1,5 @@
+import { ChildGender, NutritionStatus } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { ChildGender, NutritionStatus } from '@prisma/client';
-
 /**
  * Screening list row for District operational reads.
  * Extends core screening measurements with child/center identity

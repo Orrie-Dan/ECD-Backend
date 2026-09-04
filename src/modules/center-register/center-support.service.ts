@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { CenterSupportCategory, asDomainEnum } from '../../common/domain';
 import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CenterRegisterAccessService } from './center-register-access.service';
@@ -27,16 +27,11 @@ type SupportRow = Prisma.CenterSupportGetPayload<{
 
 @Injectable()
 export class CenterSupportService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly access: CenterRegisterAccessService,
-    lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(lookupResolver);
-  }
+  ) {}
 
   async list(
     user: AuthUser,
@@ -87,7 +82,7 @@ export class CenterSupportService {
         data: {
           centerId: dto.centerId,
           receivedDate: new Date(dto.receivedDate),
-          ...this.lookupDw.centerSupportCategory(dto.supportCategory),
+          supportCategory: dto.supportCategory,
           description: dto.description.trim(),
           quantity: dto.quantity ?? null,
           unit: dto.unit?.trim() || null,
@@ -158,7 +153,7 @@ export class CenterSupportService {
       };
 
       if (dto.supportCategory !== undefined) {
-        Object.assign(data, this.lookupDw.centerSupportCategory(dto.supportCategory));
+        data.supportCategory = dto.supportCategory;
       }
 
       const cas = await tx.centerSupport.updateMany({
@@ -221,7 +216,7 @@ export class CenterSupportService {
       centerName: row.center.name,
       districtId: row.center.districtId,
       receivedDate: row.receivedDate,
-      supportCategory: row.supportCategory,
+      supportCategory: asDomainEnum<CenterSupportCategory>(row.supportCategory),
       description: row.description,
       quantity: toNumberOrNull(row.quantity),
       unit: row.unit,

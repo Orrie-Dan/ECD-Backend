@@ -1,5 +1,5 @@
+import { CenterSupportCategory } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CenterSupportCategory } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsDateString,

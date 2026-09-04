@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
 import {
   AttendanceStatus,
   ChildStatus,
   NutritionStatus,
-  Prisma,
-  ReferralStatus,
   TransferStatus,
-} from '@prisma/client';
+} from '../../common/domain';
+import { Injectable } from '@nestjs/common';
+import { Prisma, ReferralStatus } from '@prisma/client';
 import {
   centerIdWhere,
   childCenterWhere,

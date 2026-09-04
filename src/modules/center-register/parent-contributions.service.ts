@@ -1,9 +1,14 @@
+import {
+  ParentContributionType,
+  asDomainEnum,
+  asDomainEnumNullable,
+  InKindItemType,
+} from '../../common/domain';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ParentContributionType, Prisma, RecordSyncStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CenterRegisterAccessService } from './center-register-access.service';
@@ -29,16 +34,11 @@ type ContributionRow = Prisma.ParentContributionGetPayload<{
 
 @Injectable()
 export class ParentContributionsService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly access: CenterRegisterAccessService,
-    lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(lookupResolver);
-  }
+  ) {}
 
   async list(
     user: AuthUser,
@@ -136,12 +136,12 @@ export class ParentContributionsService {
           contributorName: dto.contributorName.trim(),
           contributorPhone: dto.contributorPhone?.trim() || null,
           contributionDate: new Date(dto.contributionDate),
-          ...this.lookupDw.parentContributionType(dto.contributionType),
+          contributionType: dto.contributionType,
           ...(dto.contributionType === ParentContributionType.cash
-            ? { amount: dto.amount!, itemType: null, itemTypeId: null }
+            ? { amount: dto.amount!, itemType: null }
             : {
                 amount: null,
-                ...this.lookupDw.optionalInKindItemType(dto.itemType!),
+                itemType: dto.itemType!,
               }),
           quantity: dto.quantity ?? null,
           unit: dto.unit?.trim() || null,
@@ -151,7 +151,7 @@ export class ParentContributionsService {
           createdAt: now,
           updatedAt: now,
           version: 1,
-          syncStatus: RecordSyncStatus.synced,
+          syncStatus: 'synced',
           lastModifiedAt: now,
         },
         include: {
@@ -193,7 +193,11 @@ export class ParentContributionsService {
     const nextType = dto.contributionType ?? existing.contributionType;
     const nextAmount = dto.amount !== undefined ? dto.amount : toNumberOrNull(existing.amount);
     const nextItemType = dto.itemType !== undefined ? dto.itemType : existing.itemType;
-    this.assertContributionShape(nextType, nextAmount, nextItemType);
+    this.assertContributionShape(
+      asDomainEnum<ParentContributionType>(nextType),
+      nextAmount,
+      nextItemType,
+    );
 
     const now = new Date();
     const oldValues = toAuditJson({
@@ -218,18 +222,18 @@ export class ParentContributionsService {
           description: dto.description?.trim() || null,
         }),
         ...(dto.notes !== undefined && { notes: dto.notes }),
-        ...(nextType === ParentContributionType.cash ? { itemType: null, itemTypeId: null } : { amount: null }),
+        ...(nextType === ParentContributionType.cash ? { itemType: null } : { amount: null }),
         version: { increment: 1 },
         updatedAt: now,
-        syncStatus: RecordSyncStatus.synced,
+        syncStatus: 'synced',
         lastModifiedAt: now,
       };
 
       if (dto.contributionType !== undefined) {
-        Object.assign(data, this.lookupDw.parentContributionType(dto.contributionType));
+        data.contributionType = dto.contributionType;
       }
       if (nextType === ParentContributionType.in_kind && dto.itemType !== undefined) {
-        Object.assign(data, this.lookupDw.optionalInKindItemType(dto.itemType));
+        data.itemType = dto.itemType;
       }
 
       const cas = await tx.parentContribution.updateMany({
@@ -362,9 +366,9 @@ export class ParentContributionsService {
       contributorName: row.contributorName,
       contributorPhone: row.contributorPhone,
       contributionDate: row.contributionDate,
-      contributionType: row.contributionType,
+      contributionType: asDomainEnum<ParentContributionType>(row.contributionType),
       amount: toNumberOrNull(row.amount),
-      itemType: row.itemType,
+      itemType: asDomainEnumNullable<InKindItemType>(row.itemType),
       quantity: toNumberOrNull(row.quantity),
       unit: row.unit,
       description: row.description,

@@ -1,14 +1,12 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   AttendanceStatus,
   ChildStatus,
   DeviceStatus,
-  Prisma,
-  RecordSyncStatus,
-  ReferralStatus,
   UserAccountStatus,
   UserRole,
-} from '@prisma/client';
+} from '../../common/domain';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, RecordSyncStatus, ReferralStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import {
   assertCenterAccess,
@@ -16,7 +14,6 @@ import {
   isCenterStaffRole,
 } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import {
@@ -30,15 +27,10 @@ import { CenterDetailRow, CenterListRow, centerMapper } from './mappers/center.m
 
 @Injectable()
 export class CentersService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
-    private readonly lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(this.lookupResolver);
-  }
+  ) {}
 
   async findAll(user: AuthUser, query: ListCentersQueryDto): Promise<PaginatedCentersResponseDto> {
     const page = query.page ?? 1;
@@ -203,7 +195,7 @@ export class CentersService {
           ...(dto.longitude !== undefined && {
             longitude: dto.longitude == null ? null : dto.longitude,
           }),
-          ...(dto.status != null && this.lookupDw.ecdCenterStatus(dto.status)),
+          ...(dto.status != null && { status: dto.status }),
           ...(dto.villageId != null && { villageId: dto.villageId }),
           updatedAt: now,
           updatedById: user.id,

@@ -1,5 +1,5 @@
+import { TransferStatus } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { TransferStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsEnum, IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
 

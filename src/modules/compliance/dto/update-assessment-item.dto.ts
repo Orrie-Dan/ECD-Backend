@@ -1,5 +1,5 @@
+import { GapSeverity, GapStatus, ItemResponse } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { GapSeverity, GapStatus, ItemResponse } from '@prisma/client';
 import {
   IsDateString,
   IsEnum,

@@ -1,8 +1,7 @@
+import { NutritionStatus } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDateString, IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
-import { NutritionStatus } from '@prisma/client';
-
 /**
  * Query for GET /nutrition/screenings — paginated operational screening list.
  * Date bounds are inclusive UTC date-only on `screeningDate` (no default range).

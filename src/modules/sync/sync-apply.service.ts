@@ -1,18 +1,19 @@
+import {
+  AbsentReason,
+  AssessmentStatus,
+  ChildStatus,
+  TransferStatus,
+  asDomainEnum,
+} from '../../common/domain';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AuditAction,
-  AbsentReason,
-  AttendanceStatus,
-  ChildGender,
-  ChildStatus,
   Prisma,
   RecordSyncStatus,
   ReferralStatus,
   SyncOperationStatus,
-  TransferStatus,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransferLifecycleService } from '../transfers/transfer-lifecycle.service';
 import {
@@ -36,6 +37,7 @@ import {
   resolveChildNationalIdFromPayload,
 } from '../children/mappers/child.mapper';
 import { CHILD_SCOPED_ENTITY_TYPES, SyncableEntityType } from './sync.constants';
+import { SyncNotificationBridgeService } from './sync-notification-bridge.service';
 
 type JsonPayload = Record<string, unknown>;
 
@@ -67,16 +69,13 @@ type CasOutcome =
 @Injectable()
 export class SyncApplyService {
   private readonly logger = new Logger(SyncApplyService.name);
-  private readonly lookupDw: LookupDualWrite;
 
   constructor(
     private readonly prisma: PrismaService,
     @Inject(forwardRef(() => TransferLifecycleService))
     private readonly transferLifecycle: TransferLifecycleService,
-    private readonly lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(this.lookupResolver);
-  }
+    private readonly syncNotifications: SyncNotificationBridgeService,
+  ) {}
 
   async apply(context: ApplyContext): Promise<ApplyResult> {
     switch (context.operation) {
@@ -134,6 +133,7 @@ export class SyncApplyService {
       }
 
       await this.createRecord(context);
+      await this.emitCreateNotifications(context);
       return { status: SyncOperationStatus.applied, entityId: context.entityId };
     } catch (error) {
       if (isRetryableApplyError(error)) {
@@ -216,6 +216,10 @@ export class SyncApplyService {
         entityId: context.entityId,
       };
     }
+
+    await this.runNotificationSideEffect('transfer_created', () =>
+      this.syncNotifications.afterTransferCreated(result.transfer.id),
+    );
 
     return {
       status: SyncOperationStatus.applied,
@@ -301,13 +305,11 @@ export class SyncApplyService {
     });
 
     const foodSource = String(payload.foodSource);
-    const foodSourceId = await this.lookupResolver.resolveCodedLookupId(db, 'foodSource', foodSource);
 
     const data = {
       milkLiters: new Prisma.Decimal(String(payload.milkLiters ?? 0)),
       flourKg: new Prisma.Decimal(String(payload.flourKg ?? 0)),
       foodSource,
-      foodSourceId,
       updatedById:
         typeof (payload.updatedById ?? payload.recordedById ?? payload.recordedBy) === 'string'
           ? String(payload.updatedById ?? payload.recordedById ?? payload.recordedBy)
@@ -397,12 +399,11 @@ export class SyncApplyService {
     const absentReason = resolveAbsentReasonFromPayload(payload, status);
     const meta = this.syncMeta(context.deviceId, Math.max(1, context.clientVersion || 1));
     const fieldData = {
-      ...this.lookupDw.attendanceStatus(status),
-      ...this.lookupDw.absentReason(absentReason),
+      status,
+      absentReason,
       broughtBy: (payload.broughtBy as string) ?? null,
       broughtByOther: (payload.broughtByOther as string) ?? null,
       arrivedAt: payload.arrivedAt ? new Date(String(payload.arrivedAt)) : null,
-      absentReason,
       notes: (payload.notes as string) ?? null,
       recordedById: String(payload.recordedById ?? payload.recordedBy),
       deletedAt: null,
@@ -541,9 +542,55 @@ export class SyncApplyService {
       return this.applyReferralUpdate(context);
     }
 
+    let childBeforeStatus: ChildStatus | null = null;
+    let complianceBeforeStatus: AssessmentStatus | null = null;
+    const payload = context.payload;
+
+    if (context.entityType === 'child' && payload.status != null) {
+      const child = await this.db(context).child.findUnique({
+        where: { id: context.entityId },
+        select: { status: true },
+      });
+      childBeforeStatus = child?.status ? asDomainEnum<ChildStatus>(child.status) : null;
+    }
+
+    if (context.entityType === 'compliance_assessment' && payload.status != null) {
+      const assessment = await this.db(context).complianceAssessment.findUnique({
+        where: { id: context.entityId },
+        select: { status: true },
+      });
+      complianceBeforeStatus = assessment?.status
+        ? asDomainEnum<AssessmentStatus>(assessment.status)
+        : null;
+    }
+
     try {
       const outcome = await this.casUpdate(context);
       if (outcome.kind === 'applied') {
+        if (
+          context.entityType === 'child' &&
+          childBeforeStatus != null &&
+          payload.status === ChildStatus.archived &&
+          childBeforeStatus !== ChildStatus.archived
+        ) {
+          await this.runNotificationSideEffect('child_archived', () =>
+            this.syncNotifications.afterChildArchived(context.entityId),
+          );
+        }
+
+        if (
+          context.entityType === 'compliance_assessment' &&
+          complianceBeforeStatus != null &&
+          payload.status != null
+        ) {
+          await this.runNotificationSideEffect('compliance_status_changed', () =>
+            this.syncNotifications.afterComplianceStatusChanged(
+              context.entityId,
+              complianceBeforeStatus!,
+            ),
+          );
+        }
+
         return { status: SyncOperationStatus.applied, entityId: context.entityId };
       }
       if (outcome.kind === 'not_found') {
@@ -661,6 +708,10 @@ export class SyncApplyService {
           };
         }
 
+        await this.runNotificationSideEffect('transfer_accepted', () =>
+          this.syncNotifications.afterTransferAccepted(result.transfer.id),
+        );
+
         return {
           status: SyncOperationStatus.applied,
           entityId: result.transfer.id,
@@ -682,6 +733,10 @@ export class SyncApplyService {
           entityId: context.entityId,
         };
       }
+
+      await this.runNotificationSideEffect('transfer_cancelled', () =>
+        this.syncNotifications.afterTransferCancelled(result.transfer.id),
+      );
 
       return {
         status: SyncOperationStatus.applied,
@@ -724,6 +779,8 @@ export class SyncApplyService {
       };
     }
 
+    let nextStatusForNotification: ReferralStatus | null = null;
+
     if (payload.status != null) {
       let nextStatus: ReferralStatus;
       try {
@@ -743,11 +800,22 @@ export class SyncApplyService {
           entityId: context.entityId,
         };
       }
+
+      nextStatusForNotification = nextStatus;
     }
 
     try {
       const outcome = await this.casUpdate(context);
       if (outcome.kind === 'applied') {
+        if (nextStatusForNotification) {
+          await this.runNotificationSideEffect('referral_status_updated', () =>
+            this.syncNotifications.afterReferralStatusUpdated(
+              context.entityId,
+              nextStatusForNotification!,
+            ),
+          );
+        }
+
         return { status: SyncOperationStatus.applied, entityId: context.entityId };
       }
       if (outcome.kind === 'not_found') {
@@ -832,9 +900,7 @@ export class SyncApplyService {
               ...(payload.lastName !== undefined && {
                 lastName: (payload.lastName as string) ?? null,
               }),
-              ...(payload.status != null && { status: payload.status as never }),
-              ...(payload.status != null &&
-                this.lookupDw.childStatus(payload.status as ChildStatus)),
+              ...(payload.status != null && { status: payload.status as ChildStatus }),
               ...(payload.specialNeeds !== undefined && {
                 specialNeeds: (payload.specialNeeds as string) ?? null,
               }),
@@ -878,11 +944,10 @@ export class SyncApplyService {
 
         if (typeof payload.present === 'boolean' || payload.status != null) {
           const status = resolveAttendanceStatusFromPayload(payload);
-          Object.assign(data, this.lookupDw.attendanceStatus(status));
-          Object.assign(data, this.lookupDw.absentReason(resolveAbsentReasonFromPayload(payload, status)));
+          data.status = status;
+          data.absentReason = resolveAbsentReasonFromPayload(payload, status);
         } else if (payload.absentReason !== undefined) {
-          const reason = (payload.absentReason as AbsentReason | null) ?? null;
-          Object.assign(data, this.lookupDw.absentReason(reason));
+          data.absentReason = (payload.absentReason as AbsentReason | null) ?? null;
         }
 
         if (payload.broughtBy !== undefined) {
@@ -919,8 +984,6 @@ export class SyncApplyService {
                 capacity: payload.capacity != null ? Number(payload.capacity) : null,
               }),
               ...(payload.status != null && { status: payload.status as never }),
-              ...(payload.status != null &&
-                this.lookupDw.ecdCenterStatus(payload.status as never)),
               ...meta,
             },
           })
@@ -932,15 +995,9 @@ export class SyncApplyService {
             where,
             data: {
               ...(payload.status != null && { status: payload.status as never }),
-              ...(payload.status != null &&
-                this.lookupDw.assessmentStatus(payload.status as never)),
               ...(payload.overallClassification !== undefined && {
                 overallClassification: (payload.overallClassification as never) ?? null,
               }),
-              ...(payload.overallClassification !== undefined &&
-                this.lookupDw.assessmentOverallClassification(
-                  (payload.overallClassification as never) ?? null,
-                )),
               ...(payload.submittedById !== undefined && {
                 submittedById: (payload.submittedById as string) ?? null,
               }),
@@ -960,8 +1017,6 @@ export class SyncApplyService {
               ...(payload.response != null && {
                 response: payload.response as never,
               }),
-              ...(payload.response != null &&
-                this.lookupDw.itemResponse(payload.response as never)),
               ...(payload.score !== undefined && {
                 score: payload.score != null ? new Prisma.Decimal(String(payload.score)) : null,
               }),
@@ -971,16 +1026,12 @@ export class SyncApplyService {
               ...(payload.gapSeverity !== undefined && {
                 gapSeverity: (payload.gapSeverity as never) ?? null,
               }),
-              ...(payload.gapSeverity !== undefined &&
-                this.lookupDw.optionalGapSeverity((payload.gapSeverity as never) ?? null)),
               ...(payload.gapImprovementAction !== undefined && {
                 gapImprovementAction: (payload.gapImprovementAction as string) ?? null,
               }),
               ...(payload.gapStatus !== undefined && {
                 gapStatus: (payload.gapStatus as never) ?? null,
               }),
-              ...(payload.gapStatus !== undefined &&
-                this.lookupDw.optionalGapStatus((payload.gapStatus as never) ?? null)),
               ...meta,
             },
           })
@@ -992,19 +1043,14 @@ export class SyncApplyService {
           washData.waterSourceAvailable = Boolean(payload.waterSourceAvailable);
         }
         if (payload.waterSourceType !== undefined) {
-          const waterSourceType = (payload.waterSourceType as string) ?? null;
-          washData.waterSourceType = waterSourceType;
-          washData.waterSourceTypeId = await this.lookupResolver.resolveCodedLookupId(
-            db,
-            'waterSourceType',
-            waterSourceType,
-          );
+          washData.waterSourceType = (payload.waterSourceType as string) ?? null;
         }
         if (payload.sanitationFacilityAvailable != null) {
           washData.sanitationFacilityAvailable = Boolean(payload.sanitationFacilityAvailable);
         }
         if (payload.latrineCount !== undefined) {
-          washData.latrineCount = payload.latrineCount != null ? Number(payload.latrineCount) : null;
+          washData.latrineCount =
+            payload.latrineCount != null ? Number(payload.latrineCount) : null;
         }
         if (payload.handwashingFacilityAvailable != null) {
           washData.handwashingFacilityAvailable = Boolean(payload.handwashingFacilityAvailable);
@@ -1062,13 +1108,7 @@ export class SyncApplyService {
           monthData.flourKg = new Prisma.Decimal(String(payload.flourKg));
         }
         if (payload.foodSource != null) {
-          const foodSource = String(payload.foodSource);
-          monthData.foodSource = foodSource;
-          monthData.foodSourceId = await this.lookupResolver.resolveCodedLookupId(
-            db,
-            'foodSource',
-            foodSource,
-          );
+          monthData.foodSource = String(payload.foodSource);
         }
         if (payload.updatedById !== undefined) {
           monthData.updatedById = (payload.updatedById as string) ?? null;
@@ -1082,7 +1122,7 @@ export class SyncApplyService {
         let nextStatus: ReferralStatus | undefined;
         if (payload.status != null) {
           nextStatus = resolveReferralStatusFromPayload(payload);
-          Object.assign(data, this.lookupDw.referralStatus(nextStatus));
+          data.status = nextStatus;
         }
         if (payload.notes !== undefined) {
           data.notes = (payload.notes as string) ?? null;
@@ -1271,6 +1311,27 @@ export class SyncApplyService {
       case 'child': {
         const gender = resolveChildGenderFromPayload(payload);
         const status = (payload.status as ChildStatus | undefined) ?? ChildStatus.active;
+        const centerId = String(payload.centerId);
+        const homeVillageId = String(payload.homeVillageId);
+
+        // Validate FK targets before Prisma create — invalid ids are permanent
+        // failures, not P2003 retry loops.
+        const center = await db.ecdCenter.findFirst({
+          where: { id: centerId, deletedAt: null },
+          select: { id: true },
+        });
+        if (!center) {
+          throw new Error('centerId does not reference an existing ECD center');
+        }
+
+        const homeVillage = await db.administrativeUnit.findUnique({
+          where: { id: homeVillageId },
+          select: { id: true },
+        });
+        if (!homeVillage) {
+          throw new Error('homeVillageId does not reference an existing administrative unit');
+        }
+
         await db.child.create({
           data: {
             id,
@@ -1278,10 +1339,10 @@ export class SyncApplyService {
             firstName: String(payload.firstName),
             middleName: (payload.middleName as string) ?? null,
             lastName: (payload.lastName as string) ?? null,
-            centerId: String(payload.centerId),
+            centerId,
             dateOfBirth: new Date(String(payload.dateOfBirth)),
-            ...this.lookupDw.childGender(gender),
-            ...this.lookupDw.childStatus(status),
+            gender,
+            status,
             specialNeeds: (payload.specialNeeds as string) ?? null,
             disabilityNotes: (payload.disabilityNotes as string) ?? null,
             guardianName: String(payload.guardianName),
@@ -1290,7 +1351,7 @@ export class SyncApplyService {
             guardian2Name: (payload.guardian2Name as string) ?? null,
             guardian2Phone: (payload.guardian2Phone as string) ?? null,
             guardian2Relation: (payload.guardian2Relation as string) ?? null,
-            homeVillageId: String(payload.homeVillageId),
+            homeVillageId,
             registeredAt: new Date(String(payload.registeredAt)),
             archiveReason: (payload.archiveReason as string) ?? null,
             archivedAt: payload.archivedAt ? new Date(String(payload.archivedAt)) : null,
@@ -1325,8 +1386,8 @@ export class SyncApplyService {
             childId: String(payload.childId),
             centerId,
             attendanceDate: new Date(String(attendanceDateRaw)),
-            ...this.lookupDw.attendanceStatus(status),
-            ...this.lookupDw.absentReason(absentReason),
+            status,
+            absentReason,
             broughtBy: (payload.broughtBy as string) ?? null,
             broughtByOther: (payload.broughtByOther as string) ?? null,
             arrivedAt: payload.arrivedAt ? new Date(String(payload.arrivedAt)) : null,
@@ -1347,11 +1408,6 @@ export class SyncApplyService {
           payload.requiresReferral != null ? Boolean(payload.requiresReferral) : undefined,
         );
         const mealQuality = (payload.mealQuality as string) ?? null;
-        const mealQualityId = await this.lookupResolver.resolveCodedLookupId(
-          db,
-          'mealQuality',
-          mealQuality,
-        );
 
         await db.childNutritionScreening.create({
           data: {
@@ -1366,10 +1422,9 @@ export class SyncApplyService {
               payload.headCircumferenceCm != null
                 ? new Prisma.Decimal(String(payload.headCircumferenceCm))
                 : null,
-            ...this.lookupDw.nutritionStatus(nutritionStatus),
+            nutritionStatus,
             requiresReferral,
             mealQuality,
-            mealQualityId,
             feedingConcern: Boolean(payload.feedingConcern ?? false),
             dietNotes: (payload.dietNotes as string) ?? null,
             recordedById: String(payload.recordedById ?? payload.recordedBy),
@@ -1401,7 +1456,7 @@ export class SyncApplyService {
             childId: String(payload.childId),
             centerId,
             assessmentDate: new Date(String(payload.assessmentDate)),
-            ...this.lookupDw.stedAgeBand(ageBand),
+            ageBand,
             consentObtained: Boolean(payload.consentObtained ?? false),
             physicalAssessment: (payload.physicalAssessment ?? {}) as Prisma.InputJsonValue,
             milestoneResults: (payload.milestoneResults ?? {}) as Prisma.InputJsonValue,
@@ -1434,7 +1489,7 @@ export class SyncApplyService {
             capacity: payload.capacity != null ? Number(payload.capacity) : null,
             latitude: payload.latitude != null ? Number(payload.latitude) : null,
             longitude: payload.longitude != null ? Number(payload.longitude) : null,
-            ...(centerStatus != null ? this.lookupDw.ecdCenterStatus(centerStatus) : {}),
+            ...(centerStatus != null ? { status: centerStatus } : {}),
             ...meta,
           },
         });
@@ -1449,14 +1504,12 @@ export class SyncApplyService {
             id,
             centerId: String(payload.centerId),
             standardsVersion: String(payload.standardsVersion),
-            ...this.lookupDw.assessmentType(assessmentType),
+            assessmentType,
             assessmentDate: new Date(String(payload.assessmentDate)),
-            ...(assessmentStatus != null
-              ? this.lookupDw.assessmentStatus(assessmentStatus)
-              : {}),
+            ...(assessmentStatus != null ? { status: assessmentStatus } : {}),
             submittedById: (payload.submittedById as string) ?? null,
             verifiedById: (payload.verifiedById as string) ?? null,
-            ...this.lookupDw.assessmentOverallClassification(overallClassification),
+            overallClassification,
             ...meta,
           },
         });
@@ -1471,13 +1524,13 @@ export class SyncApplyService {
             id,
             assessmentId: String(payload.assessmentId),
             standardId: String(payload.standardId),
-            ...this.lookupDw.itemResponse(response),
+            response,
             score: payload.score != null ? new Prisma.Decimal(String(payload.score)) : null,
             evidenceNotes: (payload.evidenceNotes as string) ?? null,
-            ...this.lookupDw.optionalGapSeverity(gapSeverity),
+            gapSeverity,
             gapImprovementAction: (payload.gapImprovementAction as string) ?? null,
             gapTargetDate: payload.gapTargetDate ? new Date(String(payload.gapTargetDate)) : null,
-            ...this.lookupDw.optionalGapStatus(gapStatus),
+            gapStatus,
             gapResolvedAt: payload.gapResolvedAt ? new Date(String(payload.gapResolvedAt)) : null,
             ...meta,
           },
@@ -1486,11 +1539,6 @@ export class SyncApplyService {
       }
       case 'wash_indicator': {
         const waterSourceType = (payload.waterSourceType as string) ?? null;
-        const waterSourceTypeId = await this.lookupResolver.resolveCodedLookupId(
-          db,
-          'waterSourceType',
-          waterSourceType,
-        );
         await db.washIndicator.create({
           data: {
             id,
@@ -1498,7 +1546,6 @@ export class SyncApplyService {
             recordedDate: new Date(String(payload.recordedDate)),
             waterSourceAvailable: Boolean(payload.waterSourceAvailable ?? false),
             waterSourceType,
-            waterSourceTypeId,
             sanitationFacilityAvailable: Boolean(payload.sanitationFacilityAvailable ?? false),
             latrineCount: payload.latrineCount != null ? Number(payload.latrineCount) : null,
             handwashingFacilityAvailable: Boolean(payload.handwashingFacilityAvailable ?? false),
@@ -1546,12 +1593,12 @@ export class SyncApplyService {
             id,
             childId: String(payload.childId),
             centerId,
-            ...this.lookupDw.referralSourceType(sourceType),
+            sourceType,
             sourceId: String(payload.sourceId),
             referralDate: new Date(String(payload.referralDate)),
             reason: String(payload.reason),
             destination: String(payload.destination),
-            ...this.lookupDw.referralStatus(status),
+            status,
             implementedAt: payload.implementedAt ? new Date(String(payload.implementedAt)) : null,
             notes: (payload.notes as string) ?? null,
             recordedById,
@@ -1564,6 +1611,28 @@ export class SyncApplyService {
       }
       default:
         throw new Error(`Unsupported entity type: ${context.entityType}`);
+    }
+  }
+
+  private async emitCreateNotifications(context: ApplyContext): Promise<void> {
+    await this.runNotificationSideEffect('entity_created', () =>
+      this.syncNotifications.afterEntityCreated(context.entityType, context.entityId),
+    );
+  }
+
+  private async runNotificationSideEffect(
+    label: string,
+    sideEffect: () => Promise<void>,
+  ): Promise<void> {
+    try {
+      await sideEffect();
+    } catch (error) {
+      this.logger.error(
+        `Post-sync notification side-effect failed (${label}): ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
   }
 }

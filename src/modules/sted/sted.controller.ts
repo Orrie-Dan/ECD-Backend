@@ -1,3 +1,4 @@
+import { UserRole } from '../../common/domain';
 import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -7,7 +8,6 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
 import { ListPaginationQueryDto } from '../../common/dto/list-pagination-query.dto';
 import { ApiDeviceIdHeader, ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';

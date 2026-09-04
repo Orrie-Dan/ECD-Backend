@@ -1,3 +1,4 @@
+import { ChildStatus, DeviceStatus } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
@@ -6,16 +7,12 @@ import {
 } from '@nestjs/common';
 import {
   AuditAction as PrismaAuditAction,
-  ChildStatus,
-  DeviceStatus,
   Prisma,
   RecordSyncStatus,
   SyncOperationStatus,
-  UserRole,
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { assertDistrictAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -29,21 +26,16 @@ import { ReactivateChildDto } from './dto/reactivate-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { ChildWithRelations, childMapper } from './mappers/child.mapper';
 import { ClassroomsService } from '../classrooms/classrooms.service';
-import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationEventsService } from '../notifications/notification-events.service';
 
 @Injectable()
 export class ChildrenService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
-    private readonly notifications: NotificationsService,
-    private readonly lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(this.lookupResolver);
-  }
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   async create(user: AuthUser, dto: CreateChildDto): Promise<ChildDetailResponseDto> {
     if (!dto.fullName && !dto.firstName) {
@@ -60,6 +52,7 @@ export class ChildrenService {
 
     const scope = await this.syncAccess.resolveScope(user);
     await this.assertCenterAccess(scope, dto.centerId, user);
+    await this.assertHomeVillageExists(dto.homeVillageId);
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
     const mapped = childMapper.toCreateData(dto);
 
@@ -74,7 +67,7 @@ export class ChildrenService {
           middleName: mapped.middleName,
           lastName: mapped.lastName,
           dateOfBirth: new Date(dto.dateOfBirth),
-          ...this.lookupDw.childGender(mapped.gender),
+          gender: mapped.gender,
           centerId: mapped.centerId,
           nationalId: dto.nationalId.trim(),
           homeVillageId: dto.homeVillageId,
@@ -88,7 +81,7 @@ export class ChildrenService {
           disabilityNotes: mapped.disabilityNotes,
           classroomId: dto.classroomId ?? null,
           registeredAt: dto.registeredAt ? new Date(dto.registeredAt) : now,
-          ...this.lookupDw.childStatus(ChildStatus.active),
+          status: ChildStatus.active,
           createdById: user.id,
           updatedById: user.id,
           version: 1,
@@ -141,18 +134,12 @@ export class ChildrenService {
       return final;
     });
 
-    this.notifications
-      .findUserIdsByRoleAndCenter(dto.centerId, [UserRole.ecd_director])
-      .then((ids) => {
-        this.notifications.notifyAsync(ids, {
-          type: 'child_enrolled',
-          title: 'New child enrolled',
-          message: `${child.firstName} ${child.lastName ?? ''} has been enrolled.`.trim(),
-          entityType: 'child',
-          entityId: child.id,
-        });
-      })
-      .catch(() => {});
+    void this.notificationEvents.onChildEnrolled({
+      childId: child.id,
+      centerId: dto.centerId,
+      firstName: child.firstName,
+      lastName: child.lastName,
+    });
 
     return childMapper.toDetailDto(child as ChildWithRelations);
   }
@@ -250,6 +237,10 @@ export class ChildrenService {
       await this.assertCenterAccess(scope, dto.centerId, user);
     }
 
+    if (dto.homeVillageId != null) {
+      await this.assertHomeVillageExists(dto.homeVillageId);
+    }
+
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
     const mapped = childMapper.toUpdateData(dto);
     const now = new Date();
@@ -270,7 +261,7 @@ export class ChildrenService {
           ...(dto.dateOfBirth != null && {
             dateOfBirth: new Date(dto.dateOfBirth),
           }),
-          ...(mapped.gender != null && this.lookupDw.childGender(mapped.gender)),
+          ...(mapped.gender != null && { gender: mapped.gender }),
           ...(mapped.centerId != null && { centerId: mapped.centerId }),
           ...(dto.homeVillageId != null && { homeVillageId: dto.homeVillageId }),
           ...(dto.guardianName != null && {
@@ -372,7 +363,7 @@ export class ChildrenService {
           status: { not: ChildStatus.archived },
         },
         data: {
-          ...this.lookupDw.childStatus(ChildStatus.archived),
+          status: ChildStatus.archived,
           archivedAt: now,
           archiveReason: dto.archiveReason?.trim() ?? existing.archiveReason,
           updatedAt: now,
@@ -419,18 +410,12 @@ export class ChildrenService {
       return updated;
     });
 
-    this.notifications
-      .findUserIdsByRoleAndCenter(existing.centerId, [UserRole.caregiver])
-      .then((ids) => {
-        this.notifications.notifyAsync(ids, {
-          type: 'child_archived',
-          title: 'Child archived',
-          message: `${existing.firstName} ${existing.lastName ?? ''} has been archived.`.trim(),
-          entityType: 'child',
-          entityId: existing.id,
-        });
-      })
-      .catch(() => {});
+    void this.notificationEvents.onChildArchived({
+      childId: existing.id,
+      centerId: existing.centerId,
+      firstName: existing.firstName,
+      lastName: existing.lastName,
+    });
 
     return childMapper.toDetailDto(child as ChildWithRelations);
   }
@@ -458,7 +443,7 @@ export class ChildrenService {
           status: ChildStatus.archived,
         },
         data: {
-          ...this.lookupDw.childStatus(ChildStatus.active),
+          status: ChildStatus.active,
           archivedAt: null,
           archiveReason: null,
           updatedAt: now,
@@ -572,11 +557,9 @@ export class ChildrenService {
   }
 
   private plainChild(child: ChildWithRelations | Record<string, unknown>): Record<string, unknown> {
-    const {
-      center: _center,
-      homeVillage: _homeVillage,
-      ...plain
-    } = child as ChildWithRelations & Record<string, unknown>;
+    const { center, homeVillage, ...plain } = child as ChildWithRelations & Record<string, unknown>;
+    void center;
+    void homeVillage;
     return plain;
   }
 
@@ -596,6 +579,16 @@ export class ChildrenService {
     }
 
     return child as ChildWithRelations;
+  }
+
+  private async assertHomeVillageExists(homeVillageId: string): Promise<void> {
+    const village = await this.prisma.administrativeUnit.findFirst({
+      where: { id: homeVillageId, level: 'village' },
+      select: { id: true },
+    });
+    if (!village) {
+      throw new NotFoundException('Village not found');
+    }
   }
 
   private async assertCenterAccess(

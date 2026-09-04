@@ -2,8 +2,8 @@
  * Geo module tests.
  * Run: npx ts-node src/modules/geo/__tests__/geo.service.spec.ts
  */
+import { AdministrativeLevel, UserRole } from '../../../common/domain';
 import { ForbiddenException } from '@nestjs/common';
-import { AdministrativeLevel, UserRole } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { GeoService } from '../geo.service';
 
@@ -41,6 +41,53 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
 }
 
 async function main() {
+  await assert('listAdminUnits: district + village resolves via sector/cell chain', async () => {
+    const districtId = '861e2b35-18c3-4836-a4c6-0df0ef47bb29';
+    const sectorId = 'sector-1';
+    const cellId = 'cell-1';
+    let findManyCalls = 0;
+    const prisma = {
+      administrativeUnit: {
+        findMany: async (args: { where: Record<string, unknown> }) => {
+          findManyCalls += 1;
+          if (findManyCalls === 1) {
+            eq(args.where.level, AdministrativeLevel.sector);
+            eq(args.where.districtId, districtId);
+            return [{ id: sectorId }];
+          }
+          if (findManyCalls === 2) {
+            eq(args.where.level, AdministrativeLevel.cell);
+            return [{ id: cellId }];
+          }
+          eq(args.where.level, AdministrativeLevel.village);
+          return [
+            {
+              id: 'village-karambira',
+              level: AdministrativeLevel.village,
+              parentId: cellId,
+              districtId,
+              name: 'Karambira',
+              code: 'karambira',
+              latitude: null,
+              longitude: null,
+              createdAt: new Date(),
+            },
+          ];
+        },
+      },
+    };
+    const service = new GeoService(prisma as never);
+
+    const result = await service.listAdminUnits(user({ role: UserRole.ncda_admin }), {
+      districtId,
+      level: AdministrativeLevel.village,
+    });
+
+    eq(result.length, 1);
+    eq(result[0].name, 'Karambira');
+    eq(findManyCalls, 3);
+  });
+
   await assert('listAdminUnits: ncda can list all', async () => {
     const prisma = {
       administrativeUnit: {

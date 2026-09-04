@@ -1,20 +1,13 @@
+import { DeviceStatus } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  DeviceStatus,
-  Prisma,
-  RecordSyncStatus,
-  ReferralSourceType,
-  ReferralStatus,
-  UserRole,
-} from '@prisma/client';
+import { Prisma, RecordSyncStatus, ReferralSourceType, ReferralStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -34,7 +27,7 @@ import {
   toDbReferralSourceType,
   toDbReferralStatus,
 } from './mappers/referral.mapper';
-import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationEventsService } from '../notifications/notification-events.service';
 
 export type CreateReferralFromSignalInput = {
   childId: string;
@@ -50,17 +43,12 @@ export type CreateReferralFromSignalInput = {
 
 @Injectable()
 export class ReferralsService {
-  private readonly lookupDw: LookupDualWrite;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly syncAccess: SyncAccessService,
     private readonly audit: AuditService,
-    private readonly notifications: NotificationsService,
-    private readonly lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(this.lookupResolver);
-  }
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   async create(user: AuthUser, dto: CreateReferralDto): Promise<ReferralResponseDto> {
     const child = await this.getAccessibleChild(user, dto.childId);
@@ -82,12 +70,12 @@ export class ReferralsService {
           id: randomUUID(),
           childId: child.id,
           centerId: dto.centerId,
-          ...this.lookupDw.referralSourceType(mapped.sourceType),
+          sourceType: mapped.sourceType,
           sourceId: dto.sourceId,
           referralDate: mapped.referralDate,
           reason: mapped.reason,
           destination: mapped.destination,
-          ...this.lookupDw.referralStatus(ReferralStatus.pending),
+          status: ReferralStatus.pending,
           notes: mapped.notes,
           recordedById: user.id,
           version: 1,
@@ -112,18 +100,11 @@ export class ReferralsService {
       return row;
     });
 
-    this.notifications
-      .findUserIdsByRoleAndCenter(dto.centerId, [UserRole.ecd_director])
-      .then((ids) => {
-        this.notifications.notifyAsync(ids, {
-          type: 'referral_created',
-          title: 'New referral created',
-          message: `A new ${dto.sourceType} referral has been created.`,
-          entityType: 'referral',
-          entityId: created.id,
-        });
-      })
-      .catch(() => {});
+    void this.notificationEvents.onReferralCreated({
+      referralId: created.id,
+      centerId: dto.centerId,
+      sourceType: dto.sourceType,
+    });
 
     return referralMapper.toDto(created);
   }
@@ -248,7 +229,7 @@ export class ReferralsService {
           deletedAt: null,
         },
         data: {
-          ...this.lookupDw.referralStatus(nextStatus),
+          status: nextStatus,
           implementedAt,
           ...(dto.notes !== undefined ? { notes: dto.notes?.trim() || null } : {}),
           updatedAt: now,
@@ -295,18 +276,11 @@ export class ReferralsService {
       return row;
     });
 
-    this.notifications
-      .findUserIdsByRoleAndCenter(referral.centerId, [UserRole.ecd_director, UserRole.caregiver])
-      .then((ids) => {
-        this.notifications.notifyAsync(ids, {
-          type: 'referral_updated',
-          title: 'Referral status updated',
-          message: `A referral has been updated to ${dto.status}.`,
-          entityType: 'referral',
-          entityId: referral.id,
-        });
-      })
-      .catch(() => {});
+    void this.notificationEvents.onReferralStatusUpdated({
+      referralId: referral.id,
+      centerId: referral.centerId,
+      status: dto.status,
+    });
 
     return referralMapper.toDto(updated);
   }
@@ -345,12 +319,12 @@ export class ReferralsService {
           id: randomUUID(),
           childId: input.childId,
           centerId: input.centerId,
-          ...this.lookupDw.referralSourceType(sourceType),
+          sourceType,
           sourceId: input.sourceId,
           referralDate: new Date(`${input.referralDate.slice(0, 10)}T00:00:00.000Z`),
           reason: input.reason.trim(),
           destination: input.destination.trim(),
-          ...this.lookupDw.referralStatus(ReferralStatus.pending),
+          status: ReferralStatus.pending,
           notes: input.notes?.trim() || null,
           recordedById: input.recordedById,
           version: 1,

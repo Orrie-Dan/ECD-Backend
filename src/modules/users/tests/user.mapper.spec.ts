@@ -1,4 +1,4 @@
-import { UserAccountStatus, UserRole } from '@prisma/client';
+import { UserAccountStatus, UserRole } from '../../../common/domain';
 import { userMapper } from '../mappers/user.mapper';
 import { UserWithRelations } from '../mappers/user.mapper';
 

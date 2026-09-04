@@ -1,7 +1,7 @@
+import { UserRole } from '../../common/domain';
 import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
-import { ApiAuthErrors, ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
+import { ApiNotFoundError, ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';

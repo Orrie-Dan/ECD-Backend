@@ -1,5 +1,5 @@
+import { UserRole } from '../domain';
 import { ForbiddenException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import { UserContext } from '../interfaces/user-context.interface';
 
 /** Fields required for scope decisions (subset of UserContext). */

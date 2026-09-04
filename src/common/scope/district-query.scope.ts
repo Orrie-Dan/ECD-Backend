@@ -1,5 +1,5 @@
+import { AdministrativeLevel, UserRole } from '../domain';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { AdministrativeLevel, UserRole } from '@prisma/client';
 import { assertCenterAccess, assertDistrictAccess, isCenterStaffRole } from '../auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../../modules/auth/interfaces/jwt-payload.interface';

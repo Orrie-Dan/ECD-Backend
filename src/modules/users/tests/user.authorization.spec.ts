@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../common/domain';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { UsersService } from '../users.service';
 

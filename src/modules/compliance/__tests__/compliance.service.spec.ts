@@ -2,10 +2,9 @@
  * Compliance module tests.
  * Run: npx ts-node src/modules/compliance/__tests__/compliance.service.spec.ts
  */
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { AssessmentStatus, AssessmentType, UserRole } from '@prisma/client';
+import { AssessmentStatus, AssessmentType, UserRole } from '../../../common/domain';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { OptimisticLockConflictException } from '../../../common/concurrency/optimistic-lock.exception';
-import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ComplianceService } from '../compliance.service';
 
@@ -81,19 +80,10 @@ async function main() {
       },
     };
     const audit = { log: async () => undefined };
-    const mockNotifications = {
-      findUserIdsByRoleAndCenter: async () => [],
-      findUserIdsByRoleAndDistrict: async () => [],
-      notifyAsync: () => {},
-      create: async () => ({}),
-      createForMultipleUsers: async () => 0,
-    } as any;
-    const service = new ComplianceService(
-      prisma as never,
-      audit as never,
-      mockNotifications,
-      createMockLookupResolver(),
-    );
+    const mockNotificationEvents = {
+      onComplianceAssessmentStatusChanged: async () => {},
+    } as never;
+    const service = new ComplianceService(prisma as never, audit as never, mockNotificationEvents);
 
     const result = await service.listAssessments(
       user({ role: UserRole.caregiver, centerId: 'center-1' }),
@@ -116,18 +106,13 @@ async function main() {
         count: async () => 0,
       },
     };
-    const mockNotifications = {
-      findUserIdsByRoleAndCenter: async () => [],
-      findUserIdsByRoleAndDistrict: async () => [],
-      notifyAsync: () => {},
-      create: async () => ({}),
-      createForMultipleUsers: async () => 0,
-    } as any;
+    const mockNotificationEvents = {
+      onComplianceAssessmentStatusChanged: async () => {},
+    } as never;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     );
 
     await service.listAssessments(
@@ -162,19 +147,10 @@ async function main() {
         auditLogs.push(args);
       },
     };
-    const mockNotifications = {
-      findUserIdsByRoleAndCenter: async () => [],
-      findUserIdsByRoleAndDistrict: async () => [],
-      notifyAsync: () => {},
-      create: async () => ({}),
-      createForMultipleUsers: async () => 0,
-    } as any;
-    const service = new ComplianceService(
-      prisma as never,
-      audit as never,
-      mockNotifications,
-      createMockLookupResolver(),
-    );
+    const mockNotificationEvents = {
+      onComplianceAssessmentStatusChanged: async () => {},
+    } as never;
+    const service = new ComplianceService(prisma as never, audit as never, mockNotificationEvents);
 
     const result = await service.createAssessment(user({ role: UserRole.ncda_admin }), {
       centerId: 'center-1',
@@ -200,18 +176,13 @@ async function main() {
         return fn(tx);
       },
     };
-    const mockNotifications = {
-      findUserIdsByRoleAndCenter: async () => [],
-      findUserIdsByRoleAndDistrict: async () => [],
-      notifyAsync: () => {},
-      create: async () => ({}),
-      createForMultipleUsers: async () => 0,
-    } as any;
+    const mockNotificationEvents = {
+      onComplianceAssessmentStatusChanged: async () => {},
+    } as never;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     );
 
     const result = await service.updateAssessment(
@@ -229,18 +200,13 @@ async function main() {
         findFirst: async () => assessmentRow({ status: AssessmentStatus.verified }),
       },
     };
-    const mockNotifications = {
-      findUserIdsByRoleAndCenter: async () => [],
-      findUserIdsByRoleAndDistrict: async () => [],
-      notifyAsync: () => {},
-      create: async () => ({}),
-      createForMultipleUsers: async () => 0,
-    } as any;
+    const mockNotificationEvents = {
+      onComplianceAssessmentStatusChanged: async () => {},
+    } as never;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     );
 
     let threw = false;
@@ -269,18 +235,13 @@ async function main() {
         return fn(tx);
       },
     };
-    const mockNotifications = {
-      findUserIdsByRoleAndCenter: async () => [],
-      findUserIdsByRoleAndDistrict: async () => [],
-      notifyAsync: () => {},
-      create: async () => ({}),
-      createForMultipleUsers: async () => 0,
-    } as any;
+    const mockNotificationEvents = {
+      onComplianceAssessmentStatusChanged: async () => {},
+    } as never;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     );
 
     let threw = false;
@@ -304,18 +265,13 @@ async function main() {
           }),
       },
     };
-    const mockNotifications = {
-      findUserIdsByRoleAndCenter: async () => [],
-      findUserIdsByRoleAndDistrict: async () => [],
-      notifyAsync: () => {},
-      create: async () => ({}),
-      createForMultipleUsers: async () => 0,
-    } as any;
+    const mockNotificationEvents = {
+      onComplianceAssessmentStatusChanged: async () => {},
+    } as never;
     const service = new ComplianceService(
       prisma as never,
       { log: async () => undefined } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     );
 
     let threw = false;

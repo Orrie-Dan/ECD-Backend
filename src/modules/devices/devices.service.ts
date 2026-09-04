@@ -1,5 +1,5 @@
+import { DeviceStatus, asDomainEnum } from '../../common/domain';
 import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
-import { DeviceStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -84,7 +84,7 @@ export class DevicesService {
     deviceUuid: string;
     platform: string | null;
     appVersion: string | null;
-    status: DeviceStatus;
+    status: string;
     lastSyncAt: Date | null;
     registeredAt: Date;
   }): DeviceResponse {
@@ -93,7 +93,7 @@ export class DevicesService {
       deviceUuid: device.deviceUuid,
       platform: device.platform,
       appVersion: device.appVersion,
-      status: device.status,
+      status: asDomainEnum<DeviceStatus>(device.status),
       // Schema column is last_sync_at; lastSeenAt kept for backwards compatibility.
       lastSeenAt: device.lastSyncAt,
       lastSyncAt: device.lastSyncAt,

@@ -1,4 +1,5 @@
-import { Prisma, StedAgeBand, StedAssessment } from '@prisma/client';
+import { StedAgeBand, asDomainEnum } from '../../../common/domain';
+import { Prisma, StedAssessment } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { CreateStedAssessmentDto } from '../dto/create-sted-assessment.dto';
 import { ApiStedAgeBand, StedAssessmentResponseDto } from '../dto/sted-response.dto';
@@ -114,7 +115,7 @@ export class StedMapper implements Mapper<StedAssessmentEntity, StedAssessmentRe
       childId: entity.childId,
       centerId: entity.centerId,
       assessmentDate: toDateKey(entity.assessmentDate)!,
-      ageBand: toApiAgeBand(entity.ageBand),
+      ageBand: toApiAgeBand(asDomainEnum<StedAgeBand>(entity.ageBand)),
       consentObtained: entity.consentObtained,
       physicalAssessment: asRecord(entity.physicalAssessment),
       milestoneResults: asRecord(entity.milestoneResults),

@@ -1,5 +1,6 @@
+import { UserRole } from '../../common/domain';
 import { Injectable } from '@nestjs/common';
-import { AuditAction, Prisma, UserRole } from '@prisma/client';
+import { AuditAction, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { AuditLogResponseDto, PaginatedAuditLogsResponseDto } from './dto/audit-log-response.dto';

@@ -1,3 +1,4 @@
+import { DeviceStatus, SyncSessionStatus } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
@@ -7,7 +8,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
-import { DeviceStatus, Prisma, SyncOperationStatus, SyncSessionStatus } from '@prisma/client';
+import { Prisma, SyncOperationStatus } from '@prisma/client';
 import { Queue } from 'bullmq';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';

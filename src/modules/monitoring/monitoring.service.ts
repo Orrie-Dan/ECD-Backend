@@ -1,11 +1,6 @@
+import { AttendanceStatus, ChildStatus, NutritionStatus } from '../../common/domain';
 import { Injectable } from '@nestjs/common';
-import {
-  AttendanceStatus,
-  ChildStatus,
-  NutritionStatus,
-  Prisma,
-  ReferralStatus,
-} from '@prisma/client';
+import { Prisma, ReferralStatus } from '@prisma/client';
 import {
   centerIdWhere,
   childCenterWhere,
@@ -1289,26 +1284,6 @@ export class MonitoringService {
 function daysInclusive(from: Date, to: Date): number {
   const ms = to.getTime() - from.getTime();
   return Math.floor(ms / (24 * 60 * 60 * 1000)) + 1;
-}
-
-function extractStedScore(outcome: unknown): number | null {
-  if (!outcome || typeof outcome !== 'object') return null;
-  const o = outcome as Record<string, unknown>;
-  for (const key of ['score', 'totalScore', 'overallScore', 'percentage']) {
-    const v = o[key];
-    if (typeof v === 'number' && !Number.isNaN(v)) return v;
-  }
-  return null;
-}
-
-function extractStedClassification(outcome: unknown): string | null {
-  if (!outcome || typeof outcome !== 'object') return null;
-  const o = outcome as Record<string, unknown>;
-  for (const key of ['classification', 'status', 'result', 'level']) {
-    const v = o[key];
-    if (typeof v === 'string' && v.trim()) return v.trim();
-  }
-  return null;
 }
 
 function emptyAttendance(

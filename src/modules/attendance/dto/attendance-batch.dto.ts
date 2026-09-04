@@ -1,3 +1,4 @@
+import { AbsentReason } from '../../../common/domain';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -15,7 +16,6 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { AbsentReason } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsAttendanceDate, UniqueChildDateInBatch } from '../validators/attendance.validators';
 

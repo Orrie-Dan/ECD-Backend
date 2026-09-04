@@ -1,6 +1,6 @@
+import { UserRole } from '../../common/domain';
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
 import { ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';

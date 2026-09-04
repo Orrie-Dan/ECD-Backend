@@ -1,4 +1,5 @@
-import { AuditAction, UserRole } from '@prisma/client';
+import { UserRole } from '../../../common/domain';
+import { AuditAction } from '@prisma/client';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import {
   AccessScope,
@@ -30,6 +31,9 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
 
 const emptyPrisma = {
   ecdCenter: { findMany: async () => [], findUnique: async () => null },
+  administrativeUnit: {
+    findFirst: async () => null,
+  },
   child: { findUnique: async () => null },
   attendanceRecord: { findUnique: async () => null },
   washIndicator: { findUnique: async () => null },
@@ -124,6 +128,24 @@ async function run() {
   });
 
   await assert('caregiver writing own center child CREATE → pass', async () => {
+    const childSvc = createService({
+      ...emptyPrisma,
+      administrativeUnit: {
+        findFirst: async () => ({ id: 'village-1' }),
+      },
+    });
+    const result = await childSvc.authorizeSyncWrite({
+      user: user({ role: UserRole.caregiver, centerId: 'center-a' }),
+      scope: { centerIds: ['center-a'], districtId: 'd1' },
+      entityType: 'child',
+      entityId: 'child-1',
+      operation: AuditAction.create,
+      payload: { centerId: 'center-a', homeVillageId: 'village-1' },
+    });
+    eq(result.allowed, true);
+  });
+
+  await assert('child CREATE without homeVillageId → reject', async () => {
     const result = await svc.authorizeSyncWrite({
       user: user({ role: UserRole.caregiver, centerId: 'center-a' }),
       scope: { centerIds: ['center-a'], districtId: 'd1' },
@@ -132,7 +154,23 @@ async function run() {
       operation: AuditAction.create,
       payload: { centerId: 'center-a' },
     });
-    eq(result.allowed, true);
+    eq(result.allowed, false);
+    if (!result.allowed) eq(result.reason, 'homeVillageId is required');
+  });
+
+  await assert('child CREATE with unknown homeVillageId → reject', async () => {
+    const result = await svc.authorizeSyncWrite({
+      user: user({ role: UserRole.caregiver, centerId: 'center-a' }),
+      scope: { centerIds: ['center-a'], districtId: 'd1' },
+      entityType: 'child',
+      entityId: 'child-1',
+      operation: AuditAction.create,
+      payload: { centerId: 'center-a', homeVillageId: 'missing-village' },
+    });
+    eq(result.allowed, false);
+    if (!result.allowed) {
+      eq(result.reason, 'homeVillageId does not reference an existing village');
+    }
   });
 
   await assert(

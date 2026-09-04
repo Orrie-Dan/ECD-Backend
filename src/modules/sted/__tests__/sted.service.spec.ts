@@ -1,7 +1,6 @@
+import { StedAgeBand, UserRole } from '../../../common/domain';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { StedAgeBand, UserRole } from '@prisma/client';
 import { canAccessCenter } from '../../../common/auth/scope.util';
-import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateStedAssessmentDto } from '../dto/create-sted-assessment.dto';
 import { StedService } from '../sted.service';
@@ -61,13 +60,9 @@ async function run() {
     }
   };
 
-  const mockNotifications = {
-    findUserIdsByRoleAndCenter: async () => [],
-    findUserIdsByRoleAndDistrict: async () => [],
-    notifyAsync: () => {},
-    create: async () => ({}),
-    createForMultipleUsers: async () => 0,
-  } as any;
+  const mockNotificationEvents = {
+    onStedAssessmentCreated: async () => {},
+  } as never;
 
   const caregiver = user({
     role: UserRole.caregiver,
@@ -115,8 +110,7 @@ async function run() {
     const result = await new StedService(
       prisma as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).create(caregiver, baseDto());
     eq(creates.length, 1);
     eq(creates[0].ageBand, StedAgeBand.band_1_3);
@@ -196,8 +190,7 @@ async function run() {
     const history = await new StedService(
       prisma as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).getHistory(caregiver, 'child-1');
     eq(history.items[0].id, 's2');
     eq(history.items[1].id, 's1');
@@ -227,8 +220,7 @@ async function run() {
       await new StedService(
         prisma as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).create(caregiver, baseDto({ childId: 'child-x', centerId: 'center-b' }));
     } catch (err) {
       caught = err;
@@ -253,8 +245,7 @@ async function run() {
       await new StedService(
         prisma as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).create(focal, baseDto({ childId: 'child-z', centerId: 'center-z' }));
     } catch (err) {
       caught = err;
@@ -295,8 +286,7 @@ async function run() {
     await new StedService(
       prisma as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     ).create(
       ncda,
       baseDto({
@@ -324,8 +314,7 @@ async function run() {
       await new StedService(
         prisma as never,
         { log: async () => {} } as never,
-        mockNotifications,
-        createMockLookupResolver(),
+        mockNotificationEvents,
       ).create(caregiver, baseDto({ consentObtained: false }));
     } catch (err) {
       caught = err;
@@ -366,8 +355,7 @@ async function run() {
     const svc = new StedService(
       prisma as never,
       { log: async () => {} } as never,
-      mockNotifications,
-      createMockLookupResolver(),
+      mockNotificationEvents,
     );
     await svc.create(caregiver, baseDto({ assessmentDate: '2026-08-01' }));
     await svc.create(caregiver, baseDto({ assessmentDate: '2026-08-15' }));

@@ -1,10 +1,11 @@
+import { UserRole } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, RecordSyncStatus, UserRole } from '@prisma/client';
+import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';

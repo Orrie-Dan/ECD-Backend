@@ -2,8 +2,8 @@
  * Centers module tests.
  * Run: npx ts-node src/modules/centers/__tests__/centers.service.spec.ts
  */
+import { EcdCenterStatus, UserRole } from '../../../common/domain';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { EcdCenterStatus, UserRole } from '@prisma/client';
 import { assertCasApplied } from '../../../common/concurrency/cas.util';
 import { OptimisticLockConflictException } from '../../../common/concurrency/optimistic-lock.exception';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
@@ -192,7 +192,6 @@ async function main() {
     const prisma = {
       ecdCenter: {
         findFirst: async ({
-          where,
           select,
         }: {
           where: { id: string; deletedAt: null; version?: number };

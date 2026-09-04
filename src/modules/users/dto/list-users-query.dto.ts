@@ -1,5 +1,5 @@
+import { UserRole } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsEnum, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 import { ApiUserStatus } from './user-response.dto';

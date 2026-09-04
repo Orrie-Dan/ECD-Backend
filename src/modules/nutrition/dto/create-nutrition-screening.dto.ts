@@ -1,3 +1,4 @@
+import { NutritionStatus } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -11,8 +12,6 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { NutritionStatus } from '@prisma/client';
-
 export class CreateNutritionScreeningDto {
   @ApiProperty({
     type: String,

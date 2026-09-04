@@ -7,7 +7,6 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
 import {
   ApiNotFoundError,
   ApiOptimisticLockConflict,

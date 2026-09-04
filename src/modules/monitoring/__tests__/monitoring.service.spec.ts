@@ -2,7 +2,7 @@
  * Monitoring service tests.
  * Run: npx ts-node src/modules/monitoring/__tests__/monitoring.service.spec.ts
  */
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../common/domain';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { MonitoringService } from '../monitoring.service';
 

@@ -1,6 +1,7 @@
+import { SyncSessionStatus, UserRole, asDomainEnum } from '../../common/domain';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { AuditAction, SyncOperationStatus, SyncSessionStatus } from '@prisma/client';
+import { AuditAction, SyncOperationStatus } from '@prisma/client';
 import { Job } from 'bullmq';
 import { AuditService, fromPrismaAuditAction } from '../../common/audit';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -281,7 +282,7 @@ export class SyncProcessor extends WorkerHost {
     username: string;
     email: string | null;
     fullName: string;
-    role: AuthUser['role'];
+    role: string;
     centerId: string | null;
     districtId: string | null;
     status: string;
@@ -291,7 +292,7 @@ export class SyncProcessor extends WorkerHost {
       username: user.username,
       email: user.email,
       fullName: user.fullName,
-      role: user.role,
+      role: asDomainEnum<UserRole>(user.role),
       centerId: user.centerId,
       districtId: user.districtId,
       status: user.status,

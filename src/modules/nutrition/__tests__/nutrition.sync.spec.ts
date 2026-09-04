@@ -1,4 +1,4 @@
-import { NutritionStatus } from '@prisma/client';
+import { NutritionStatus } from '../../../common/domain';
 import { deriveRequiresReferral } from '../mappers/nutrition.mapper';
 
 /**

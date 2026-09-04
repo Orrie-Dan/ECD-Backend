@@ -1,5 +1,5 @@
+import { EcdCenterStatus } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { EcdCenterStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 

@@ -1,4 +1,5 @@
-import { ChildNutritionScreening, NutritionStatus, Prisma } from '@prisma/client';
+import { NutritionStatus, asDomainEnum } from '../../../common/domain';
+import { ChildNutritionScreening, Prisma } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { GrowthChartResponseDto } from '../dto/growth-chart-response.dto';
 import { NutritionScreeningResponseDto } from '../dto/nutrition-screening-response.dto';
@@ -45,7 +46,7 @@ export class NutritionMapper implements Mapper<
       muacCm,
       heightCm: decimalToNumber(entity.heightCm),
       headCircumferenceCm: decimalToNumber(entity.headCircumferenceCm),
-      nutritionStatus: entity.nutritionStatus,
+      nutritionStatus: asDomainEnum<NutritionStatus>(entity.nutritionStatus),
       requiresReferral: entity.requiresReferral,
       mealQuality: entity.mealQuality,
       feedingConcern: entity.feedingConcern,

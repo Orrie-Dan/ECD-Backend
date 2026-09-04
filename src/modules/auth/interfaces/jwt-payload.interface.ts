@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../common/domain';
 import { UserContext } from '../../../common/interfaces/user-context.interface';
 
 export interface JwtPayload {

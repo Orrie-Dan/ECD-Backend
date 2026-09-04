@@ -1,5 +1,5 @@
+import { EducationLevel, PersonSex, UserRole } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EducationLevel, PersonSex, UserRole } from '@prisma/client';
 import {
   IsEnum,
   IsNotEmpty,

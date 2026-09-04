@@ -1,14 +1,7 @@
+import { ChildStatus, TransferStatus } from '../../common/domain';
 import { Injectable } from '@nestjs/common';
-import {
-  Child,
-  ChildStatus,
-  ChildTransfer,
-  Prisma,
-  RecordSyncStatus,
-  TransferStatus,
-} from '@prisma/client';
+import { Child, ChildTransfer, Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { LookupDualWrite, LookupResolverService } from '../../common/lookups';
 import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
 
 export type TransferLifecycleResult =
@@ -62,14 +55,7 @@ export type CancelTransferInput = {
  */
 @Injectable()
 export class TransferLifecycleService {
-  private readonly lookupDw: LookupDualWrite;
-
-  constructor(
-    private readonly audit: AuditService,
-    lookupResolver: LookupResolverService,
-  ) {
-    this.lookupDw = new LookupDualWrite(lookupResolver);
-  }
+  constructor(private readonly audit: AuditService) {}
 
   async createPending(
     tx: Prisma.TransactionClient,
@@ -113,7 +99,7 @@ export class TransferLifecycleService {
         status: { not: ChildStatus.archived },
       },
       data: {
-        ...this.lookupDw.childStatus(ChildStatus.transferred),
+        status: ChildStatus.transferred,
         updatedAt: now,
         ...(input.updatedById != null ? { updatedById: input.updatedById } : {}),
         version: { increment: 1 },
@@ -143,7 +129,7 @@ export class TransferLifecycleService {
         transferDate: input.transferDate,
         reason: input.reason,
         notes: input.notes ?? null,
-        ...this.lookupDw.transferStatus(TransferStatus.pending),
+        status: TransferStatus.pending,
         initiatedById: input.initiatedById,
         ...transferMeta,
       },
@@ -241,7 +227,7 @@ export class TransferLifecycleService {
         deletedAt: null,
       },
       data: {
-        ...this.lookupDw.transferStatus(TransferStatus.accepted),
+        status: TransferStatus.accepted,
         acceptedAt: now,
         acceptedById: input.acceptedById,
         updatedAt: now,
@@ -267,7 +253,7 @@ export class TransferLifecycleService {
       },
       data: {
         centerId: existing.toCenterId,
-        ...this.lookupDw.childStatus(ChildStatus.active),
+        status: ChildStatus.active,
         updatedAt: now,
         ...(input.updatedById != null ? { updatedById: input.updatedById } : {}),
         version: { increment: 1 },
@@ -373,7 +359,7 @@ export class TransferLifecycleService {
         deletedAt: null,
       },
       data: {
-        ...this.lookupDw.transferStatus(TransferStatus.cancelled),
+        status: TransferStatus.cancelled,
         updatedAt: now,
         version: { increment: 1 },
         syncStatus: RecordSyncStatus.synced,
@@ -396,7 +382,7 @@ export class TransferLifecycleService {
         deletedAt: null,
       },
       data: {
-        ...this.lookupDw.childStatus(ChildStatus.active),
+        status: ChildStatus.active,
         updatedAt: now,
         ...(input.updatedById != null ? { updatedById: input.updatedById } : {}),
         version: { increment: 1 },

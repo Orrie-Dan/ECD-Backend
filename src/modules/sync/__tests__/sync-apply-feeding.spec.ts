@@ -1,6 +1,5 @@
 import { SyncOperationStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { createMockLookupResolver } from '../../../common/lookups/lookup-resolver.mock';
 import { SyncApplyService } from '../sync-apply.service';
 
 function assert(name: string, fn: () => void | Promise<void>) {
@@ -83,7 +82,17 @@ function createApplyHarness(opts?: { existing?: FeedingDayRow | null; recorderEx
     },
   };
 
-  const service = new SyncApplyService(db as never, {} as never, createMockLookupResolver());
+  const noopBridge = {
+    afterEntityCreated: async () => {},
+    afterTransferCreated: async () => {},
+    afterTransferAccepted: async () => {},
+    afterTransferCancelled: async () => {},
+    afterReferralStatusUpdated: async () => {},
+    afterChildArchived: async () => {},
+    afterComplianceStatusChanged: async () => {},
+  };
+
+  const service = new SyncApplyService(db as never, {} as never, noopBridge as never);
   return { service, created, updated, getExisting: () => existing };
 }
 

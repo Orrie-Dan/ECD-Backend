@@ -1,5 +1,6 @@
+import { UserRole } from '../../common/domain';
 import { ForbiddenException } from '@nestjs/common';
-import { Prisma, UserRole } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import {
   assertCenterAccess,
   assertCenterAdminAccess,

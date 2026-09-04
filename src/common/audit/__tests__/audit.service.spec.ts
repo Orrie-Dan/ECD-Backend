@@ -1,4 +1,4 @@
-import { ChildStatus, TransferStatus, UserRole } from '@prisma/client';
+import { ChildStatus, TransferStatus, UserRole } from '../../domain';
 import { AuditAction, AuditService, toPrismaAuditAction } from '../index';
 import { OptimisticLockConflictException } from '../../concurrency/optimistic-lock.exception';
 import { AuthUser } from '../../../modules/auth/interfaces/jwt-payload.interface';

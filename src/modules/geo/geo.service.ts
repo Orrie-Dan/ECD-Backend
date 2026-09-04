@@ -1,5 +1,6 @@
+import { AdministrativeLevel, EcdCenterStatus, UserRole, asDomainEnum } from '../../common/domain';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { AdministrativeLevel, EcdCenterStatus, Prisma, UserRole } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { assertDistrictAccess, isCenterStaffRole } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -22,17 +23,36 @@ export class GeoService {
     user: AuthUser,
     query: ListAdminUnitsQueryDto,
   ): Promise<AdminUnitResponseDto[]> {
-    const where: Prisma.AdministrativeUnitWhereInput = {};
-
     if (query.districtId) {
       if (user.role === UserRole.district_focal_person) {
         assertDistrictAccess(user, query.districtId);
       }
-      where.districtId = query.districtId;
     }
 
+    // Drill-down by parent (sector → cell → village) takes precedence.
     if (query.parentId) {
-      where.parentId = query.parentId;
+      const where: Prisma.AdministrativeUnitWhereInput = {
+        parentId: query.parentId,
+      };
+      if (query.level) {
+        where.level = query.level;
+      }
+      const rows = await this.prisma.administrativeUnit.findMany({
+        where,
+        orderBy: [{ name: 'asc' }],
+      });
+      return rows.map((row) => this.toAdminUnitDto(row));
+    }
+
+    if (query.districtId && query.level) {
+      const rows = await this.findAdminUnitsInDistrict(query.districtId, query.level);
+      return rows.map((row) => this.toAdminUnitDto(row));
+    }
+
+    const where: Prisma.AdministrativeUnitWhereInput = {};
+
+    if (query.districtId) {
+      where.districtId = query.districtId;
     }
 
     if (query.level) {
@@ -45,6 +65,58 @@ export class GeoService {
     });
 
     return rows.map((row) => this.toAdminUnitDto(row));
+  }
+
+  /**
+   * Cells and villages often have district_id NULL (only sectors are tagged).
+   * Resolve them via parent chain so mobile can list villages for a district.
+   */
+  private async findAdminUnitsInDistrict(districtId: string, level: AdministrativeLevel) {
+    if (level === AdministrativeLevel.sector || level === AdministrativeLevel.province) {
+      return this.prisma.administrativeUnit.findMany({
+        where: { districtId, level },
+        orderBy: [{ name: 'asc' }],
+      });
+    }
+
+    const sectors = await this.prisma.administrativeUnit.findMany({
+      where: { districtId, level: AdministrativeLevel.sector },
+      select: { id: true },
+    });
+    const sectorIds = sectors.map((s) => s.id);
+
+    if (level === AdministrativeLevel.cell) {
+      if (sectorIds.length === 0) {
+        return [];
+      }
+      return this.prisma.administrativeUnit.findMany({
+        where: { level: AdministrativeLevel.cell, parentId: { in: sectorIds } },
+        orderBy: [{ name: 'asc' }],
+      });
+    }
+
+    if (level === AdministrativeLevel.village) {
+      if (sectorIds.length === 0) {
+        return [];
+      }
+      const cells = await this.prisma.administrativeUnit.findMany({
+        where: { level: AdministrativeLevel.cell, parentId: { in: sectorIds } },
+        select: { id: true },
+      });
+      const cellIds = cells.map((c) => c.id);
+      if (cellIds.length === 0) {
+        return [];
+      }
+      return this.prisma.administrativeUnit.findMany({
+        where: { level: AdministrativeLevel.village, parentId: { in: cellIds } },
+        orderBy: [{ name: 'asc' }],
+      });
+    }
+
+    return this.prisma.administrativeUnit.findMany({
+      where: { districtId, level },
+      orderBy: [{ name: 'asc' }],
+    });
   }
 
   async listDistricts(
@@ -178,7 +250,7 @@ export class GeoService {
 
   private toAdminUnitDto(row: {
     id: string;
-    level: AdministrativeLevel;
+    level: string;
     parentId: string | null;
     districtId: string | null;
     name: string;
@@ -189,7 +261,7 @@ export class GeoService {
   }): AdminUnitResponseDto {
     return {
       id: row.id,
-      level: row.level,
+      level: asDomainEnum<AdministrativeLevel>(row.level),
       parentId: row.parentId,
       districtId: row.districtId,
       name: row.name,
@@ -226,7 +298,7 @@ export class GeoService {
     name: string;
     phone: string | null;
     capacity: number | null;
-    status: EcdCenterStatus;
+    status: string;
     villageId: string;
     latitude: number | null;
     longitude: number | null;
@@ -238,7 +310,7 @@ export class GeoService {
       name: row.name,
       phone: row.phone,
       capacity: row.capacity,
-      status: row.status,
+      status: asDomainEnum<EcdCenterStatus>(row.status),
       villageId: row.villageId,
       villageName: row.village.name,
       latitude: row.latitude,

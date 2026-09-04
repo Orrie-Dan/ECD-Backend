@@ -1,10 +1,11 @@
 import {
   AdministrativeLevel,
-  Child,
   ChildGender,
   ChildStatus,
   ClassroomGrade,
-} from '@prisma/client';
+  asDomainEnum,
+} from '../../../common/domain';
+import { Child } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { CreateChildDto, RWANDA_NIN_REGEX } from '../dto/create-child.dto';
 import {
@@ -23,7 +24,7 @@ export type NameParts = {
 type AdminNode = {
   id: string;
   name: string;
-  level: AdministrativeLevel;
+  level: string;
   parent?: AdminNode | null;
   district?: {
     name: string;
@@ -39,7 +40,7 @@ export type ChildWithRelations = Child & {
     district?: { name: string; province?: { name: string } | null } | null;
   };
   homeVillage: AdminNode;
-  classroom?: { id: string; grade: ClassroomGrade } | null;
+  classroom?: { id: string; grade: string } | null;
 };
 
 export class ChildMapper implements Mapper<ChildWithRelations, ChildResponseDto> {
@@ -49,14 +50,16 @@ export class ChildMapper implements Mapper<ChildWithRelations, ChildResponseDto>
     return {
       id: entity.id,
       fullName: this.toFullName(entity.firstName, entity.middleName, entity.lastName),
-      gender: this.toApiGender(entity.gender),
+      gender: this.toApiGender(asDomainEnum<ChildGender>(entity.gender)),
       dateOfBirth: entity.dateOfBirth,
-      status: entity.status,
+      status: asDomainEnum<ChildStatus>(entity.status),
       nationalId: entity.nationalId,
       centerId: entity.centerId,
       centerName: entity.center?.name ?? null,
       classroomId: entity.classroomId ?? null,
-      classroomGrade: entity.classroom?.grade ?? null,
+      classroomGrade: entity.classroom?.grade
+        ? asDomainEnum<ClassroomGrade>(entity.classroom.grade)
+        : null,
       homeVillageId: entity.homeVillageId,
       province: geo.province,
       district: geo.district,
@@ -74,7 +77,9 @@ export class ChildMapper implements Mapper<ChildWithRelations, ChildResponseDto>
   toDetailDto(entity: ChildWithRelations): ChildDetailResponseDto {
     return {
       ...this.toDto(entity),
-      classroomLabel: entity.classroom ? this.gradeLabel(entity.classroom.grade) : null,
+      classroomLabel: entity.classroom
+        ? this.gradeLabel(asDomainEnum<ClassroomGrade>(entity.classroom.grade))
+        : null,
       firstName: entity.firstName,
       middleName: entity.middleName,
       lastName: entity.lastName,

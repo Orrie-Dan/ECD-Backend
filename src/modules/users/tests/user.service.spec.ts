@@ -1,6 +1,6 @@
+import { UserAccountStatus, UserRole } from '../../../common/domain';
 import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserAccountStatus, UserRole } from '@prisma/client';
 import { AuthService } from '../../auth/auth.service';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -24,7 +24,11 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
   };
 }
 
-function createService(prisma: object, auth?: Partial<AuthService>) {
+function createService(
+  prisma: object,
+  auth?: Partial<AuthService>,
+  notificationsOverride?: Partial<any>,
+) {
   const authService = {
     hashPassword: async (plain: string) => `hashed:${plain}`,
     ...auth,
@@ -40,6 +44,7 @@ function createService(prisma: object, auth?: Partial<AuthService>) {
     notifyAsync: () => {},
     create: async () => ({}),
     createForMultipleUsers: async () => 0,
+    ...(notificationsOverride ?? {}),
   } as any;
   return new UsersService(prisma as never, authService, config, mockNotifications);
 }
@@ -209,6 +214,67 @@ async function run() {
     eq(creates[0].districtId, 'd1');
     eq(result.center?.id, 'c1');
   });
+
+  await assert(
+    'UsersService.create logs notification failures but does not fail domain mutation',
+    async () => {
+      const errorCalls: unknown[][] = [];
+
+      const prisma = {
+        userAccount: {
+          findUnique: async () => null,
+        },
+        ecdCenter: {
+          findFirst: async () => ({ id: 'c1', districtId: 'd1' }),
+        },
+        $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+          fn({
+            userAccount: {
+              create: async ({ data }: { data: Record<string, unknown> }) => {
+                return createdUserRow(data);
+              },
+            },
+            passwordResetToken: {
+              create: async () => ({}),
+            },
+          }),
+      };
+
+      const svc = createService(prisma, undefined, {
+        findUserIdsByRoleAndCenter: async () => {
+          throw new Error('recipient lookup failed');
+        },
+      });
+
+      (svc as any).logger = {
+        log: () => {},
+        warn: () => {},
+        error: (...args: unknown[]) => errorCalls.push(args),
+      };
+
+      const result = await svc.create(director, {
+        username: 'cg_notify_fail',
+        fullName: 'Notify Failure',
+        role: UserRole.caregiver,
+        centerId: 'c1',
+      });
+
+      // Fire-and-forget notification failure must not break the mutation.
+      eq(result.role, UserRole.caregiver);
+
+      // Wait one tick for the async notification chain to execute.
+      await new Promise((r) => setTimeout(r, 0));
+
+      eq(errorCalls.length > 0, true);
+      const [message] = errorCalls[0] as [string, unknown];
+      if (!String(message).includes('Failed to emit')) {
+        throw new Error(`Unexpected log message: ${String(message)}`);
+      }
+      if (!String(message).includes('new-user-id')) {
+        throw new Error(`Expected created user id in log message: ${String(message)}`);
+      }
+    },
+  );
 
   await assert('District officer creates caregiver in district', async () => {
     const creates: Record<string, unknown>[] = [];

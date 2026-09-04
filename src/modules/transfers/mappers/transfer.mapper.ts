@@ -1,3 +1,4 @@
+import { TransferStatus, asDomainEnum } from '../../../common/domain';
 import { ChildTransfer } from '@prisma/client';
 import { Mapper } from '../../../common/mappers/base.mapper';
 import { TransferResponseDto } from '../dto/transfer-response.dto';
@@ -30,7 +31,7 @@ export class TransferMapper implements Mapper<TransferEntity, TransferResponseDt
       transferDate: entity.transferDate,
       reason: entity.reason,
       notes: entity.notes,
-      status: entity.status,
+      status: asDomainEnum<TransferStatus>(entity.status),
       initiatedBy: entity.initiatedById,
       acceptedAt: entity.acceptedAt,
       acceptedBy: entity.acceptedById,

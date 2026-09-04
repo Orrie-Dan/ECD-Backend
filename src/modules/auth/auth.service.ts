@@ -1,3 +1,4 @@
+import { UserAccountStatus, UserRole, asDomainEnum } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
@@ -7,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UserAccountStatus, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -72,7 +72,7 @@ export class AuthService {
     return this.issueTokens({
       id: user.id,
       username: user.username,
-      role: user.role,
+      role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
       centerId: user.centerId,
       center: user.center,
@@ -114,7 +114,7 @@ export class AuthService {
     return this.issueTokens({
       id: user.id,
       username: user.username,
-      role: user.role,
+      role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
       centerId: user.centerId,
       center: user.center,
@@ -147,7 +147,7 @@ export class AuthService {
       username: user.username,
       email: user.email,
       fullName: user.fullName,
-      role: user.role,
+      role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
       centerId: user.centerId,
       center: user.center,
@@ -261,7 +261,7 @@ export class AuthService {
     const accessPayload: JwtPayload = {
       sub: user.id,
       username: user.username,
-      role: user.role,
+      role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
       centerId: user.centerId,
       type: 'access',
@@ -270,7 +270,7 @@ export class AuthService {
     const refreshPayload: JwtPayload = {
       sub: user.id,
       username: user.username,
-      role: user.role,
+      role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
       centerId: user.centerId,
       type: 'refresh',
@@ -293,7 +293,7 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
-        role: user.role,
+        role: asDomainEnum<UserRole>(user.role),
         districtId: user.districtId,
         centerId: user.centerId,
         center: user.center,

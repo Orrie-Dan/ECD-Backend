@@ -1,5 +1,5 @@
+import { UserRole } from '../../common/domain';
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { Prisma, UserRole } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertDistrictAccess } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';

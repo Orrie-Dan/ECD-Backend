@@ -1,6 +1,5 @@
+import { DeviceStatus } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
-import { DeviceStatus } from '@prisma/client';
-
 /**
  * Swagger DTO matching DeviceResponse in devices.service.ts.
  * Controllers will reference this later; service interface unchanged.
