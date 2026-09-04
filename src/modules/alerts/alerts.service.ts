@@ -1,24 +1,25 @@
 import {
+  AdministrativeLevel,
+  AttendanceStatus,
+  ChildStatus,
+  GapStatus,
+  NutritionStatus,
+  TransferStatus,
+  UserRole,
+} from '../../common/domain';
+import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  AttendanceStatus,
-  ChildStatus,
-  GapStatus,
-  NutritionStatus,
-  ReferralStatus,
-  TransferStatus,
-  UserAccountStatus,
-  UserRole,
-} from '@prisma/client';
+import { ReferralStatus } from '@prisma/client';
 import {
   assertCenterAccess,
   assertDistrictAccess,
   isCenterStaffRole,
 } from '../../common/auth/scope.util';
+import { resolveDistrictQueryScope } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import {
@@ -31,6 +32,12 @@ import {
 } from './attendance-alert.constants';
 import { FollowUpAlertDto, FollowUpAlertsResponseDto } from './dto/follow-up-alert.dto';
 import { FollowUpAlertsQueryDto } from './dto/follow-up-alerts-query.dto';
+import {
+  FollowUpSummaryNodeDto,
+  FollowUpSummaryQueryDto,
+  FollowUpSummaryResponseDto,
+  type FollowUpSummaryGroupBy,
+} from './dto/follow-up-summary.dto';
 
 /** Active children with no screening within this window are overdue. */
 const OVERDUE_SCREENING_DAYS = 30;
@@ -44,10 +51,6 @@ const STALE_TRANSFER_DAYS = 7;
 const STED_UPCOMING_DAYS = 7;
 /** Centers with no compliance assessment in this many months are lapsed. */
 const COMPLIANCE_LAPSE_MONTHS = 6;
-/** Minimum food groups per week for dietary diversity. */
-const FEEDING_DIVERSITY_THRESHOLD = 4;
-/** Lookback window for feeding diversity in days. */
-const FEEDING_DIVERSITY_DAYS = 7;
 
 @Injectable()
 export class AlertsService {
@@ -65,6 +68,106 @@ export class AlertsService {
       return emptyResponse(scope);
     }
 
+    const alerts = await this.computeAlerts(scope, category);
+    const priorityRank = { high: 0, medium: 1, low: 2 };
+    alerts.sort(
+      (a, b) =>
+        priorityRank[a.priority] - priorityRank[b.priority] ||
+        b.detectedAt.localeCompare(a.detectedAt),
+    );
+
+    const items = alerts.slice(0, limit);
+    const counts = countAlerts(alerts);
+
+    return {
+      items,
+      total: alerts.length,
+      counts,
+      districtId: scope.districtId,
+      centerId: scope.singleCenterId,
+    };
+  }
+
+  /**
+   * Aggregate operational follow-up alerts by admin grain for Impugukirwa drill-down.
+   * Counts derive from the same detectors as GET /alerts/follow-up — not fake geo alerts.
+   */
+  async getFollowUpSummary(
+    user: AuthUser,
+    query: FollowUpSummaryQueryDto,
+  ): Promise<FollowUpSummaryResponseDto> {
+    const scope = await this.resolveSummaryScope(user, query);
+    const category = query.category ?? 'all';
+    const priorityFilter = query.priority ?? 'all';
+
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
+      return emptySummaryResponse(query.groupBy, scope);
+    }
+
+    let alerts = await this.computeAlerts(scope, category);
+    if (priorityFilter !== 'all') {
+      alerts = alerts.filter((a) => a.priority === priorityFilter);
+    }
+
+    const ancestry = await this.loadCenterAncestry(
+      alerts.map((a) => a.centerId).filter((id): id is string => Boolean(id)),
+    );
+
+    const buckets = new Map<string, FollowUpSummaryNodeDto>();
+    for (const alert of alerts) {
+      if (!alert.centerId) continue;
+      const geo = ancestry.get(alert.centerId);
+      if (!geo) continue;
+      const key = bucketKey(query.groupBy, geo);
+      if (!key) continue;
+      let node = buckets.get(key.id);
+      if (!node) {
+        node = {
+          id: key.id,
+          name: key.name,
+          level: query.groupBy,
+          total: 0,
+          priorityCounts: { high: 0, medium: 0, low: 0 },
+          categoryCounts: emptyCategoryCounts(),
+          provinceId: geo.provinceId,
+          districtId: geo.districtId,
+          sectorId: geo.sectorId,
+          centerId: query.groupBy === 'center' ? geo.centerId : null,
+        };
+        buckets.set(key.id, node);
+      }
+      node.total += 1;
+      node.priorityCounts[alert.priority] += 1;
+      node.categoryCounts[alert.category] += 1;
+    }
+
+    const items = [...buckets.values()].sort(
+      (a, b) =>
+        b.priorityCounts.high - a.priorityCounts.high ||
+        b.priorityCounts.medium - a.priorityCounts.medium ||
+        b.total - a.total ||
+        a.name.localeCompare(b.name, 'rw'),
+    );
+
+    return {
+      groupBy: query.groupBy,
+      scope: {
+        provinceId: scope.provinceId,
+        districtId: scope.districtId,
+        sectorId: scope.sectorId,
+        centerId: scope.singleCenterId,
+      },
+      items,
+      totalAlerts: alerts.length,
+      highPriority: alerts.filter((a) => a.priority === 'high').length,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  private async computeAlerts(
+    scope: Scope,
+    category: string,
+  ): Promise<FollowUpAlertDto[]> {
     const alerts: FollowUpAlertDto[] = [];
 
     if (category === 'all' || category === 'nutrition') {
@@ -94,33 +197,186 @@ export class AlertsService {
       alerts.push(...(await this.capacityAlerts(scope)));
     }
 
-    const priorityRank = { high: 0, medium: 1, low: 2 };
-    alerts.sort(
-      (a, b) =>
-        priorityRank[a.priority] - priorityRank[b.priority] ||
-        b.detectedAt.localeCompare(a.detectedAt),
-    );
+    return alerts;
+  }
 
-    const items = alerts.slice(0, limit);
-    const counts = {
-      nutrition: alerts.filter((a) => a.category === 'nutrition').length,
-      attendance: alerts.filter((a) => a.category === 'attendance').length,
-      referral: alerts.filter((a) => a.category === 'referral').length,
-      data_quality: alerts.filter((a) => a.category === 'data_quality').length,
-      sted: alerts.filter((a) => a.category === 'sted').length,
-      transfer: alerts.filter((a) => a.category === 'transfer').length,
-      compliance: alerts.filter((a) => a.category === 'compliance').length,
-      capacity: alerts.filter((a) => a.category === 'capacity').length,
-      high: alerts.filter((a) => a.priority === 'high').length,
-    };
+  private async resolveSummaryScope(
+    user: AuthUser,
+    query: FollowUpSummaryQueryDto,
+  ): Promise<Scope & { provinceId: string | null; sectorId: string | null }> {
+    if (query.provinceId) {
+      if (user.role === UserRole.district_focal_person) {
+        if (!user.districtId) {
+          throw new ForbiddenException('District scope is required');
+        }
+        const own = await this.prisma.district.findFirst({
+          where: { id: user.districtId },
+          select: { provinceId: true },
+        });
+        if (!own || own.provinceId !== query.provinceId) {
+          throw new ForbiddenException('Cannot query another province');
+        }
+      }
 
+      const districts = await this.prisma.district.findMany({
+        where: {
+          provinceId: query.provinceId,
+          ...(query.districtId ? { id: query.districtId } : {}),
+        },
+        select: { id: true },
+      });
+      if (query.districtId && districts.length === 0) {
+        throw new BadRequestException('districtId does not belong to the given provinceId');
+      }
+
+      const districtIds = districts.map((d) => d.id);
+      const base = await resolveDistrictQueryScope(this.prisma, user, {
+        districtId: query.districtId ?? (districtIds.length === 1 ? districtIds[0] : undefined),
+        sectorId: query.sectorId,
+        centerId: query.centerId,
+      });
+
+      // When province-wide (no district), narrow centers to province districts.
+      if (!query.districtId && !query.centerId && districtIds.length > 0) {
+        let villageFilter: string[] | undefined;
+        if (query.sectorId) {
+          const scoped = await resolveDistrictQueryScope(this.prisma, user, {
+            sectorId: query.sectorId,
+          });
+          return {
+            ...scoped,
+            provinceId: query.provinceId,
+            sectorId: query.sectorId,
+          };
+        }
+        const centers = await this.prisma.ecdCenter.findMany({
+          where: {
+            deletedAt: null,
+            districtId: { in: districtIds },
+            ...(villageFilter ? { villageId: { in: villageFilter } } : {}),
+          },
+          select: { id: true },
+        });
+        return {
+          centerIds: centers.map((c) => c.id),
+          districtId: null,
+          singleCenterId: null,
+          provinceId: query.provinceId,
+          sectorId: query.sectorId ?? null,
+        };
+      }
+
+      return {
+        ...base,
+        provinceId: query.provinceId,
+        sectorId: base.sectorId,
+      };
+    }
+
+    const base = await resolveDistrictQueryScope(this.prisma, user, {
+      districtId: query.districtId,
+      sectorId: query.sectorId,
+      centerId: query.centerId,
+    });
     return {
-      items,
-      total: alerts.length,
-      counts,
-      districtId: scope.districtId,
-      centerId: scope.singleCenterId,
+      ...base,
+      provinceId: null,
+      sectorId: base.sectorId,
     };
+  }
+
+  private async loadCenterAncestry(
+    centerIds: string[],
+  ): Promise<Map<string, CenterAncestry>> {
+    const unique = [...new Set(centerIds)];
+    const map = new Map<string, CenterAncestry>();
+    if (unique.length === 0) return map;
+
+    const centers = await this.prisma.ecdCenter.findMany({
+      where: { id: { in: unique }, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        districtId: true,
+        villageId: true,
+        district: {
+          select: {
+            id: true,
+            name: true,
+            provinceId: true,
+            province: { select: { id: true, name: true } },
+          },
+        },
+      },
+    });
+
+    const villageIds = [...new Set(centers.map((c) => c.villageId))];
+    const sectorByVillage = await this.resolveSectorByVillage(villageIds);
+
+    for (const center of centers) {
+      const sector = sectorByVillage.get(center.villageId);
+      map.set(center.id, {
+        centerId: center.id,
+        centerName: center.name,
+        districtId: center.district.id,
+        districtName: center.district.name,
+        provinceId: center.district.province.id,
+        provinceName: center.district.province.name,
+        sectorId: sector?.id ?? null,
+        sectorName: sector?.name ?? null,
+      });
+    }
+    return map;
+  }
+
+  /** Walk village → cell → sector for each village id. */
+  private async resolveSectorByVillage(
+    villageIds: string[],
+  ): Promise<Map<string, { id: string; name: string }>> {
+    const result = new Map<string, { id: string; name: string }>();
+    if (villageIds.length === 0) return result;
+
+    const units = await this.prisma.administrativeUnit.findMany({
+      where: { id: { in: villageIds } },
+      select: { id: true, level: true, parentId: true, name: true },
+    });
+    const byId = new Map(units.map((u) => [u.id, u]));
+    const missingParents = new Set<string>();
+    for (const u of units) {
+      if (u.parentId) missingParents.add(u.parentId);
+    }
+
+    // Load ancestors in batches until sectors are resolved.
+    while (missingParents.size > 0) {
+      const batch = [...missingParents].filter((id) => !byId.has(id));
+      missingParents.clear();
+      if (batch.length === 0) break;
+      const parents = await this.prisma.administrativeUnit.findMany({
+        where: { id: { in: batch } },
+        select: { id: true, level: true, parentId: true, name: true },
+      });
+      for (const p of parents) {
+        byId.set(p.id, p);
+        if (p.parentId && !byId.has(p.parentId) && p.level !== AdministrativeLevel.sector) {
+          missingParents.add(p.parentId);
+        }
+      }
+    }
+
+    for (const villageId of villageIds) {
+      let current = byId.get(villageId);
+      const guard = new Set<string>();
+      while (current && !guard.has(current.id)) {
+        guard.add(current.id);
+        if (current.level === AdministrativeLevel.sector) {
+          result.set(villageId, { id: current.id, name: current.name });
+          break;
+        }
+        if (!current.parentId) break;
+        current = byId.get(current.parentId);
+      }
+    }
+    return result;
   }
 
   private async nutritionAlerts(scope: Scope): Promise<FollowUpAlertDto[]> {
@@ -931,6 +1187,44 @@ type Scope = {
   singleCenterId: string | null;
 };
 
+type CenterAncestry = {
+  centerId: string;
+  centerName: string;
+  districtId: string;
+  districtName: string;
+  provinceId: string;
+  provinceName: string;
+  sectorId: string | null;
+  sectorName: string | null;
+};
+
+function countAlerts(alerts: FollowUpAlertDto[]) {
+  return {
+    nutrition: alerts.filter((a) => a.category === 'nutrition').length,
+    attendance: alerts.filter((a) => a.category === 'attendance').length,
+    referral: alerts.filter((a) => a.category === 'referral').length,
+    data_quality: alerts.filter((a) => a.category === 'data_quality').length,
+    sted: alerts.filter((a) => a.category === 'sted').length,
+    transfer: alerts.filter((a) => a.category === 'transfer').length,
+    compliance: alerts.filter((a) => a.category === 'compliance').length,
+    capacity: alerts.filter((a) => a.category === 'capacity').length,
+    high: alerts.filter((a) => a.priority === 'high').length,
+  };
+}
+
+function emptyCategoryCounts() {
+  return {
+    nutrition: 0,
+    attendance: 0,
+    referral: 0,
+    data_quality: 0,
+    sted: 0,
+    transfer: 0,
+    compliance: 0,
+    capacity: 0,
+  };
+}
+
 function emptyResponse(scope: Scope): FollowUpAlertsResponseDto {
   return {
     items: [],
@@ -949,6 +1243,44 @@ function emptyResponse(scope: Scope): FollowUpAlertsResponseDto {
     districtId: scope.districtId,
     centerId: scope.singleCenterId,
   };
+}
+
+function emptySummaryResponse(
+  groupBy: FollowUpSummaryGroupBy,
+  scope: Scope & { provinceId: string | null; sectorId: string | null },
+): FollowUpSummaryResponseDto {
+  return {
+    groupBy,
+    scope: {
+      provinceId: scope.provinceId,
+      districtId: scope.districtId,
+      sectorId: scope.sectorId,
+      centerId: scope.singleCenterId,
+    },
+    items: [],
+    totalAlerts: 0,
+    highPriority: 0,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+function bucketKey(
+  groupBy: FollowUpSummaryGroupBy,
+  geo: CenterAncestry,
+): { id: string; name: string } | null {
+  switch (groupBy) {
+    case 'province':
+      return { id: geo.provinceId, name: geo.provinceName };
+    case 'district':
+      return { id: geo.districtId, name: geo.districtName };
+    case 'sector':
+      if (!geo.sectorId || !geo.sectorName) return null;
+      return { id: geo.sectorId, name: geo.sectorName };
+    case 'center':
+      return { id: geo.centerId, name: geo.centerName };
+    default:
+      return null;
+  }
 }
 
 function daysAgo(days: number): Date {

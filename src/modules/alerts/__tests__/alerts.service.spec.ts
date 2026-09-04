@@ -2,7 +2,7 @@
  * Follow-up alerts tests.
  * Run: npx ts-node src/modules/alerts/__tests__/alerts.service.spec.ts
  */
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../common/domain';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
 import { AlertsService } from '../alerts.service';
 import { attendanceLookbackRange } from '../attendance-alert.constants';
