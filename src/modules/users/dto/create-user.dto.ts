@@ -65,9 +65,13 @@ export class CreateUserDto {
   @ApiPropertyOptional({
     enum: PersonSex,
     enumName: 'PersonSex',
-    description: 'Sex of the staff member (Section XI). Optional for all roles.',
+    description:
+      'Sex of the staff member (Section XI). Required when role is caregiver or ecd_director.',
   })
-  @IsOptional()
+  @ValidateIf(
+    (o: CreateUserDto) =>
+      o.role === UserRole.caregiver || o.role === UserRole.ecd_director || o.gender != null,
+  )
   @IsEnum(PersonSex)
   gender?: PersonSex;
 

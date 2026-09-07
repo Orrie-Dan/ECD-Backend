@@ -36,10 +36,30 @@ import {
   resolveChildGenderFromPayload,
   resolveChildNationalIdFromPayload,
 } from '../children/mappers/child.mapper';
+import { ClassroomsService } from '../classrooms/classrooms.service';
 import { CHILD_SCOPED_ENTITY_TYPES, SyncableEntityType } from './sync.constants';
 import { SyncNotificationBridgeService } from './sync-notification-bridge.service';
 
 type JsonPayload = Record<string, unknown>;
+
+/**
+ * Notification work collected during apply. When apply runs inside a DB
+ * transaction (`context.tx`), these must be flushed *after* commit — the
+ * bridge re-reads entities via a separate Prisma connection and cannot see
+ * uncommitted rows.
+ */
+export type PendingSyncNotification =
+  | { kind: 'entity_created'; entityType: SyncableEntityType; entityId: string }
+  | { kind: 'transfer_created'; transferId: string }
+  | { kind: 'transfer_accepted'; transferId: string }
+  | { kind: 'transfer_cancelled'; transferId: string }
+  | { kind: 'referral_status_updated'; referralId: string; nextStatus: ReferralStatus }
+  | { kind: 'child_archived'; childId: string }
+  | {
+      kind: 'compliance_status_changed';
+      assessmentId: string;
+      previousStatus: AssessmentStatus;
+    };
 
 export interface ApplyContext {
   deviceId: string;
@@ -53,6 +73,8 @@ export interface ApplyContext {
   clientTimestamp?: Date;
   /** Optional tx so caller can finalize sync_operation in the same transaction */
   tx?: Prisma.TransactionClient;
+  /** Filled by apply(); used to defer notification side-effects when `tx` is set. */
+  pendingNotifications?: PendingSyncNotification[];
 }
 
 export interface ApplyResult {
@@ -61,6 +83,8 @@ export interface ApplyResult {
   entityId: string;
   /** Transient: leave the operation pending for replay. */
   retryable?: boolean;
+  /** Run via flushPendingNotifications() after the surrounding transaction commits. */
+  pendingNotifications?: PendingSyncNotification[];
 }
 
 type CasOutcome =
@@ -78,19 +102,35 @@ export class SyncApplyService {
   ) {}
 
   async apply(context: ApplyContext): Promise<ApplyResult> {
-    switch (context.operation) {
+    const pendingNotifications: PendingSyncNotification[] = [];
+    const enriched: ApplyContext = { ...context, pendingNotifications };
+
+    let result: ApplyResult;
+    switch (enriched.operation) {
       case AuditAction.create:
-        return this.applyCreate(context);
+        result = await this.applyCreate(enriched);
+        break;
       case AuditAction.update:
-        return this.applyUpdate(context);
+        result = await this.applyUpdate(enriched);
+        break;
       case AuditAction.delete:
-        return this.applyDelete(context);
+        result = await this.applyDelete(enriched);
+        break;
       default:
-        return {
+        result = {
           status: SyncOperationStatus.failed,
-          conflictReason: `Unsupported operation: ${context.operation}`,
-          entityId: context.entityId,
+          conflictReason: `Unsupported operation: ${enriched.operation}`,
+          entityId: enriched.entityId,
         };
+    }
+
+    return { ...result, pendingNotifications };
+  }
+
+  /** Execute deferred notification side-effects after the apply transaction has committed. */
+  async flushPendingNotifications(pending: PendingSyncNotification[]): Promise<void> {
+    for (const item of pending) {
+      await this.runNotificationSideEffect(item.kind, () => this.executePendingNotification(item));
     }
   }
 
@@ -133,7 +173,11 @@ export class SyncApplyService {
       }
 
       await this.createRecord(context);
-      await this.emitCreateNotifications(context);
+      await this.scheduleNotification(context, 'entity_created', {
+        kind: 'entity_created',
+        entityType: context.entityType,
+        entityId: context.entityId,
+      });
       return { status: SyncOperationStatus.applied, entityId: context.entityId };
     } catch (error) {
       if (isRetryableApplyError(error)) {
@@ -217,9 +261,10 @@ export class SyncApplyService {
       };
     }
 
-    await this.runNotificationSideEffect('transfer_created', () =>
-      this.syncNotifications.afterTransferCreated(result.transfer.id),
-    );
+    await this.scheduleNotification(context, 'transfer_created', {
+      kind: 'transfer_created',
+      transferId: result.transfer.id,
+    });
 
     return {
       status: SyncOperationStatus.applied,
@@ -573,9 +618,10 @@ export class SyncApplyService {
           payload.status === ChildStatus.archived &&
           childBeforeStatus !== ChildStatus.archived
         ) {
-          await this.runNotificationSideEffect('child_archived', () =>
-            this.syncNotifications.afterChildArchived(context.entityId),
-          );
+          await this.scheduleNotification(context, 'child_archived', {
+            kind: 'child_archived',
+            childId: context.entityId,
+          });
         }
 
         if (
@@ -583,12 +629,11 @@ export class SyncApplyService {
           complianceBeforeStatus != null &&
           payload.status != null
         ) {
-          await this.runNotificationSideEffect('compliance_status_changed', () =>
-            this.syncNotifications.afterComplianceStatusChanged(
-              context.entityId,
-              complianceBeforeStatus!,
-            ),
-          );
+          await this.scheduleNotification(context, 'compliance_status_changed', {
+            kind: 'compliance_status_changed',
+            assessmentId: context.entityId,
+            previousStatus: complianceBeforeStatus!,
+          });
         }
 
         return { status: SyncOperationStatus.applied, entityId: context.entityId };
@@ -708,9 +753,10 @@ export class SyncApplyService {
           };
         }
 
-        await this.runNotificationSideEffect('transfer_accepted', () =>
-          this.syncNotifications.afterTransferAccepted(result.transfer.id),
-        );
+        await this.scheduleNotification(context, 'transfer_accepted', {
+          kind: 'transfer_accepted',
+          transferId: result.transfer.id,
+        });
 
         return {
           status: SyncOperationStatus.applied,
@@ -734,9 +780,10 @@ export class SyncApplyService {
         };
       }
 
-      await this.runNotificationSideEffect('transfer_cancelled', () =>
-        this.syncNotifications.afterTransferCancelled(result.transfer.id),
-      );
+      await this.scheduleNotification(context, 'transfer_cancelled', {
+        kind: 'transfer_cancelled',
+        transferId: result.transfer.id,
+      });
 
       return {
         status: SyncOperationStatus.applied,
@@ -808,12 +855,11 @@ export class SyncApplyService {
       const outcome = await this.casUpdate(context);
       if (outcome.kind === 'applied') {
         if (nextStatusForNotification) {
-          await this.runNotificationSideEffect('referral_status_updated', () =>
-            this.syncNotifications.afterReferralStatusUpdated(
-              context.entityId,
-              nextStatusForNotification!,
-            ),
-          );
+          await this.scheduleNotification(context, 'referral_status_updated', {
+            kind: 'referral_status_updated',
+            referralId: context.entityId,
+            nextStatus: nextStatusForNotification,
+          });
         }
 
         return { status: SyncOperationStatus.applied, entityId: context.entityId };
@@ -887,6 +933,22 @@ export class SyncApplyService {
 
     switch (context.entityType) {
       case 'child': {
+        let nextClassroomId: string | null | undefined;
+        if (payload.classroomId !== undefined) {
+          const existingChild = await db.child.findUnique({
+            where: { id: context.entityId },
+            select: { centerId: true },
+          });
+          if (!existingChild) {
+            return { kind: 'not_found' };
+          }
+          nextClassroomId = await this.resolveChildClassroomId(
+            db,
+            existingChild.centerId,
+            payload.classroomId,
+          );
+        }
+
         count = (
           await db.child.updateMany({
             where,
@@ -931,6 +993,7 @@ export class SyncApplyService {
               ...(payload.archivedAt !== undefined && {
                 archivedAt: payload.archivedAt ? new Date(String(payload.archivedAt)) : null,
               }),
+              ...(nextClassroomId !== undefined && { classroomId: nextClassroomId }),
               ...meta,
             },
           })
@@ -1301,6 +1364,39 @@ export class SyncApplyService {
     };
   }
 
+  /**
+   * Resolve optional classroomId from sync payload and validate it belongs to the center.
+   * Returns null when omitted/cleared.
+   */
+  private async resolveChildClassroomId(
+    db: Prisma.TransactionClient | PrismaService,
+    centerId: string,
+    rawClassroomId: unknown,
+  ): Promise<string | null> {
+    if (rawClassroomId == null) {
+      return null;
+    }
+    if (typeof rawClassroomId !== 'string') {
+      throw new Error('classroomId must be a string or null');
+    }
+    const classroomId = rawClassroomId.trim();
+    if (!classroomId) {
+      return null;
+    }
+    if (!centerId) {
+      throw new Error('classroomId cannot be validated without a centerId');
+    }
+
+    const classroom = await db.classroom.findFirst({
+      where: { id: classroomId, centerId },
+      select: { id: true },
+    });
+    if (!classroom) {
+      throw new Error('classroomId does not reference a classroom in this center');
+    }
+    return classroom.id;
+  }
+
   private async createRecord(context: ApplyContext): Promise<void> {
     const id = context.entityId || randomUUID();
     const payload = context.payload;
@@ -1313,6 +1409,7 @@ export class SyncApplyService {
         const status = (payload.status as ChildStatus | undefined) ?? ChildStatus.active;
         const centerId = String(payload.centerId);
         const homeVillageId = String(payload.homeVillageId);
+        const dateOfBirth = new Date(String(payload.dateOfBirth));
 
         // Validate FK targets before Prisma create — invalid ids are permanent
         // failures, not P2003 retry loops.
@@ -1332,6 +1429,8 @@ export class SyncApplyService {
           throw new Error('homeVillageId does not reference an existing administrative unit');
         }
 
+        const classroomId = await this.resolveChildClassroomId(db, centerId, payload.classroomId);
+
         await db.child.create({
           data: {
             id,
@@ -1340,7 +1439,7 @@ export class SyncApplyService {
             middleName: (payload.middleName as string) ?? null,
             lastName: (payload.lastName as string) ?? null,
             centerId,
-            dateOfBirth: new Date(String(payload.dateOfBirth)),
+            dateOfBirth,
             gender,
             status,
             specialNeeds: (payload.specialNeeds as string) ?? null,
@@ -1352,12 +1451,24 @@ export class SyncApplyService {
             guardian2Phone: (payload.guardian2Phone as string) ?? null,
             guardian2Relation: (payload.guardian2Relation as string) ?? null,
             homeVillageId,
+            classroomId,
             registeredAt: new Date(String(payload.registeredAt)),
             archiveReason: (payload.archiveReason as string) ?? null,
             archivedAt: payload.archivedAt ? new Date(String(payload.archivedAt)) : null,
             ...meta,
           },
         });
+
+        // REST parity: when client omits classroom, assign from DOB grade band.
+        if (!classroomId) {
+          await ClassroomsService.autoAssignClassroom(
+            db as Prisma.TransactionClient,
+            id,
+            centerId,
+            dateOfBirth,
+            typeof payload.createdById === 'string' ? payload.createdById : undefined,
+          );
+        }
         break;
       }
       case 'attendance_record': {
@@ -1614,10 +1725,52 @@ export class SyncApplyService {
     }
   }
 
-  private async emitCreateNotifications(context: ApplyContext): Promise<void> {
-    await this.runNotificationSideEffect('entity_created', () =>
-      this.syncNotifications.afterEntityCreated(context.entityType, context.entityId),
-    );
+  /**
+   * When apply runs inside a transaction, defer bridge work until after commit.
+   * Without a transaction (unit tests / direct calls), run immediately.
+   */
+  private async scheduleNotification(
+    context: ApplyContext,
+    label: string,
+    pending: PendingSyncNotification,
+  ): Promise<void> {
+    if (context.tx) {
+      (context.pendingNotifications ??= []).push(pending);
+      return;
+    }
+    await this.runNotificationSideEffect(label, () => this.executePendingNotification(pending));
+  }
+
+  private async executePendingNotification(pending: PendingSyncNotification): Promise<void> {
+    switch (pending.kind) {
+      case 'entity_created':
+        await this.syncNotifications.afterEntityCreated(pending.entityType, pending.entityId);
+        return;
+      case 'transfer_created':
+        await this.syncNotifications.afterTransferCreated(pending.transferId);
+        return;
+      case 'transfer_accepted':
+        await this.syncNotifications.afterTransferAccepted(pending.transferId);
+        return;
+      case 'transfer_cancelled':
+        await this.syncNotifications.afterTransferCancelled(pending.transferId);
+        return;
+      case 'referral_status_updated':
+        await this.syncNotifications.afterReferralStatusUpdated(
+          pending.referralId,
+          pending.nextStatus,
+        );
+        return;
+      case 'child_archived':
+        await this.syncNotifications.afterChildArchived(pending.childId);
+        return;
+      case 'compliance_status_changed':
+        await this.syncNotifications.afterComplianceStatusChanged(
+          pending.assessmentId,
+          pending.previousStatus,
+        );
+        return;
+    }
   }
 
   private async runNotificationSideEffect(

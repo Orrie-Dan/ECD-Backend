@@ -1,4 +1,4 @@
-import { UserAccountStatus, UserRole } from '../../../common/domain';
+import { PersonSex, UserAccountStatus, UserRole } from '../../../common/domain';
 import { userMapper } from '../mappers/user.mapper';
 import { UserWithRelations } from '../mappers/user.mapper';
 
@@ -107,6 +107,17 @@ async function run() {
     eq(mapped.centerId, 'c1');
     eq(mapped.gender, null);
     eq(mapped.educationLevel, null);
+  });
+
+  await assert('toCreateInput maps caregiver gender', () => {
+    const mapped = userMapper.toCreateInput({
+      username: 'cg1',
+      fullName: 'Care Giver',
+      role: UserRole.caregiver,
+      centerId: 'c1',
+      gender: PersonSex.female,
+    });
+    eq(mapped.gender, PersonSex.female);
   });
 
   await assert('toUpdateInput cannot reassign centerId', () => {

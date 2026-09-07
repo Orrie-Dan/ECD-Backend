@@ -1,5 +1,10 @@
-import { UserAccountStatus, UserRole } from '../../../common/domain';
-import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { PersonSex, UserAccountStatus, UserRole } from '../../../common/domain';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../../auth/auth.service';
 import { AuthUser } from '../../auth/interfaces/jwt-payload.interface';
@@ -207,12 +212,33 @@ async function run() {
       fullName: 'Care One',
       role: UserRole.caregiver,
       centerId: 'c1',
+      gender: PersonSex.female,
     });
 
     eq(creates[0].role, UserRole.caregiver);
     eq(creates[0].centerId, 'c1');
     eq(creates[0].districtId, 'd1');
+    eq(creates[0].gender, PersonSex.female);
     eq(result.center?.id, 'c1');
+    eq(result.gender, PersonSex.female);
+  });
+
+  await assert('caregiver create without gender is rejected', async () => {
+    const svc = createService({
+      userAccount: { findUnique: async () => null },
+    });
+    let caught: unknown;
+    try {
+      await svc.create(ncda, {
+        username: 'cg_no_gender',
+        fullName: 'No Gender',
+        role: UserRole.caregiver,
+        centerId: 'c1',
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof BadRequestException, true);
   });
 
   await assert(
@@ -257,6 +283,7 @@ async function run() {
         fullName: 'Notify Failure',
         role: UserRole.caregiver,
         centerId: 'c1',
+        gender: PersonSex.male,
       });
 
       // Fire-and-forget notification failure must not break the mutation.
@@ -301,6 +328,7 @@ async function run() {
       fullName: 'Care Two',
       role: UserRole.caregiver,
       centerId: 'c1',
+      gender: PersonSex.female,
     });
     eq(creates[0].createdById, 'focal-1');
     eq(creates[0].districtId, 'd1');
@@ -341,6 +369,7 @@ async function run() {
         fullName: 'Outsider',
         role: UserRole.caregiver,
         centerId: 'c-other',
+        gender: PersonSex.male,
       });
     } catch (err) {
       caught = err;
@@ -389,6 +418,7 @@ async function run() {
       fullName: 'Center Caregiver',
       role: UserRole.caregiver,
       centerId: 'c1',
+      gender: PersonSex.female,
     });
     eq(creates[0].role, UserRole.caregiver);
     eq(creates[0].centerId, 'c1');
@@ -412,6 +442,7 @@ async function run() {
         fullName: 'Outsider',
         role: UserRole.caregiver,
         centerId: 'c-other',
+        gender: PersonSex.male,
       });
     } catch (err) {
       caught = err;
@@ -460,6 +491,7 @@ async function run() {
       fullName: 'Head of ECD',
       role: UserRole.ecd_director,
       centerId: 'c1',
+      gender: PersonSex.male,
     });
     eq(creates[0].role, UserRole.ecd_director);
     eq(creates[0].centerId, 'c1');
@@ -712,6 +744,7 @@ async function run() {
         fullName: 'Missing',
         role: UserRole.caregiver,
         centerId: 'missing',
+        gender: PersonSex.female,
       });
     } catch (err) {
       caught = err;

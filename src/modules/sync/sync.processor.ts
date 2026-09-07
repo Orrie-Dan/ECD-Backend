@@ -217,6 +217,16 @@ export class SyncProcessor extends WorkerHost {
         continue;
       }
 
+      // Notifications re-read entities via a separate connection — must run after commit.
+      if (
+        result.applyResult.status === SyncOperationStatus.applied &&
+        result.applyResult.pendingNotifications?.length
+      ) {
+        await this.syncApplyService.flushPendingNotifications(
+          result.applyResult.pendingNotifications,
+        );
+      }
+
       if (result.applyResult.status === SyncOperationStatus.failed) {
         this.logger.warn(
           JSON.stringify({

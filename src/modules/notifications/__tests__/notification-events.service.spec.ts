@@ -76,7 +76,7 @@ async function main() {
     eq(calls[0]?.userIds.sort(), ['director-a', 'district-a'].sort());
     eq(calls[0]?.data.metadata?.nutritionStatus, 'severe');
     eq(calls[0]?.data.metadata?.requiresReferral, true);
-    eq(calls[0]?.data.message?.includes('referral required'), true, 'message includes referral');
+    eq(calls[0]?.data.message?.includes('akeneye koherezwa kwa muganga'), true, 'message includes referral');
   });
 
   await assert('normal nutrition screening emits no notification', async () => {
@@ -157,7 +157,7 @@ async function main() {
     eq(calls[0]?.data.type, 'nutrition_alert');
     eq(calls[0]?.data.metadata?.nutritionStatus, 'at_risk');
     eq(calls[0]?.data.metadata?.requiresReferral, false);
-    eq(calls[0]?.data.message?.includes('referral required'), false, 'no referral suffix');
+    eq(calls[0]?.data.message?.includes('akeneye koherezwa kwa muganga'), false, 'no referral suffix');
   });
 
   await assert('at_risk with requiresReferral includes referral in message', async () => {
@@ -183,7 +183,7 @@ async function main() {
 
     eq(calls.length, 1);
     eq(calls[0]?.data.metadata?.requiresReferral, true);
-    eq(calls[0]?.data.message?.includes('referral required'), true);
+    eq(calls[0]?.data.message?.includes('akeneye koherezwa kwa muganga'), true);
   });
 
   await assert('normal with requiresReferral=true emits notification', async () => {
@@ -274,8 +274,8 @@ async function main() {
     eq(calls.length, 1);
     eq(calls[0]?.data.type, 'center_created');
     eq(calls[0]?.data.entityId, 'center-new');
-    eq(calls[0]?.data.title, 'New ECD center registered');
-    eq(calls[0]?.data.message, 'Nyamirambo ECD has been registered in Nyarugenge.');
+    eq(calls[0]?.data.title, 'Ikigo gishya cya ECD cyanditswe');
+    eq(calls[0]?.data.message, 'Nyamirambo ECD cyanditswe muri Nyarugenge.');
     eq(calls[0]?.data.dedupeKey, NotificationDedupeKeys.centerCreated('center-new'));
     eq(calls[0]?.context, 'center_created');
     eq(calls[0]?.userIds.sort(), ['admin-a', 'admin-b', 'district-a'].sort());

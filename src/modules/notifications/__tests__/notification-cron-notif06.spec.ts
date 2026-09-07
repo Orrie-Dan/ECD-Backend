@@ -342,7 +342,7 @@ async function main() {
     eq(overdue[0]?.entityId, 'ch1');
     eq(overdue[0]?.type, 'nutrition_alert');
     eq(overdue[0]?.message?.includes('Paul Victor'), true, 'message includes child name');
-    eq(overdue[0]?.message?.includes('30+'), true, 'message includes threshold');
+    eq(overdue[0]?.message?.includes('iminsi 30'), true, 'message includes threshold');
     eq(
       overdue[0]?.dedupeKey,
       NotificationDedupeKeys.nutritionOverdueCron('ch1', lastDate.toISOString().slice(0, 10)),

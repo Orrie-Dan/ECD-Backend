@@ -11,13 +11,13 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   ATTENDANCE_ABSENT_THRESHOLD,
-  ATTENDANCE_RISK_DAYS,
   HIGH_PRIORITY_LOW_RATE_THRESHOLD,
   LOW_CENTER_ATTENDANCE_THRESHOLD,
   attendanceLookbackRange,
   startOfUtcDay,
 } from '../alerts/attendance-alert.constants';
 import { NotificationsService } from './notifications.service';
+import { NotificationCopy } from './notification-copy';
 import { NotificationDedupeKeys } from './notification-dedupe';
 
 const STED_UPCOMING_DAYS = 7;
@@ -95,10 +95,12 @@ export class NotificationCronService {
         UserRole.ecd_director,
         UserRole.caregiver,
       ]);
+      const dueDate = a.followUpDueDate!.toISOString().slice(0, 10);
+      const copy = NotificationCopy.stedFollowUpDueSoon(childName, dueDate);
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'sted_followup',
-        title: 'STED follow-up due soon',
-        message: `${childName} STED follow-up due ${a.followUpDueDate!.toISOString().slice(0, 10)}.`,
+        title: copy.title,
+        message: copy.message,
         entityType: 'sted_assessment',
         entityId: a.id,
         dedupeKey: NotificationDedupeKeys.stedFollowUpCronUpcoming(a.id),
@@ -138,8 +140,10 @@ export class NotificationCronService {
       );
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'compliance_update',
-        title: 'Compliance gap overdue',
-        message: `${item.standard.title} gap at ${item.assessment.center.name} is past its target date.`,
+        ...NotificationCopy.complianceGapOverdue(
+          item.standard.title,
+          item.assessment.center.name,
+        ),
         entityType: 'compliance_assessment_item',
         entityId: item.id,
         dedupeKey: NotificationDedupeKeys.complianceGapCronOverdue(item.id),
@@ -175,8 +179,7 @@ export class NotificationCronService {
       ]);
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'transfer_request',
-        title: 'Pending transfer reminder',
-        message: `Transfer for ${childName} has been pending for ${STALE_TRANSFER_DAYS}+ days.`,
+        ...NotificationCopy.staleTransferReminder(childName),
         entityType: 'child_transfer',
         entityId: t.id,
         dedupeKey: NotificationDedupeKeys.transferCronStale(t.id),
@@ -233,8 +236,7 @@ export class NotificationCronService {
 
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'referral_updated',
-        title: 'Referral pending follow-up',
-        message: `${childName}'s referral has been pending for ${ageDays} days.`,
+        ...NotificationCopy.staleReferralFollowUp(childName, ageDays),
         entityType: 'referral',
         entityId: r.id,
         dedupeKey: NotificationDedupeKeys.referralCronStale(r.id),
@@ -307,8 +309,7 @@ export class NotificationCronService {
 
         await this.notifications.createForMultipleUsers(userIds, {
           type: 'nutrition_alert',
-          title: 'Nutrition screening required',
-          message: `${childName} has never been screened for nutrition.`,
+          ...NotificationCopy.nutritionNeverScreened(childName),
           entityType: 'child',
           entityId: child.id,
           dedupeKey: NotificationDedupeKeys.nutritionNeverScreenedCron(child.id),
@@ -341,8 +342,7 @@ export class NotificationCronService {
 
         await this.notifications.createForMultipleUsers(userIds, {
           type: 'nutrition_alert',
-          title: 'Overdue nutrition screening',
-          message: `${childName} has not been screened in ${OVERDUE_SCREENING_DAYS}+ days (last: ${lastScreeningDate}).`,
+          ...NotificationCopy.nutritionOverdue(childName, lastScreeningDate),
           entityType: 'child',
           entityId: child.id,
           dedupeKey: NotificationDedupeKeys.nutritionOverdueCron(child.id, lastScreeningDate),
@@ -394,8 +394,7 @@ export class NotificationCronService {
       ]);
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'capacity_warning',
-        title: 'Center at capacity',
-        message: `${c.name} has ${c._count.children} children (capacity: ${c.capacity}).`,
+        ...NotificationCopy.capacityWarning(c.name, c._count.children, c.capacity!),
         entityType: 'ecd_center',
         entityId: c.id,
         dedupeKey: NotificationDedupeKeys.capacityCronAtCapacity(c.id),
@@ -456,8 +455,7 @@ export class NotificationCronService {
       ]);
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'attendance_absence',
-        title: 'Repeated absences',
-        message: `${childName} was absent ${absentDays} days in the last ${ATTENDANCE_RISK_DAYS} days.`,
+        ...NotificationCopy.attendanceAbsence(childName, absentDays),
         entityType: 'child',
         entityId: child.id,
         dedupeKey: NotificationDedupeKeys.attendanceAbsenceCron(child.id, to),
@@ -534,8 +532,7 @@ export class NotificationCronService {
       const userIds = [...new Set([...centerUserIds, ...districtUserIds])];
       await this.notifications.createForMultipleUsers(userIds, {
         type: 'attendance_low_rate',
-        title: 'Low attendance rate',
-        message: `${c.name} attendance is ${rate}% over the last ${ATTENDANCE_RISK_DAYS} days.`,
+        ...NotificationCopy.attendanceLowRate(c.name, rate),
         entityType: 'ecd_center',
         entityId: c.id,
         dedupeKey: NotificationDedupeKeys.attendanceLowRateCron(c.id, to),

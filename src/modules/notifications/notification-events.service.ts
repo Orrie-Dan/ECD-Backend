@@ -2,6 +2,7 @@ import { AssessmentStatus, NutritionStatus, UserRole } from '../../common/domain
 import { Injectable, Logger } from '@nestjs/common';
 import { ReferralSourceType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationCopy } from './notification-copy';
 import { NotificationDedupeKeys } from './notification-dedupe';
 import { NotificationsService } from './notifications.service';
 
@@ -32,12 +33,11 @@ export class NotificationEventsService {
       return;
     }
 
-    const statusLabel = status.replace('_', ' ');
-    const referralSuffix = input.requiresReferral ? ' — referral required' : '';
+    const copy = NotificationCopy.nutritionAlert(status, input.requiresReferral);
     const notifData = {
       type: 'nutrition_alert' as const,
-      title: `Nutrition screening: ${statusLabel}`,
-      message: `A child has been screened with ${statusLabel} nutrition status${referralSuffix}.`,
+      title: copy.title,
+      message: copy.message,
       entityType: 'child_nutrition_screening',
       entityId: input.screeningId,
       dedupeKey: NotificationDedupeKeys.nutritionScreeningCreated(input.screeningId),
@@ -81,8 +81,7 @@ export class NotificationEventsService {
         userIds,
         {
           type: 'sted_followup',
-          title: 'STED follow-up scheduled',
-          message: 'A STED assessment requires a 6-month follow-up.',
+          ...NotificationCopy.stedFollowUpCreated,
           entityType: 'sted_assessment',
           entityId: input.assessmentId,
           dedupeKey: NotificationDedupeKeys.stedFollowUpCreated(input.assessmentId),
@@ -103,12 +102,13 @@ export class NotificationEventsService {
       const userIds = await this.notifications.findUserIdsByRoleAndCenter(input.centerId, [
         UserRole.ecd_director,
       ]);
+      const copy = NotificationCopy.referralCreated(String(input.sourceType));
       this.notifications.notifyAsync(
         userIds,
         {
           type: 'referral_created',
-          title: 'New referral created',
-          message: `A new ${input.sourceType} referral has been created.`,
+          title: copy.title,
+          message: copy.message,
           entityType: 'referral',
           entityId: input.referralId,
           dedupeKey: NotificationDedupeKeys.referralCreated(input.referralId),
@@ -130,12 +130,13 @@ export class NotificationEventsService {
         UserRole.ecd_director,
         UserRole.caregiver,
       ]);
+      const copy = NotificationCopy.referralUpdated(input.status);
       this.notifications.notifyAsync(
         userIds,
         {
           type: 'referral_updated',
-          title: 'Referral status updated',
-          message: `A referral has been updated to ${input.status}.`,
+          title: copy.title,
+          message: copy.message,
           entityType: 'referral',
           entityId: input.referralId,
           dedupeKey: NotificationDedupeKeys.referralStatusUpdated(input.referralId, input.status),
@@ -153,11 +154,11 @@ export class NotificationEventsService {
     districtId: string;
     districtName?: string | null;
   }): Promise<void> {
-    const districtSuffix = input.districtName ? ` in ${input.districtName}` : '';
+    const copy = NotificationCopy.centerCreated(input.centerName, input.districtName);
     const notifData = {
       type: 'center_created' as const,
-      title: 'New ECD center registered',
-      message: `${input.centerName} has been registered${districtSuffix}.`,
+      title: copy.title,
+      message: copy.message,
       entityType: 'ecd_center',
       entityId: input.centerId,
       dedupeKey: NotificationDedupeKeys.centerCreated(input.centerId),
@@ -187,12 +188,13 @@ export class NotificationEventsService {
       const userIds = await this.notifications.findUserIdsByRoleAndCenter(input.centerId, [
         UserRole.ecd_director,
       ]);
+      const copy = NotificationCopy.childEnrolled(input.firstName, input.lastName);
       this.notifications.notifyAsync(
         userIds,
         {
           type: 'child_enrolled',
-          title: 'New child enrolled',
-          message: `${input.firstName} ${input.lastName ?? ''} has been enrolled.`.trim(),
+          title: copy.title,
+          message: copy.message,
           entityType: 'child',
           entityId: input.childId,
           dedupeKey: NotificationDedupeKeys.childEnrolled(input.childId),
@@ -214,12 +216,13 @@ export class NotificationEventsService {
       const userIds = await this.notifications.findUserIdsByRoleAndCenter(input.centerId, [
         UserRole.caregiver,
       ]);
+      const copy = NotificationCopy.childArchived(input.firstName, input.lastName);
       this.notifications.notifyAsync(
         userIds,
         {
           type: 'child_archived',
-          title: 'Child archived',
-          message: `${input.firstName} ${input.lastName ?? ''} has been archived.`.trim(),
+          title: copy.title,
+          message: copy.message,
           entityType: 'child',
           entityId: input.childId,
           dedupeKey: NotificationDedupeKeys.childArchived(input.childId),
@@ -236,11 +239,12 @@ export class NotificationEventsService {
     toCenterId: string;
     childFirstName: string | null;
   }): Promise<void> {
+    const copy = NotificationCopy.transferRequested(input.childFirstName);
     await this.notifyTransferCenter(
       'transfer_request',
       input.toCenterId,
-      `Transfer request for ${input.childFirstName ?? 'child'}`,
-      'A child transfer has been requested to your center.',
+      copy.title,
+      copy.message,
       input.transferId,
       [UserRole.ecd_director],
       'transfer_requested',
@@ -252,8 +256,8 @@ export class NotificationEventsService {
     await this.notifyTransferCenter(
       'transfer_accepted',
       input.fromCenterId,
-      'Transfer accepted',
-      'Your child transfer request has been accepted by the destination center.',
+      NotificationCopy.transferAccepted.title,
+      NotificationCopy.transferAccepted.message,
       input.transferId,
       [UserRole.ecd_director, UserRole.caregiver],
       'transfer_accepted',
@@ -265,8 +269,8 @@ export class NotificationEventsService {
     await this.notifyTransferCenter(
       'transfer_cancelled',
       input.toCenterId,
-      'Transfer cancelled',
-      'A child transfer to your center has been cancelled.',
+      NotificationCopy.transferCancelled.title,
+      NotificationCopy.transferCancelled.message,
       input.transferId,
       [UserRole.ecd_director],
       'transfer_cancelled',
@@ -291,12 +295,13 @@ export class NotificationEventsService {
         const userIds = await this.notifications.findUserIdsByRoleAndDistrict(input.districtId, [
           UserRole.district_focal_person,
         ]);
+        const copy = NotificationCopy.complianceSubmitted(input.centerName);
         this.notifications.notifyAsync(
           userIds,
           {
             type: 'compliance_update',
-            title: 'Compliance assessment submitted',
-            message: `A compliance assessment for ${input.centerName} has been submitted for review.`,
+            title: copy.title,
+            message: copy.message,
             entityType: 'compliance_assessment',
             entityId: input.assessmentId,
             dedupeKey: NotificationDedupeKeys.complianceStatusChanged(
@@ -320,12 +325,13 @@ export class NotificationEventsService {
         const userIds = await this.notifications.findUserIdsByRoleAndCenter(input.centerId, [
           UserRole.ecd_director,
         ]);
+        const copy = NotificationCopy.complianceVerifiedOrRejected(input.newStatus);
         this.notifications.notifyAsync(
           userIds,
           {
             type: 'compliance_update',
-            title: `Compliance assessment ${input.newStatus}`,
-            message: `Your compliance assessment has been ${input.newStatus}.`,
+            title: copy.title,
+            message: copy.message,
             entityType: 'compliance_assessment',
             entityId: input.assessmentId,
             dedupeKey: NotificationDedupeKeys.complianceStatusChanged(

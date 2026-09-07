@@ -230,6 +230,91 @@ async function main() {
     eq(bridgeCalls, ['ecd_center:' + entityId]);
   });
 
+  await assert(
+    'inside a transaction, notifications are deferred until flush after commit',
+    async () => {
+      const bridgeCalls: string[] = [];
+      const centerId = randomUUID();
+      const homeVillageId = randomUUID();
+      const db = {
+        ecdCenter: {
+          findFirst: async () => ({ id: centerId }),
+        },
+        administrativeUnit: {
+          findUnique: async () => ({ id: homeVillageId }),
+        },
+        classroom: {
+          findFirst: async () => null,
+          findUnique: async () => null,
+        },
+        child: {
+          findUnique: async () => null,
+          create: async ({ data }: { data: { id: string } }) => data,
+          update: async ({ data }: { data: { id?: string } }) => data,
+        },
+        classroomAssignmentHistory: {
+          create: async () => ({}),
+        },
+      };
+      const bridge = {
+        afterEntityCreated: async (entityType: string, entityId: string) => {
+          bridgeCalls.push(`${entityType}:${entityId}`);
+        },
+        afterTransferCreated: async () => {},
+        afterTransferAccepted: async () => {},
+        afterTransferCancelled: async () => {},
+        afterReferralStatusUpdated: async () => {},
+        afterChildArchived: async () => {},
+        afterComplianceStatusChanged: async () => {},
+      };
+
+      const service = new SyncApplyService(
+        db as never,
+        noopTransferLifecycle() as never,
+        bridge as never,
+      );
+      const entityId = randomUUID();
+      // Non-null tx signals "inside transaction" — defer bridge until flush.
+      const tx = db as never;
+
+      const result = await service.apply({
+        deviceId: randomUUID(),
+        entityType: 'child',
+        entityId,
+        localId: entityId,
+        operation: 'create' as never,
+        payload: {
+          centerId,
+          homeVillageId,
+          firstName: 'Jean',
+          lastName: 'Test',
+          dateOfBirth: '2024-01-01',
+          gender: 'male',
+          nationalId: '1202480100100199',
+          guardianName: 'Guardian',
+          guardianPhone: '0780000000',
+          guardianRelation: 'parent',
+          registeredAt: '2026-09-07',
+        },
+        clientVersion: 1,
+        tx,
+      });
+
+      // Apply with tx should not call the bridge yet (uncommitted row invisible).
+      eq(result.status, SyncOperationStatus.applied);
+      eq(bridgeCalls.length, 0, 'bridge must not run inside open transaction');
+      eq(result.pendingNotifications?.length, 1);
+      eq(result.pendingNotifications?.[0], {
+        kind: 'entity_created',
+        entityType: 'child',
+        entityId,
+      });
+
+      await service.flushPendingNotifications(result.pendingNotifications ?? []);
+      eq(bridgeCalls, [`child:${entityId}`], 'flush after commit invokes bridge');
+    },
+  );
+
   console.log('\nAll sync apply notification tests passed.');
 }
 

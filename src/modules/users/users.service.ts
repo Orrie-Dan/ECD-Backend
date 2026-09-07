@@ -1,4 +1,4 @@
-import { UserAccountStatus, UserRole } from '../../common/domain';
+import { PersonSex, UserAccountStatus, UserRole } from '../../common/domain';
 import {
   BadRequestException,
   ConflictException,
@@ -30,6 +30,7 @@ import {
 } from './dto/user-response.dto';
 import { UserWithRelations, userMapper } from './mappers/user.mapper';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationCopy } from '../notifications/notification-copy';
 import { NotificationDedupeKeys } from '../notifications/notification-dedupe';
 
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
@@ -53,6 +54,7 @@ export class UsersService {
     this.assertCanCreateRole(actor, dto.role);
 
     const mapped = userMapper.toCreateInput(dto);
+    this.assertGenderForRole(mapped.role, mapped.gender);
     const { districtId, centerId } = await this.resolveScopeForRole(
       actor,
       mapped.role,
@@ -111,10 +113,11 @@ export class UsersService {
         .findUserIdsByRoleAndCenter(centerId, [UserRole.ecd_director])
         .then((ids) => {
           const filtered = ids.filter((id) => id !== created.id);
+          const copy = NotificationCopy.userProvisioned(created.fullName, mapped.role);
           this.notifications.notifyAsync(filtered, {
             type: 'general',
-            title: 'New user added',
-            message: `${created.fullName} (${mapped.role}) has been added to your center.`,
+            title: copy.title,
+            message: copy.message,
             entityType: 'user_account',
             entityId: created.id,
             dedupeKey: NotificationDedupeKeys.userProvisioned(created.id),
@@ -322,6 +325,15 @@ export class UsersService {
   private assertCanResetPassword(actor: AuthUser, target: UserWithRelations): void {
     if (!this.canResetPassword(actor, target)) {
       throw new ForbiddenException('You are not allowed to reset this user password');
+    }
+  }
+
+  private assertGenderForRole(role: UserRole, gender: PersonSex | null): void {
+    if (
+      (role === UserRole.caregiver || role === UserRole.ecd_director) &&
+      gender == null
+    ) {
+      throw new BadRequestException(`gender is required for ${role}`);
     }
   }
 
