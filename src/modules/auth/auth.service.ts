@@ -11,6 +11,8 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EmailTemplateId } from '../email/email-template.ids';
+import { EmailService } from '../email/email.service';
 import { AuthTokensResponseDto } from './dto/auth-tokens-response.dto';
 import { AuthMeResponseDto, AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { LoginDto } from './dto/login.dto';
@@ -30,6 +32,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly email: EmailService,
   ) {}
 
   async login(dto: LoginDto): Promise<AuthTokensResponseDto> {
@@ -155,8 +158,8 @@ export class AuthService {
   }
 
   /**
-   * Secure stub: always returns accepted:true without revealing whether the user exists.
-   * Creates a hashed PasswordResetToken when a matching account is found.
+   * Always returns accepted:true without revealing whether the user exists.
+   * Creates a hashed PasswordResetToken and emails a reset link when the account has an email.
    */
   async requestPasswordReset(dto: PasswordResetRequestDto): Promise<{ accepted: true }> {
     if (!dto.username && !dto.email) {
@@ -170,7 +173,7 @@ export class AuthService {
           ...(dto.email ? [{ email: dto.email }] : []),
         ],
       },
-      select: { id: true },
+      select: { id: true, email: true, fullName: true },
     });
 
     if (user) {
@@ -185,10 +188,22 @@ export class AuthService {
         },
       });
 
-      // Stub: no email/SMS delivery yet. Log raw token outside production for local confirm testing.
       if (this.config.get<string>('NODE_ENV') !== 'production') {
         this.logger.warn(
-          `Password reset token created for user ${user.id} (dev stub): ${rawToken}`,
+          `Password reset token created for user ${user.id} (dev): ${rawToken}`,
+        );
+      }
+
+      if (user.email) {
+        void this.email.sendBestEffort(
+          user.email,
+          EmailTemplateId.SECURITY_PASSWORD_RESET_REQUESTED,
+          {
+            fullName: user.fullName,
+            resetUrl: this.buildPasswordResetUrl(rawToken),
+            resetToken: rawToken,
+          },
+          { entityType: 'user_account', entityId: user.id, userId: user.id },
         );
       }
     }
@@ -204,7 +219,7 @@ export class AuthService {
       where: { tokenHash },
       include: {
         user: {
-          select: { id: true, status: true },
+          select: { id: true, status: true, email: true, fullName: true },
         },
       },
     });
@@ -236,6 +251,17 @@ export class AuthService {
       }),
     ]);
 
+    void this.email.sendBestEffort(
+      resetToken.user.email,
+      EmailTemplateId.SECURITY_PASSWORD_RESET_COMPLETED,
+      { fullName: resetToken.user.fullName },
+      {
+        entityType: 'user_account',
+        entityId: resetToken.userId,
+        userId: resetToken.userId,
+      },
+    );
+
     return { success: true };
   }
 
@@ -245,6 +271,14 @@ export class AuthService {
 
   private hashResetToken(rawToken: string): string {
     return createHash('sha256').update(rawToken).digest('hex');
+  }
+
+  private buildPasswordResetUrl(rawToken: string): string | undefined {
+    const frontendUrl = this.config.get<string>('FRONTEND_URL')?.trim().replace(/\/$/, '');
+    if (!frontendUrl) {
+      return undefined;
+    }
+    return `${frontendUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
   }
 
   private async issueTokens(user: {

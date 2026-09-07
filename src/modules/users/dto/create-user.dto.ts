@@ -1,6 +1,7 @@
 import { EducationLevel, PersonSex, UserRole } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -61,6 +62,16 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(50)
   phone?: string;
+
+  @ApiPropertyOptional({
+    example: 'caregiver01@example.com',
+    maxLength: 254,
+    description: 'Optional account email for password reset and transactional mail',
+  })
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(254)
+  email?: string;
 
   @ApiPropertyOptional({
     enum: PersonSex,

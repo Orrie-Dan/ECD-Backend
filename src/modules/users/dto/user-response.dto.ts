@@ -46,6 +46,9 @@ export class UserResponseDto {
   @ApiProperty({ example: '+250788123456', nullable: true })
   phone: string | null;
 
+  @ApiProperty({ example: 'caregiver01@example.com', nullable: true })
+  email: string | null;
+
   @ApiProperty({ enum: PersonSex, enumName: 'PersonSex', nullable: true })
   gender: PersonSex | null;
 

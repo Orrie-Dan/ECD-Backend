@@ -72,8 +72,8 @@ export class AuthController {
   @ApiOperation({
     summary: 'Request password reset',
     description:
-      'Secure stub: always returns `{ accepted: true }` without revealing whether the account exists. ' +
-      'Creates a hashed reset token when a matching user is found.',
+      'Always returns `{ accepted: true }` without revealing whether the account exists. ' +
+      'Creates a hashed reset token when a matching user is found and emails a reset link when SMTP is configured and the account has an email.',
   })
   @ApiOkResponse({
     description: 'Always accepted (does not reveal account existence)',

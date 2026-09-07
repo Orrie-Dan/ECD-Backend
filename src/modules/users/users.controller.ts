@@ -39,7 +39,7 @@ export class UsersController {
       'NCDA can create district officers, ECD directors, and caregivers; ' +
       'district officers can create ECD directors and caregivers in their district; ' +
       'ECD directors can create caregivers at their center. ' +
-      'Returns a one-time `temporaryPassword` that must be shared out-of-band; ' +
+      'Returns a one-time `temporaryPassword` (also emailed when the account has an email); ' +
       'it is never included on subsequent GET/list/update responses.',
   })
   @ApiCreatedResponse({ type: CreateUserResponseDto })
@@ -99,8 +99,8 @@ export class UsersController {
     summary: 'Reset user password',
     description:
       'Resets the target user password. When `newPassword` is omitted, a temporary ' +
-      'password is generated and returned once as `temporaryPassword`. When an ' +
-      'explicit password is provided, it is not echoed in the response.',
+      'password is generated, returned once as `temporaryPassword`, and emailed when ' +
+      'the account has an email. When an explicit password is provided, it is not echoed.',
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'User account UUID' })
   @ApiOkResponse({ type: ResetUserPasswordResponseDto })

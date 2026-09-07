@@ -1,6 +1,15 @@
 import { EducationLevel, PersonSex } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+  ValidateIf,
+} from 'class-validator';
 import { ApiUserStatus } from './user-response.dto';
 
 const API_STATUSES: ApiUserStatus[] = ['ACTIVE', 'SUSPENDED'];
@@ -26,6 +35,18 @@ export class UpdateUserDto {
   @IsString()
   @MaxLength(50)
   phone?: string | null;
+
+  @ApiPropertyOptional({
+    example: 'caregiver01@example.com',
+    maxLength: 254,
+    nullable: true,
+    description: 'Optional account email; set null to clear',
+  })
+  @IsOptional()
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsEmail()
+  @MaxLength(254)
+  email?: string | null;
 
   @ApiPropertyOptional({
     enum: PersonSex,

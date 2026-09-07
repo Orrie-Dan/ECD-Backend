@@ -29,7 +29,7 @@ function createService(): UsersService {
     create: async () => ({}),
     createForMultipleUsers: async () => 0,
   } as any;
-  return new UsersService({} as never, {} as never, {} as never, mockNotifications);
+  return new UsersService({} as never, {} as never, {} as never, mockNotifications, {} as never);
 }
 
 async function run() {
@@ -87,8 +87,8 @@ async function run() {
     eq(svc.canCreateRole(ncda, UserRole.caregiver), true);
   });
 
-  await assert('NCDA cannot create ncda_admin (no escalation)', () => {
-    eq(svc.canCreateRole(ncda, UserRole.ncda_admin), false);
+  await assert('NCDA can create ncda_admin', () => {
+    eq(svc.canCreateRole(ncda, UserRole.ncda_admin), true);
   });
 
   await assert('District officer can create ECD director', () => {

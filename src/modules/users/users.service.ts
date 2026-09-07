@@ -18,6 +18,8 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
+import { EmailService } from '../email/email.service';
+import { EmailTemplateId } from '../email/email-template.ids';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
@@ -47,6 +49,7 @@ export class UsersService {
     private readonly authService: AuthService,
     private readonly config: ConfigService,
     private readonly notifications: NotificationsService,
+    private readonly email: EmailService,
   ) {}
 
   async create(actor: AuthUser, dto: CreateUserDto): Promise<CreateUserResponseDto> {
@@ -70,6 +73,8 @@ export class UsersService {
       throw new ConflictException('Username is already taken');
     }
 
+    await this.assertEmailAvailable(mapped.email);
+
     const temporaryPassword = this.generateTemporaryPassword();
     const passwordHash = await this.authService.hashPassword(temporaryPassword);
     const rawResetToken = randomBytes(32).toString('hex');
@@ -81,6 +86,7 @@ export class UsersService {
           username: mapped.username,
           fullName: mapped.fullName,
           phone: mapped.phone,
+          email: mapped.email,
           gender: mapped.gender,
           educationLevel: mapped.educationLevel,
           role: mapped.role,
@@ -107,6 +113,13 @@ export class UsersService {
     });
 
     this.logProvisioningSecrets(created.id, rawResetToken);
+    this.sendTemporaryPasswordEmail({
+      userId: created.id,
+      email: created.email,
+      fullName: created.fullName,
+      username: created.username,
+      temporaryPassword,
+    });
 
     if (centerId) {
       void this.notifications
@@ -184,6 +197,10 @@ export class UsersService {
       throw new BadRequestException('No updatable fields provided');
     }
 
+    if (mapped.email !== undefined) {
+      await this.assertEmailAvailable(mapped.email, id);
+    }
+
     const updated = await this.prisma.userAccount.update({
       where: { id },
       data: {
@@ -237,6 +254,13 @@ export class UsersService {
     this.logProvisioningSecrets(id, rawResetToken);
 
     if (generated) {
+      this.sendTemporaryPasswordEmail({
+        userId: target.id,
+        email: target.email,
+        fullName: target.fullName,
+        username: target.username,
+        temporaryPassword: plain,
+      });
       return {
         success: true,
         temporaryPassword: plain,
@@ -248,8 +272,9 @@ export class UsersService {
   }
 
   /**
-   * Creation permission matrix (no role escalation).
-   * Exported for authorization unit tests.
+   * Creation permission matrix.
+   * NCDA may create any role, including peer ncda_admin.
+   * District and center staff cannot escalate.
    */
   canCreateRole(actor: AuthUser, targetRole: UserRole): boolean {
     if (actor.role === UserRole.caregiver) {
@@ -257,6 +282,7 @@ export class UsersService {
     }
     if (actor.role === UserRole.ncda_admin) {
       return (
+        targetRole === UserRole.ncda_admin ||
         targetRole === UserRole.district_focal_person ||
         targetRole === UserRole.ecd_director ||
         targetRole === UserRole.caregiver
@@ -450,6 +476,7 @@ export class UsersService {
           { username: { contains: term, mode: 'insensitive' } },
           { fullName: { contains: term, mode: 'insensitive' } },
           { phone: { contains: term, mode: 'insensitive' } },
+          { email: { contains: term, mode: 'insensitive' } },
         ],
       });
     }
@@ -505,6 +532,30 @@ export class UsersService {
     } as const;
   }
 
+  /**
+   * Application-level uniqueness (email is optional and not unique in Prisma yet).
+   * Stored emails are lowercased; null clears / skips the check.
+   */
+  private async assertEmailAvailable(
+    email: string | null,
+    excludeUserId?: string,
+  ): Promise<void> {
+    if (!email) {
+      return;
+    }
+
+    const existing = await this.prisma.userAccount.findFirst({
+      where: {
+        email: { equals: email, mode: 'insensitive' },
+        ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
+      },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new ConflictException('Email is already in use');
+    }
+  }
+
   private generateTemporaryPassword(): string {
     const bytes = randomBytes(TEMP_PASSWORD_LENGTH);
     let password = '';
@@ -524,5 +575,31 @@ export class UsersService {
         `User provisioning reset token for user ${userId} (dev stub): ${rawResetToken}`,
       );
     }
+  }
+
+  /** Best-effort: emails username + temporary password when the account has an email. */
+  private sendTemporaryPasswordEmail(args: {
+    userId: string;
+    email: string | null;
+    fullName: string;
+    username: string;
+    temporaryPassword: string;
+  }): void {
+    if (!args.email) {
+      return;
+    }
+
+    const frontendUrl = this.config.get<string>('FRONTEND_URL')?.trim().replace(/\/$/, '');
+    void this.email.sendBestEffort(
+      args.email,
+      EmailTemplateId.SECURITY_ACCOUNT_PROVISIONED,
+      {
+        fullName: args.fullName,
+        username: args.username,
+        temporaryPassword: args.temporaryPassword,
+        loginUrl: frontendUrl || undefined,
+      },
+      { entityType: 'user_account', entityId: args.userId, userId: args.userId },
+    );
   }
 }

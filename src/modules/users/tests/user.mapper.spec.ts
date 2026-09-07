@@ -83,7 +83,7 @@ async function run() {
     eq(json.includes('passwordHash'), false);
     eq(json.includes('SECRET_HASH'), false);
     eq('passwordHash' in dto, false);
-    eq('email' in dto, false);
+    eq(dto.email, 'hidden@example.com');
     eq('failedLoginAttempts' in dto, false);
     eq('lockedUntil' in dto, false);
   });
@@ -100,10 +100,12 @@ async function run() {
       role: UserRole.caregiver,
       centerId: 'c1',
       phone: ' 0781 ',
+      email: '  Alice@Example.COM ',
     });
     eq(mapped.username, 'alice');
     eq(mapped.fullName, 'Alice Admin');
     eq(mapped.phone, '0781');
+    eq(mapped.email, 'alice@example.com');
     eq(mapped.centerId, 'c1');
     eq(mapped.gender, null);
     eq(mapped.educationLevel, null);
@@ -118,6 +120,13 @@ async function run() {
       gender: PersonSex.female,
     });
     eq(mapped.gender, PersonSex.female);
+  });
+
+  await assert('toUpdateInput maps and clears email', () => {
+    const set = userMapper.toUpdateInput({ email: '  Bob@Example.COM ' });
+    eq(set.email, 'bob@example.com');
+    const cleared = userMapper.toUpdateInput({ email: null });
+    eq(cleared.email, null);
   });
 
   await assert('toUpdateInput cannot reassign centerId', () => {

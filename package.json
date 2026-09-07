@@ -41,6 +41,9 @@
     "test:optimistic-lock": "ts-node src/modules/children/__tests__/children.optimistic-lock.spec.ts",
     "test:nutrition": "ts-node src/modules/nutrition/__tests__/nutrition.mapper.spec.ts && ts-node src/modules/nutrition/__tests__/nutrition.service.spec.ts && ts-node src/modules/nutrition/__tests__/nutrition.sync.spec.ts",
     "test:feeding": "ts-node src/modules/feeding/__tests__/feeding.mapper.spec.ts && ts-node src/modules/feeding/__tests__/feeding.service.spec.ts && ts-node src/modules/feeding/__tests__/feeding.sync.spec.ts",
+    "smtp:verify": "node scripts/smtp-verify.mjs",
+    "test:email": "ts-node src/modules/email/__tests__/email-layout.spec.ts && ts-node src/modules/email/__tests__/email.service.spec.ts",
+    "test:auth": "ts-node src/modules/auth/__tests__/auth-password-reset.spec.ts",
     "test:users": "ts-node src/modules/users/tests/user.mapper.spec.ts && ts-node src/modules/users/tests/user.authorization.spec.ts && ts-node src/modules/users/tests/user.service.spec.ts",
     "test:attendance": "ts-node src/modules/attendance/__tests__/attendance.mapper.spec.ts && ts-node src/modules/attendance/__tests__/attendance.service.spec.ts && ts-node src/modules/attendance/__tests__/attendance.sync.spec.ts",
     "test:sted": "ts-node src/modules/sted/__tests__/sted.mapper.spec.ts && ts-node src/modules/sted/__tests__/sted.service.spec.ts && ts-node src/modules/sted/__tests__/sted.sync.spec.ts",
@@ -71,7 +74,7 @@
     "migrate:national-ids": "ts-node scripts/migrate-national-ids.ts",
     "restore:backup-data": "ts-node scripts/restore-backup-data.ts",
     "import:rwanda-admin": "ts-node scripts/import-rwanda-admin-units.ts",
-    "test:all": "npm run test:children && npm run test:nutrition && npm run test:feeding && npm run test:attendance && npm run test:sted && npm run test:referrals && npm run test:audit && npm run test:centers && npm run test:analytics && npm run test:alerts && npm run test:notifications && npm run test:monitoring && npm run test:reports && npm run test:audit-logs && npm run test:settings && npm run test:geo && npm run test:compliance && npm run test:wash && npm run test:center-register && npm run test:users && npm run test:gis && npm run test:sync"
+    "test:all": "npm run test:children && npm run test:nutrition && npm run test:feeding && npm run test:attendance && npm run test:sted && npm run test:referrals && npm run test:audit && npm run test:centers && npm run test:analytics && npm run test:alerts && npm run test:notifications && npm run test:monitoring && npm run test:reports && npm run test:audit-logs && npm run test:settings && npm run test:geo && npm run test:compliance && npm run test:wash && npm run test:center-register && npm run test:users && npm run test:auth && npm run test:email && npm run test:gis && npm run test:sync"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -96,6 +99,7 @@
     "class-validator": "^0.14.4",
     "csv-parse": "^7.0.2",
     "ioredis": "^6.0.0",
+    "nodemailer": "^8.0.9",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.22.0",
@@ -109,6 +113,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/node": "^20.3.1",
+    "@types/nodemailer": "^8.0.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.20.4",
     "@typescript-eslint/eslint-plugin": "^8.0.0",

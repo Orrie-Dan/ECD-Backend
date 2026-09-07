@@ -33,6 +33,7 @@ function createService(
   prisma: object,
   auth?: Partial<AuthService>,
   notificationsOverride?: Partial<any>,
+  emailOverride?: { sendBestEffort?: (...args: unknown[]) => Promise<unknown> },
 ) {
   const authService = {
     hashPassword: async (plain: string) => `hashed:${plain}`,
@@ -40,7 +41,8 @@ function createService(
   } as AuthService;
 
   const config = {
-    get: (key: string) => (key === 'NODE_ENV' ? 'test' : undefined),
+    get: (key: string) =>
+      key === 'NODE_ENV' ? 'test' : key === 'FRONTEND_URL' ? 'https://ecd.example' : undefined,
   } as ConfigService;
 
   const mockNotifications = {
@@ -51,7 +53,19 @@ function createService(
     createForMultipleUsers: async () => 0,
     ...(notificationsOverride ?? {}),
   } as any;
-  return new UsersService(prisma as never, authService, config, mockNotifications);
+
+  const mockEmail = {
+    sendBestEffort: async () => ({ sent: false, skipped: true }),
+    ...(emailOverride ?? {}),
+  } as any;
+
+  return new UsersService(
+    prisma as never,
+    authService,
+    config,
+    mockNotifications,
+    mockEmail,
+  );
 }
 
 function createdUserRow(data: Record<string, unknown>) {
@@ -62,7 +76,7 @@ function createdUserRow(data: Record<string, unknown>) {
     passwordHash: data.passwordHash,
     fullName: data.fullName,
     phone: data.phone ?? null,
-    email: null,
+    email: data.email ?? null,
     gender: data.gender ?? null,
     educationLevel: data.educationLevel ?? null,
     role: data.role,
@@ -84,6 +98,14 @@ function createdUserRow(data: Record<string, unknown>) {
       username: 'actor',
       fullName: 'Actor',
     },
+  };
+}
+
+function userAccountFinders(overrides: Record<string, unknown> = {}) {
+  return {
+    findUnique: async () => null,
+    findFirst: async () => null,
+    ...overrides,
   };
 }
 
@@ -183,6 +205,61 @@ async function run() {
     eq(creates[0].passwordHash, `hashed:${result.temporaryPassword}`);
   });
 
+  await assert('NCDA can create peer ncda_admin without district or center', async () => {
+    const creates: Record<string, unknown>[] = [];
+    const prisma = {
+      userAccount: {
+        findUnique: async () => null,
+      },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              creates.push(data);
+              return createdUserRow(data);
+            },
+          },
+          passwordResetToken: {
+            create: async () => ({}),
+          },
+        }),
+    };
+
+    const svc = createService(prisma);
+    const result = await svc.create(ncda, {
+      username: 'ncda_two',
+      fullName: 'Second Admin',
+      role: UserRole.ncda_admin,
+    });
+
+    eq(creates.length, 1);
+    eq(creates[0].role, UserRole.ncda_admin);
+    eq(creates[0].districtId, null);
+    eq(creates[0].centerId, null);
+    eq(creates[0].createdById, 'ncda-1');
+    eq(result.role, UserRole.ncda_admin);
+    eq(typeof result.temporaryPassword, 'string');
+    eq(result.mustChangePassword, true);
+  });
+
+  await assert('NCDA creating ncda_admin with districtId is rejected', async () => {
+    const svc = createService({
+      userAccount: { findUnique: async () => null },
+    });
+    let caught: unknown;
+    try {
+      await svc.create(ncda, {
+        username: 'ncda_scoped',
+        fullName: 'Bad Scope',
+        role: UserRole.ncda_admin,
+        districtId: 'd1',
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof BadRequestException, true);
+  });
+
   await assert('NCDA creates caregiver (district derived from center)', async () => {
     const creates: Record<string, unknown>[] = [];
     const prisma = {
@@ -239,6 +316,200 @@ async function run() {
       caught = err;
     }
     eq(caught instanceof BadRequestException, true);
+  });
+
+  await assert('create persists normalized email', async () => {
+    const creates: Record<string, unknown>[] = [];
+    const prisma = {
+      userAccount: userAccountFinders(),
+      district: { findUnique: async () => ({ id: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              creates.push(data);
+              return createdUserRow(data);
+            },
+          },
+          passwordResetToken: { create: async () => ({}) },
+        }),
+    };
+
+    const svc = createService(prisma);
+    const result = await svc.create(ncda, {
+      username: 'focal_mail',
+      fullName: 'Focal Mail',
+      role: UserRole.district_focal_person,
+      districtId: 'd1',
+      email: '  Focal.Mail@Example.COM ',
+    });
+
+    eq(creates[0].email, 'focal.mail@example.com');
+    eq(result.email, 'focal.mail@example.com');
+  });
+
+  await assert('create with email emails temporary password', async () => {
+    const sends: Array<{
+      to: string | null | undefined;
+      templateId: string;
+      payload: Record<string, string | number | undefined>;
+    }> = [];
+    const prisma = {
+      userAccount: userAccountFinders(),
+      district: { findUnique: async () => ({ id: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) =>
+              createdUserRow(data),
+          },
+          passwordResetToken: { create: async () => ({}) },
+        }),
+    };
+
+    const svc = createService(prisma, undefined, undefined, {
+      sendBestEffort: async (to, templateId, payload) => {
+        sends.push({
+          to: to as string | null | undefined,
+          templateId: String(templateId),
+          payload: payload as Record<string, string | number | undefined>,
+        });
+        return { sent: true };
+      },
+    });
+    const result = await svc.create(ncda, {
+      username: 'focal_mail_send',
+      fullName: 'Focal Mail Send',
+      role: UserRole.district_focal_person,
+      districtId: 'd1',
+      email: 'focal.send@example.com',
+    });
+
+    eq(sends.length, 1);
+    eq(sends[0].to, 'focal.send@example.com');
+    eq(sends[0].templateId, 'security.accountProvisioned');
+    eq(sends[0].payload.username, 'focal_mail_send');
+    eq(sends[0].payload.temporaryPassword, result.temporaryPassword);
+    eq(sends[0].payload.loginUrl, 'https://ecd.example');
+  });
+
+  await assert('create without email does not send credentials mail', async () => {
+    const sends: unknown[] = [];
+    const prisma = {
+      userAccount: userAccountFinders(),
+      district: { findUnique: async () => ({ id: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) =>
+              createdUserRow(data),
+          },
+          passwordResetToken: { create: async () => ({}) },
+        }),
+    };
+
+    const svc = createService(prisma, undefined, undefined, {
+      sendBestEffort: async (...args: unknown[]) => {
+        sends.push(args);
+        return { sent: true };
+      },
+    });
+    await svc.create(ncda, {
+      username: 'focal_no_mail',
+      fullName: 'Focal No Mail',
+      role: UserRole.district_focal_person,
+      districtId: 'd1',
+    });
+    eq(sends.length, 0);
+  });
+
+  await assert('create rejects duplicate email', async () => {
+    const svc = createService({
+      userAccount: userAccountFinders({
+        findFirst: async () => ({ id: 'other-user' }),
+      }),
+      district: { findUnique: async () => ({ id: 'd1' }) },
+    });
+    let caught: unknown;
+    try {
+      await svc.create(ncda, {
+        username: 'focal_dup',
+        fullName: 'Dup Mail',
+        role: UserRole.district_focal_person,
+        districtId: 'd1',
+        email: 'taken@example.com',
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof ConflictException, true);
+  });
+
+  await assert('update persists and clears email', async () => {
+    const updates: Record<string, unknown>[] = [];
+    const existing = {
+      ...createdUserRow({
+        username: 'cg1',
+        fullName: 'Care',
+        role: UserRole.caregiver,
+        centerId: 'c1',
+        districtId: 'd1',
+        passwordHash: 'x',
+        createdById: 'ncda-1',
+        updatedById: 'ncda-1',
+      }),
+      id: 'u-update-1',
+      email: null,
+    };
+    const prisma = {
+      userAccount: {
+        findUnique: async () => existing,
+        findFirst: async () => null,
+        update: async ({ data }: { data: Record<string, unknown> }) => {
+          updates.push(data);
+          return { ...existing, ...data, email: data.email ?? null };
+        },
+      },
+    };
+
+    const svc = createService(prisma);
+    const set = await svc.update(ncda, 'u-update-1', { email: '  New@Example.COM ' });
+    eq(updates[0].email, 'new@example.com');
+    eq(set.email, 'new@example.com');
+
+    const cleared = await svc.update(ncda, 'u-update-1', { email: null });
+    eq(updates[1].email, null);
+    eq(cleared.email, null);
+  });
+
+  await assert('update rejects duplicate email on another user', async () => {
+    const existing = {
+      ...createdUserRow({
+        username: 'cg1',
+        fullName: 'Care',
+        role: UserRole.caregiver,
+        centerId: 'c1',
+        districtId: 'd1',
+        passwordHash: 'x',
+        createdById: 'ncda-1',
+        updatedById: 'ncda-1',
+      }),
+      id: 'u-update-2',
+      email: 'old@example.com',
+    };
+    const svc = createService({
+      userAccount: {
+        findUnique: async () => existing,
+        findFirst: async () => ({ id: 'someone-else' }),
+      },
+    });
+    let caught: unknown;
+    try {
+      await svc.update(ncda, 'u-update-2', { email: 'taken@example.com' });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof ConflictException, true);
   });
 
   await assert(

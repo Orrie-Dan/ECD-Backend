@@ -22,6 +22,7 @@ export type UserCreateMapped = {
   username: string;
   fullName: string;
   phone: string | null;
+  email: string | null;
   gender: PersonSex | null;
   educationLevel: EducationLevel | null;
   role: UserRole;
@@ -32,10 +33,20 @@ export type UserCreateMapped = {
 export type UserUpdateMapped = {
   fullName?: string;
   phone?: string | null;
+  email?: string | null;
   gender?: PersonSex | null;
   educationLevel?: EducationLevel | null;
   status?: UserAccountStatus;
 };
+
+/** Trim + lowercase for stable uniqueness / password-reset lookup. Empty → null. */
+export function normalizeUserEmail(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return null;
+  }
+  return trimmed.toLowerCase();
+}
 
 export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
   toDto(entity: UserWithRelations): UserResponseDto {
@@ -44,6 +55,7 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
       username: entity.username,
       fullName: entity.fullName,
       phone: entity.phone,
+      email: entity.email,
       gender: asDomainEnumNullable<PersonSex>(entity.gender),
       educationLevel: asDomainEnumNullable<EducationLevel>(entity.educationLevel),
       role: asDomainEnum<UserRole>(entity.role),
@@ -85,6 +97,7 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
       username: dto.username.trim(),
       fullName: dto.fullName.trim(),
       phone: dto.phone?.trim() || null,
+      email: normalizeUserEmail(dto.email),
       gender: dto.gender ?? null,
       educationLevel: dto.educationLevel ?? null,
       role: dto.role,
@@ -101,6 +114,9 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
     }
     if (dto.phone !== undefined) {
       data.phone = dto.phone?.trim() || null;
+    }
+    if (dto.email !== undefined) {
+      data.email = normalizeUserEmail(dto.email);
     }
     if (dto.gender !== undefined) {
       data.gender = dto.gender;
