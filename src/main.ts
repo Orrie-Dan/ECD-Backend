@@ -28,7 +28,7 @@ async function bootstrap() {
   });
 
   // Prefer explicit public URL; Render injects RENDER_EXTERNAL_URL on hosted services.
-  // Relative "/" makes Swagger "Try it out" use the same host that serves /docs.
+  // Relative "/" makes Swagger "Try it out" use the same host that serves /api/docs.
   const publicApiUrl = (
     config.get<string>('PUBLIC_API_URL') ||
     config.get<string>('RENDER_EXTERNAL_URL') ||
@@ -63,7 +63,8 @@ async function bootstrap() {
   }
 
   const document = SwaggerModule.createDocument(app, swaggerBuilder.build());
-  SwaggerModule.setup('docs', app, document);
+  // Under /api so reverse-proxy `/api/` covers both v1 routes and Swagger UI.
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(port);
 }
