@@ -31,6 +31,7 @@ import {
 import { CreateAssessmentDto } from './dto/create-assessment.dto';
 import { CreateAssessmentItemDto } from './dto/create-assessment-item.dto';
 import { ListAssessmentsQueryDto } from './dto/list-assessments-query.dto';
+import { SubmitSelfEvaluationDto } from './dto/submit-self-evaluation.dto';
 import { UpdateAssessmentDto } from './dto/update-assessment.dto';
 import { UpdateAssessmentItemDto } from './dto/update-assessment-item.dto';
 import { NotificationEventsService } from '../notifications/notification-events.service';
@@ -154,6 +155,191 @@ export class ComplianceService {
       ...result,
       center,
     });
+  }
+
+  /**
+   * Center staff submit a scored ECD Standards self-evaluation.
+   * Persists percent + color rank so district/NCDA monitoring charts can aggregate byRank.
+   */
+  async submitSelfEvaluation(
+    user: AuthUser,
+    dto: SubmitSelfEvaluationDto,
+  ): Promise<AssessmentResponseDto> {
+    if (!isCenterStaffRole(user.role)) {
+      throw new ForbiddenException('Only center staff can submit self-evaluations');
+    }
+
+    if (user.centerId && user.centerId !== dto.centerId) {
+      throw new ForbiddenException('Cannot submit self-evaluation for another center');
+    }
+
+    const center = await this.prisma.ecdCenter.findFirst({
+      where: { id: dto.centerId, deletedAt: null },
+      select: { id: true, name: true, districtId: true },
+    });
+
+    if (!center) {
+      throw new NotFoundException('Center not found');
+    }
+
+    assertCenterAccess(user, center.id, center.districtId);
+
+    const expectedPercent =
+      dto.maxScore > 0 ? Math.round((dto.earnedScore / dto.maxScore) * 100) : 0;
+    if (expectedPercent !== dto.percent) {
+      throw new BadRequestException(
+        `percent ${dto.percent} does not match earned/max (${expectedPercent})`,
+      );
+    }
+
+    const expectedRank = this.rankFromPercent(dto.percent);
+    if (expectedRank !== dto.rank) {
+      throw new BadRequestException(
+        `rank ${dto.rank} does not match percent ${dto.percent} (expected ${expectedRank})`,
+      );
+    }
+
+    const classification = this.classificationFromRank(dto.rank);
+    const now = new Date();
+    const assessmentDate = new Date(dto.assessmentDate);
+    const standardsVersion = `${dto.standardsVersion}/${dto.facilityTypeId}`;
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const scoreStandard = await this.ensureSelfEvalScoreStandard(tx, dto.standardsVersion);
+
+      const created = await tx.complianceAssessment.create({
+        data: {
+          centerId: dto.centerId,
+          standardsVersion,
+          assessmentDate,
+          assessmentType: AssessmentType.self_assessment,
+          status: AssessmentStatus.submitted,
+          submittedById: user.id,
+          submittedAt: now,
+          overallClassification: classification,
+          overallPercent: new Prisma.Decimal(dto.percent),
+          overallRank: dto.rank,
+          createdAt: now,
+          updatedAt: now,
+          version: 1,
+          syncStatus: RecordSyncStatus.synced,
+          lastModifiedAt: now,
+        },
+      });
+
+      await tx.complianceAssessmentItem.create({
+        data: {
+          assessmentId: created.id,
+          standardId: scoreStandard.id,
+          response: ItemResponse.met,
+          score: new Prisma.Decimal(dto.percent),
+          evidenceNotes: JSON.stringify({
+            facilityTypeId: dto.facilityTypeId,
+            earnedScore: dto.earnedScore,
+            maxScore: dto.maxScore,
+            percent: dto.percent,
+            rank: dto.rank,
+            clientDraftId: dto.clientDraftId ?? null,
+          }),
+          createdAt: now,
+          updatedAt: now,
+          version: 1,
+          syncStatus: RecordSyncStatus.synced,
+          lastModifiedAt: now,
+        },
+      });
+
+      await tx.ecdCenter.update({
+        where: { id: center.id },
+        data: {
+          currentComplianceLevel: classification,
+          currentComplianceAssessedAt: assessmentDate,
+          updatedAt: now,
+        },
+      });
+
+      await this.audit.log({
+        tx,
+        entityType: 'compliance_assessment',
+        entityId: created.id,
+        action: AuditAction.CREATE,
+        userId: user.id,
+        oldValues: null,
+        newValues: toAuditJson({
+          centerId: created.centerId,
+          standardsVersion: created.standardsVersion,
+          assessmentType: created.assessmentType,
+          assessmentDate: created.assessmentDate,
+          status: created.status,
+          overallPercent: dto.percent,
+          overallRank: dto.rank,
+          overallClassification: classification,
+          version: created.version,
+        }),
+        metadata: { source: 'rest', kind: 'self_evaluation_submit' },
+      });
+
+      return created;
+    });
+
+    void this.notificationEvents.onComplianceAssessmentStatusChanged({
+      assessmentId: result.id,
+      centerId: center.id,
+      centerName: center.name,
+      districtId: center.districtId,
+      previousStatus: AssessmentStatus.draft,
+      newStatus: AssessmentStatus.submitted,
+    });
+
+    return this.toAssessmentDto({
+      ...result,
+      center,
+    });
+  }
+
+  private rankFromPercent(percent: number): 'green' | 'blue' | 'yellow' | 'red' {
+    if (percent >= 90) return 'green';
+    if (percent >= 70) return 'blue';
+    if (percent >= 50) return 'yellow';
+    return 'red';
+  }
+
+  private classificationFromRank(
+    rank: 'green' | 'blue' | 'yellow' | 'red',
+  ): ComplianceClassification {
+    switch (rank) {
+      case 'green':
+      case 'blue':
+        return ComplianceClassification.compliant;
+      case 'yellow':
+        return ComplianceClassification.partially_compliant;
+      case 'red':
+        return ComplianceClassification.non_compliant;
+    }
+  }
+
+  private async ensureSelfEvalScoreStandard(
+    tx: Prisma.TransactionClient,
+    version: string,
+  ): Promise<{ id: string }> {
+    const code = 'SELF-EVAL-SCORE';
+    const existing = await tx.ecdStandard.findUnique({ where: { code } });
+    if (existing) {
+      return { id: existing.id };
+    }
+    const created = await tx.ecdStandard.create({
+      data: {
+        code,
+        domain: StandardDomain.safety,
+        title: 'ECD Standards self-evaluation overall score',
+        description:
+          'Synthetic standard used to store rounded self-evaluation percent (0–100) as item score.',
+        weight: new Prisma.Decimal(100),
+        version,
+        isActive: true,
+      },
+    });
+    return { id: created.id };
   }
 
   async updateAssessment(
@@ -542,6 +728,8 @@ export class ComplianceService {
     verifiedById: string | null;
     verifiedAt: Date | null;
     overallClassification: ComplianceClassification | null;
+    overallPercent?: Prisma.Decimal | null;
+    overallRank?: string | null;
     version: number;
     createdAt: Date;
     updatedAt: Date;
@@ -561,6 +749,8 @@ export class ComplianceService {
       verifiedById: row.verifiedById,
       verifiedAt: row.verifiedAt,
       overallClassification: row.overallClassification,
+      overallPercent: row.overallPercent != null ? Number(row.overallPercent) : null,
+      overallRank: row.overallRank ?? null,
       version: row.version,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

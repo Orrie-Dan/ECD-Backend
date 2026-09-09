@@ -203,6 +203,26 @@ function stubPrisma() {
           },
         ];
       }
+      if (text.includes('compliance_center_latest_self_evals')) {
+        return [
+          {
+            assessment_id: 'a1',
+            center_id: 'c1',
+            center_name: 'Center One',
+            overall_percent: 84,
+            overall_rank: 'blue',
+            assessment_date: new Date('2026-09-01'),
+          },
+        ];
+      }
+      if (text.includes('compliance_by_rank')) {
+        return [
+          { rank: 'green', cnt: 2 },
+          { rank: 'blue', cnt: 1 },
+          { rank: 'yellow', cnt: 1 },
+          { rank: 'red', cnt: 1 },
+        ];
+      }
       if (text.includes('compliance_assessment')) {
         return [{ cnt: 3 }];
       }
@@ -273,6 +293,10 @@ async function main() {
     eq(result.summary.totalAssessments, 5);
     eq(result.summary.centersAssessed, 3);
     eq('verified' in result.summary.byStatus && result.summary.byStatus['verified'] === 5, true);
+    eq(result.summary.byRank.green, 2);
+    eq(result.summary.byRank.blue, 1);
+    eq(result.items.length, 1);
+    eq(result.items[0]?.centerName, 'Center One');
   });
 
   await assert('wash monitoring returns reporting + snapshot', async () => {

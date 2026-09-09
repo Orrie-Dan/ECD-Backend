@@ -108,6 +108,20 @@ export class AssessmentResponseDto {
   overallClassification: ComplianceClassification | null;
 
   @ApiProperty({
+    example: 84,
+    nullable: true,
+    description: 'ECD Standards compliance percent (0–100), when scored',
+  })
+  overallPercent: number | null;
+
+  @ApiProperty({
+    example: 'blue',
+    nullable: true,
+    description: 'ECD Standards color rank: green | blue | yellow | red',
+  })
+  overallRank: string | null;
+
+  @ApiProperty({
     example: 1,
     description: 'Optimistic-lock version; required on updates',
   })

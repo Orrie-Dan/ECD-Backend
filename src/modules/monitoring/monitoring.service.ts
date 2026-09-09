@@ -491,29 +491,38 @@ export class MonitoringService {
           })
         : scope.centerIds.length;
 
-    const [totalAssessments, centersAssessed, byStatusRows, byTypeRows, byClassificationRows] =
-      await Promise.all([
-        this.prisma.complianceAssessment.count({ where: assessmentWhere }),
-        this.countDistinctComplianceCenters(scope, from, to),
-        this.prisma.complianceAssessment.groupBy({
-          by: ['status'],
-          where: assessmentWhere,
-          _count: { _all: true },
-        }),
-        this.prisma.complianceAssessment.groupBy({
-          by: ['assessmentType'],
-          where: assessmentWhere,
-          _count: { _all: true },
-        }),
-        this.prisma.complianceAssessment.groupBy({
-          by: ['overallClassification'],
-          where: {
-            ...assessmentWhere,
-            overallClassification: { not: null },
-          },
-          _count: { _all: true },
-        }),
-      ]);
+    const [
+      totalAssessments,
+      centersAssessed,
+      byStatusRows,
+      byTypeRows,
+      byClassificationRows,
+      byRank,
+      items,
+    ] = await Promise.all([
+      this.prisma.complianceAssessment.count({ where: assessmentWhere }),
+      this.countDistinctComplianceCenters(scope, from, to),
+      this.prisma.complianceAssessment.groupBy({
+        by: ['status'],
+        where: assessmentWhere,
+        _count: { _all: true },
+      }),
+      this.prisma.complianceAssessment.groupBy({
+        by: ['assessmentType'],
+        where: assessmentWhere,
+        _count: { _all: true },
+      }),
+      this.prisma.complianceAssessment.groupBy({
+        by: ['overallClassification'],
+        where: {
+          ...assessmentWhere,
+          overallClassification: { not: null },
+        },
+        _count: { _all: true },
+      }),
+      this.complianceRankCounts(scope, from, to),
+      this.complianceCenterLatestSelfEvals(scope, from, to),
+    ]);
 
     const byStatus: Record<string, number> = {};
     for (const row of byStatusRows) {
@@ -553,8 +562,10 @@ export class MonitoringService {
         byType,
         classificationPopulated,
         byClassification,
+        byRank,
         classificationNullRate,
       },
+      items,
     };
   }
 
@@ -1013,6 +1024,180 @@ export class MonitoringService {
     return { items, total };
   }
 
+  private async complianceCenterLatestSelfEvals(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+    limit = 40,
+  ): Promise<
+    Array<{
+      assessmentId: string;
+      centerId: string;
+      centerName: string;
+      percent: number | null;
+      rank: string | null;
+      assessmentDate: Date;
+    }>
+  > {
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
+      return [];
+    }
+
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`a.deleted_at IS NULL`,
+      Prisma.sql`a.assessment_date >= ${from}`,
+      Prisma.sql`a.assessment_date <= ${to}`,
+      Prisma.sql`a.assessment_type = 'self_assessment'`,
+      Prisma.sql`c.deleted_at IS NULL`,
+    ];
+
+    if (scope.centerIds !== 'all') {
+      conditions.push(Prisma.sql`a.center_id IN (${Prisma.join(scope.centerIds)})`);
+    } else if (scope.districtId) {
+      conditions.push(Prisma.sql`c.district_id = ${scope.districtId}`);
+    }
+
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        assessment_id: string;
+        center_id: string;
+        center_name: string;
+        overall_percent: number | string | null;
+        overall_rank: string | null;
+        assessment_date: Date;
+      }>
+    >`
+      /* compliance_center_latest_self_evals */
+      SELECT
+        latest.assessment_id,
+        latest.center_id,
+        latest.center_name,
+        latest.overall_percent,
+        latest.overall_rank,
+        latest.assessment_date
+      FROM (
+        SELECT DISTINCT ON (a.center_id)
+          a.id AS assessment_id,
+          a.center_id,
+          c.name AS center_name,
+          a.overall_percent,
+          a.overall_rank,
+          a.assessment_date
+        FROM compliance_assessment a
+        INNER JOIN ecd_center c ON c.id = a.center_id
+        WHERE ${Prisma.join(conditions, ' AND ')}
+        ORDER BY a.center_id, a.assessment_date DESC, a.created_at DESC
+      ) latest
+      WHERE latest.overall_percent IS NOT NULL OR latest.overall_rank IS NOT NULL
+      ORDER BY latest.overall_percent ASC NULLS LAST, latest.center_name ASC
+      LIMIT ${limit}
+    `;
+
+    return rows.map((row) => {
+      const percent =
+        row.overall_percent == null ? null : Math.round(Number(row.overall_percent));
+      let rank = row.overall_rank;
+      if (!rank && percent != null) {
+        if (percent >= 90) rank = 'green';
+        else if (percent >= 70) rank = 'blue';
+        else if (percent >= 50) rank = 'yellow';
+        else rank = 'red';
+      }
+      return {
+        assessmentId: row.assessment_id,
+        centerId: row.center_id,
+        centerName: row.center_name,
+        percent,
+        rank,
+        assessmentDate: row.assessment_date,
+      };
+    });
+  }
+
+  private async complianceRankCounts(
+    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    from: Date,
+    to: Date,
+  ): Promise<Record<string, number>> {
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
+      return { green: 0, blue: 0, yellow: 0, red: 0 };
+    }
+
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`a.deleted_at IS NULL`,
+      Prisma.sql`a.assessment_date >= ${from}`,
+      Prisma.sql`a.assessment_date <= ${to}`,
+    ];
+
+    if (scope.centerIds !== 'all') {
+      conditions.push(Prisma.sql`a.center_id IN (${Prisma.join(scope.centerIds)})`);
+    } else if (scope.districtId) {
+      conditions.push(
+        Prisma.sql`a.center_id IN (
+          SELECT id FROM ecd_center WHERE district_id = ${scope.districtId} AND deleted_at IS NULL
+        )`,
+      );
+    }
+
+    const rows = await this.prisma.$queryRaw<Array<{ rank: string; cnt: number }>>`
+      /* compliance_by_rank */
+      WITH scored AS (
+        SELECT
+          a.id,
+          a.overall_classification,
+          a.overall_rank,
+          a.overall_percent,
+          CASE
+            WHEN COUNT(i.id) FILTER (WHERE i.deleted_at IS NULL) > 0
+              AND COALESCE(SUM(COALESCE(s.weight, 1)) FILTER (WHERE i.deleted_at IS NULL), 0) > 0
+            THEN ROUND(
+              (
+                SUM(COALESCE(i.score, 0)) FILTER (WHERE i.deleted_at IS NULL)
+                / SUM(COALESCE(s.weight, 1)) FILTER (WHERE i.deleted_at IS NULL)
+              ) * 100
+            )::int
+            ELSE NULL
+          END AS item_pct
+        FROM compliance_assessment a
+        LEFT JOIN compliance_assessment_item i ON i.assessment_id = a.id
+        LEFT JOIN ecd_standard s ON s.id = i.standard_id
+        WHERE ${Prisma.join(conditions, ' AND ')}
+        GROUP BY a.id, a.overall_classification, a.overall_rank, a.overall_percent
+      ),
+      ranked AS (
+        SELECT
+          CASE
+            WHEN overall_rank IN ('green', 'blue', 'yellow', 'red') THEN overall_rank
+            WHEN overall_percent IS NOT NULL AND overall_percent >= 90 THEN 'green'
+            WHEN overall_percent IS NOT NULL AND overall_percent >= 70 THEN 'blue'
+            WHEN overall_percent IS NOT NULL AND overall_percent >= 50 THEN 'yellow'
+            WHEN overall_percent IS NOT NULL THEN 'red'
+            WHEN item_pct IS NOT NULL AND item_pct >= 90 THEN 'green'
+            WHEN item_pct IS NOT NULL AND item_pct >= 70 THEN 'blue'
+            WHEN item_pct IS NOT NULL AND item_pct >= 50 THEN 'yellow'
+            WHEN item_pct IS NOT NULL THEN 'red'
+            WHEN overall_classification::text = 'compliant' THEN 'green'
+            WHEN overall_classification::text = 'partially_compliant' THEN 'yellow'
+            WHEN overall_classification::text = 'non_compliant' THEN 'red'
+            ELSE NULL
+          END AS rank
+        FROM scored
+      )
+      SELECT rank, COUNT(*)::int AS cnt
+      FROM ranked
+      WHERE rank IS NOT NULL
+      GROUP BY rank
+    `;
+
+    const byRank: Record<string, number> = { green: 0, blue: 0, yellow: 0, red: 0 };
+    for (const row of rows) {
+      if (row.rank in byRank) {
+        byRank[row.rank] = row.cnt;
+      }
+    }
+    return byRank;
+  }
+
   private async countDistinctComplianceCenters(
     scope: { centerIds: string[] | 'all'; districtId: string | null },
     from: Date,
@@ -1429,8 +1614,10 @@ function emptyCompliance(
       byType: {},
       classificationPopulated: 0,
       byClassification: {},
+      byRank: { green: 0, blue: 0, yellow: 0, red: 0 },
       classificationNullRate: null,
     },
+    items: [],
   };
 }
 

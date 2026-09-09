@@ -396,11 +396,40 @@ export class MonitoringComplianceSummaryDto {
   byClassification: Record<string, number>;
 
   @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'number' },
+    example: { green: 12, blue: 18, yellow: 20, red: 10 },
+    description:
+      'ECD Standards rank bands from scored items (Green 90–100, Blue 70–89, Yellow 50–69, Red <50). Falls back to overallClassification when percent cannot be computed.',
+  })
+  byRank: Record<string, number>;
+
+  @ApiProperty({
     example: 0.5,
     nullable: true,
     description: 'Share of assessments with null overallClassification (sparse when REST-only)',
   })
   classificationNullRate: number | null;
+}
+
+export class MonitoringComplianceCenterItemDto {
+  @ApiProperty({ format: 'uuid' })
+  assessmentId: string;
+
+  @ApiProperty({ format: 'uuid' })
+  centerId: string;
+
+  @ApiProperty({ example: 'APPEK Kamuhoza' })
+  centerName: string;
+
+  @ApiProperty({ example: 84, nullable: true })
+  percent: number | null;
+
+  @ApiProperty({ example: 'blue', nullable: true, description: 'green | blue | yellow | red' })
+  rank: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  assessmentDate: Date;
 }
 
 export class MonitoringComplianceResponseDto {
@@ -418,6 +447,13 @@ export class MonitoringComplianceResponseDto {
 
   @ApiProperty({ type: () => MonitoringComplianceSummaryDto })
   summary: MonitoringComplianceSummaryDto;
+
+  @ApiProperty({
+    type: () => [MonitoringComplianceCenterItemDto],
+    description:
+      'Latest scored self-assessment per center in scope (for bar charts). Ordered by percent ascending.',
+  })
+  items: MonitoringComplianceCenterItemDto[];
 }
 
 export class MonitoringWashReportingDto {

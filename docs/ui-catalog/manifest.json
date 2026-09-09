@@ -1,0 +1,874 @@
+[
+  {
+    "section": "Public / authentication",
+    "title": "Role selection",
+    "route": "/",
+    "final_url": "http://localhost:5174/",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\001-public-authentication-role-selection__full.jpg"
+    ]
+  },
+  {
+    "section": "Public / authentication",
+    "title": "Login \u2014 Umurezi / ECD director",
+    "route": "/login/caretaker",
+    "final_url": "http://localhost:5174/login/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\002-public-authentication-login-umurezi-ecd-director__full.jpg"
+    ]
+  },
+  {
+    "section": "Public / authentication",
+    "title": "Login \u2014 Akarere",
+    "route": "/login/district",
+    "final_url": "http://localhost:5174/login/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\003-public-authentication-login-akarere__full.jpg"
+    ]
+  },
+  {
+    "section": "Public / authentication",
+    "title": "Login \u2014 NCDA",
+    "route": "/login/ncda",
+    "final_url": "http://localhost:5174/login/ncda",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\004-public-authentication-login-ncda__full.jpg"
+    ]
+  },
+  {
+    "section": "Public / authentication",
+    "title": "Forgot password",
+    "route": "/forgot-password",
+    "final_url": "http://localhost:5174/forgot-password",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\005-public-authentication-forgot-password__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Home",
+    "route": "/caretaker",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\006-umurezi-caretaker-home__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Children list",
+    "route": "/caretaker/abana",
+    "final_url": "http://localhost:5174/caretaker/abana",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\007-umurezi-caretaker-children-list__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Attendance",
+    "route": "/caretaker/ubwitabire",
+    "final_url": "http://localhost:5174/caretaker/ubwitabire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\008-umurezi-caretaker-attendance__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Growth",
+    "route": "/caretaker/imikurire",
+    "final_url": "http://localhost:5174/caretaker/imikurire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\009-umurezi-caretaker-growth__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Monthly growth roster",
+    "route": "/caretaker/imikurire/ukwezi",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\010-umurezi-caretaker-monthly-growth-roster__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "More (Ibindi)",
+    "route": "/caretaker/ibindi",
+    "final_url": "http://localhost:5174/caretaker/ibindi",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\011-umurezi-caretaker-more-ibindi__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Register child",
+    "route": "/caretaker/kwiyandikisha",
+    "final_url": "http://localhost:5174/caretaker/kwiyandikisha",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\012-umurezi-caretaker-register-child__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Feeding (Imirire)",
+    "route": "/caretaker/imirire",
+    "final_url": "http://localhost:5174/caretaker/imirire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\013-umurezi-caretaker-feeding-imirire__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Feeding monthly report",
+    "route": "/caretaker/imirire/raporo",
+    "final_url": "http://localhost:5174/caretaker/imirire/raporo",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\014-umurezi-caretaker-feeding-monthly-report__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "STED",
+    "route": "/caretaker/sted",
+    "final_url": "http://localhost:5174/caretaker/sted",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\015-umurezi-caretaker-sted__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "STED wizard",
+    "route": "/caretaker/sted/new",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\016-umurezi-caretaker-sted-wizard__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "STED history",
+    "route": "/caretaker/sted/amateka",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\017-umurezi-caretaker-sted-history__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Notifications",
+    "route": "/caretaker/amatangazo",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\018-umurezi-caretaker-notifications__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Impugukirwa",
+    "route": "/caretaker/impugukirwa",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\019-umurezi-caretaker-impugukirwa__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Reports",
+    "route": "/caretaker/raporo",
+    "final_url": "http://localhost:5174/caretaker/raporo",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\020-umurezi-caretaker-reports__full.jpg"
+    ]
+  },
+  {
+    "section": "Umurezi (caretaker)",
+    "title": "Settings",
+    "route": "/caretaker/igenamiterere",
+    "final_url": "http://localhost:5174/caretaker/igenamiterere",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\021-umurezi-caretaker-settings__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Home",
+    "route": "/caretaker",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\022-ecd-director-home__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Center overview (Ikigo)",
+    "route": "/caretaker/ikigo",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\023-ecd-director-center-overview-ikigo__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Management hub",
+    "route": "/caretaker/imicungire",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\024-ecd-director-management-hub__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Center users",
+    "route": "/caretaker/abakoresha",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\025-ecd-director-center-users__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Transfers",
+    "route": "/caretaker/kwimura",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\026-ecd-director-transfers__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Self-evaluation",
+    "route": "/caretaker/isuzuma",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\027-ecd-director-self-evaluation__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Self-evaluation wizard",
+    "route": "/caretaker/isuzuma/new",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\028-ecd-director-self-evaluation-wizard__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "ECD Book hub",
+    "route": "/caretaker/igitabo",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\029-ecd-director-ecd-book-hub__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Book VIII \u2014 Parent contributions",
+    "route": "/caretaker/igitabo/umusanzu",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\030-ecd-director-book-viii-parent-contributions__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Book IX \u2014 Parenting sessions",
+    "route": "/caretaker/igitabo/ibiganiro",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\031-ecd-director-book-ix-parenting-sessions__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Book X \u2014 Committee (capture failed)",
+    "route": "/caretaker/igitabo/komite",
+    "final_url": "/caretaker/igitabo/komite",
+    "files": [],
+    "error": "Page.screenshot: Protocol error (Page.captureScreenshot): Unable to capture screenshot\nCall log:\n  - taking page screenshot\n    - disabled all CSS animations\n  - waiting for fonts to load...\n  - fonts loaded\n"
+  },
+  {
+    "section": "ECD director",
+    "title": "Book XI \u2014 Educators",
+    "route": "/caretaker/igitabo/abarezi",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\033-ecd-director-book-xi-educators__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Book XII \u2014 Support",
+    "route": "/caretaker/igitabo/ubufasha",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\034-ecd-director-book-xii-support__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Book XIII \u2014 Visitors",
+    "route": "/caretaker/igitabo/abashyitsi",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\035-ecd-director-book-xiii-visitors__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Book XIV \u2014 Staff training",
+    "route": "/caretaker/igitabo/amahugurwa",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\036-ecd-director-book-xiv-staff-training__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Children list",
+    "route": "/caretaker/abana",
+    "final_url": "http://localhost:5174/caretaker/abana",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\037-ecd-director-children-list__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Attendance",
+    "route": "/caretaker/ubwitabire",
+    "final_url": "http://localhost:5174/caretaker/ubwitabire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\038-ecd-director-attendance__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Growth",
+    "route": "/caretaker/imikurire",
+    "final_url": "http://localhost:5174/caretaker/imikurire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\039-ecd-director-growth__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Notifications",
+    "route": "/caretaker/amatangazo",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\040-ecd-director-notifications__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Impugukirwa",
+    "route": "/caretaker/impugukirwa",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\041-ecd-director-impugukirwa__full.jpg"
+    ]
+  },
+  {
+    "section": "ECD director",
+    "title": "Settings",
+    "route": "/caretaker/igenamiterere",
+    "final_url": "http://localhost:5174/caretaker",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\042-ecd-director-settings__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Dashboard",
+    "route": "/district",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\043-akarere-district-dashboard__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Centers",
+    "route": "/district/ibigo",
+    "final_url": "http://localhost:5174/district/ibigo",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\044-akarere-district-centers__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Center detail",
+    "route": "/district/ibigo/ECD0003",
+    "final_url": "http://localhost:5174/district/ibigo/ECD0003",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\045-akarere-district-center-detail__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Children",
+    "route": "/district/abana",
+    "final_url": "http://localhost:5174/district/abana",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\046-akarere-district-children__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Child detail",
+    "route": "/district/abana/f62e3d8e-9961-44ce-89df-e16514b88712",
+    "final_url": "http://localhost:5174/district/abana/f62e3d8e-9961-44ce-89df-e16514b88712",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\047-akarere-district-child-detail__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Demographics",
+    "route": "/district/demografi",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\048-akarere-district-demographics__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Imikorere overview",
+    "route": "/district/imikorere",
+    "final_url": "http://localhost:5174/district/imikorere",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\049-akarere-district-imikorere-overview__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Imikorere \u2014 Attendance",
+    "route": "/district/imikorere/ubwitabire",
+    "final_url": "http://localhost:5174/district/imikorere/ubwitabire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\050-akarere-district-imikorere-attendance__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Imikorere \u2014 Growth",
+    "route": "/district/imikorere/imikurire",
+    "final_url": "http://localhost:5174/district/imikorere/imikurire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\051-akarere-district-imikorere-growth__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Imikorere \u2014 Feeding",
+    "route": "/district/imikorere/imirire",
+    "final_url": "http://localhost:5174/district/imikorere/imirire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\052-akarere-district-imikorere-feeding__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Imikorere \u2014 STED",
+    "route": "/district/imikorere/sted",
+    "final_url": "http://localhost:5174/district/imikorere/sted",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\053-akarere-district-imikorere-sted__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Impugukirwa",
+    "route": "/district/impugukirwa",
+    "final_url": "http://localhost:5174/district/impugukirwa",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\054-akarere-district-impugukirwa__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Notifications",
+    "route": "/district/amatangazo",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\055-akarere-district-notifications__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Reports",
+    "route": "/district/raporo",
+    "final_url": "http://localhost:5174/district/raporo",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\056-akarere-district-reports__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Referrals",
+    "route": "/district/referrals",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\057-akarere-district-referrals__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Map (Ikarita)",
+    "route": "/district/ikarita",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\058-akarere-district-map-ikarita__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "ECD Book hub",
+    "route": "/district/igitabo",
+    "final_url": "http://localhost:5174/district/igitabo",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\059-akarere-district-ecd-book-hub__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Book \u2014 Parent contributions",
+    "route": "/district/igitabo/umusanzu",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\060-akarere-district-book-parent-contributions__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Book \u2014 Parenting sessions",
+    "route": "/district/igitabo/ibiganiro",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\061-akarere-district-book-parenting-sessions__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Book \u2014 Committee",
+    "route": "/district/igitabo/komite",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\062-akarere-district-book-committee__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Book \u2014 Educators",
+    "route": "/district/igitabo/abarezi",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\063-akarere-district-book-educators__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Book \u2014 Support",
+    "route": "/district/igitabo/ubufasha",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\064-akarere-district-book-support__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Book \u2014 Visitors",
+    "route": "/district/igitabo/abashyitsi",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\065-akarere-district-book-visitors__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Book \u2014 Staff training",
+    "route": "/district/igitabo/amahugurwa",
+    "final_url": "http://localhost:5174/district",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\066-akarere-district-book-staff-training__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Caregivers",
+    "route": "/district/abakoresha",
+    "final_url": "http://localhost:5174/district/abakoresha",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\067-akarere-district-caregivers__full.jpg"
+    ]
+  },
+  {
+    "section": "Akarere (district)",
+    "title": "Settings",
+    "route": "/district/igenamiterere",
+    "final_url": "http://localhost:5174/district/igenamiterere",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\068-akarere-district-settings__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Overview dashboard",
+    "route": "/ncda/dashboard",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\069-ncda-admin-overview-dashboard__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Gukurikirana overview",
+    "route": "/ncda/gukurikirana",
+    "final_url": "http://localhost:5174/ncda/gukurikirana",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\070-ncda-admin-gukurikirana-overview__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Gukurikirana \u2014 Attendance",
+    "route": "/ncda/gukurikirana/ubwitabire",
+    "final_url": "http://localhost:5174/ncda/gukurikirana/ubwitabire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\071-ncda-admin-gukurikirana-attendance__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Gukurikirana \u2014 Growth",
+    "route": "/ncda/gukurikirana/imikurire",
+    "final_url": "http://localhost:5174/ncda/gukurikirana/imikurire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\072-ncda-admin-gukurikirana-growth__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Gukurikirana \u2014 Feeding",
+    "route": "/ncda/gukurikirana/imirire",
+    "final_url": "http://localhost:5174/ncda/gukurikirana/imirire",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\073-ncda-admin-gukurikirana-feeding__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Gukurikirana \u2014 STED",
+    "route": "/ncda/gukurikirana/sted",
+    "final_url": "http://localhost:5174/ncda/gukurikirana/sted",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\074-ncda-admin-gukurikirana-sted__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Impugukirwa",
+    "route": "/ncda/gukurikirana/impugukirwa",
+    "final_url": "http://localhost:5174/ncda/gukurikirana/impugukirwa",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\075-ncda-admin-impugukirwa__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Inspections",
+    "route": "/ncda/inspections",
+    "final_url": "http://localhost:5174/ncda/inspections",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\076-ncda-admin-inspections__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Children",
+    "route": "/ncda/children",
+    "final_url": "http://localhost:5174/ncda/children",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\077-ncda-admin-children__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Demographics",
+    "route": "/ncda/demographics",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\078-ncda-admin-demographics__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Notifications",
+    "route": "/ncda/amatangazo",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\079-ncda-admin-notifications__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Users",
+    "route": "/ncda/users",
+    "final_url": "http://localhost:5174/ncda/users",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\080-ncda-admin-users__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "User detail",
+    "route": "/ncda/users/71c272e1-fdfd-4731-a832-5fa466b1e447",
+    "final_url": "http://localhost:5174/ncda/users/71c272e1-fdfd-4731-a832-5fa466b1e447",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\081-ncda-admin-user-detail__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Roles",
+    "route": "/ncda/roles",
+    "final_url": "http://localhost:5174/ncda/roles",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\082-ncda-admin-roles__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Settings",
+    "route": "/ncda/settings",
+    "final_url": "http://localhost:5174/ncda/settings",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\083-ncda-admin-settings__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Audit logs",
+    "route": "/ncda/audit-logs",
+    "final_url": "http://localhost:5174/ncda/audit-logs",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\084-ncda-admin-audit-logs__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Audit log detail",
+    "route": "/ncda/audit-logs/81e272f3-ed52-4dfb-98da-a08a5104636e",
+    "final_url": "http://localhost:5174/ncda/audit-logs/81e272f3-ed52-4dfb-98da-a08a5104636e",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\085-ncda-admin-audit-log-detail__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Districts",
+    "route": "/ncda/districts",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\086-ncda-admin-districts__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Centers",
+    "route": "/ncda/centers",
+    "final_url": "http://localhost:5174/ncda/centers",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\087-ncda-admin-centers__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Center detail",
+    "route": "/ncda/centers/ECD0003",
+    "final_url": "http://localhost:5174/ncda/centers/ECD0003",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\088-ncda-admin-center-detail__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "ECD Book hub",
+    "route": "/ncda/igitabo",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\089-ncda-admin-ecd-book-hub__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Book \u2014 Parent contributions",
+    "route": "/ncda/igitabo/umusanzu",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\090-ncda-admin-book-parent-contributions__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Book \u2014 Parenting sessions",
+    "route": "/ncda/igitabo/ibiganiro",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\091-ncda-admin-book-parenting-sessions__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Book \u2014 Committee",
+    "route": "/ncda/igitabo/komite",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\092-ncda-admin-book-committee__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Book \u2014 Educators",
+    "route": "/ncda/igitabo/abarezi",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\093-ncda-admin-book-educators__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Book \u2014 Support",
+    "route": "/ncda/igitabo/ubufasha",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\094-ncda-admin-book-support__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Book \u2014 Visitors",
+    "route": "/ncda/igitabo/abashyitsi",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\095-ncda-admin-book-visitors__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "Book \u2014 Staff training",
+    "route": "/ncda/igitabo/amahugurwa",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\096-ncda-admin-book-staff-training__full.jpg"
+    ]
+  },
+  {
+    "section": "NCDA admin",
+    "title": "WASH",
+    "route": "/ncda/wash",
+    "final_url": "http://localhost:5174/ncda/dashboard",
+    "files": [
+      "D:\\Esri\\ECD Backend\\docs\\ui-catalog\\shots\\097-ncda-admin-wash__full.jpg"
+    ]
+  }
+]

@@ -286,6 +286,123 @@ async function main() {
     eq(threw, true);
   });
 
+  await assert('submitSelfEvaluation: director persists percent and rank', async () => {
+    const created: Record<string, unknown>[] = [];
+    const items: Record<string, unknown>[] = [];
+    const centerUpdates: Record<string, unknown>[] = [];
+    const prisma = {
+      ecdCenter: {
+        findFirst: async () => ({
+          id: 'center-1',
+          name: 'Center One',
+          districtId: 'district-1',
+        }),
+      },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        const tx = {
+          ecdStandard: {
+            findUnique: async () => ({ id: 'std-score' }),
+            create: async () => ({ id: 'std-score' }),
+          },
+          complianceAssessment: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              created.push(data);
+              return {
+                ...assessmentRow({
+                  ...data,
+                  id: 'assessment-new',
+                  overallPercent: data.overallPercent,
+                  overallRank: data.overallRank,
+                }),
+              };
+            },
+          },
+          complianceAssessmentItem: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              items.push(data);
+              return data;
+            },
+          },
+          ecdCenter: {
+            update: async ({ data }: { data: Record<string, unknown> }) => {
+              centerUpdates.push(data);
+              return data;
+            },
+          },
+        };
+        return fn(tx);
+      },
+    };
+    const notified: unknown[] = [];
+    const service = new ComplianceService(
+      prisma as never,
+      { log: async () => undefined } as never,
+      {
+        onComplianceAssessmentStatusChanged: async (payload: unknown) => {
+          notified.push(payload);
+        },
+      } as never,
+    );
+
+    const result = await service.submitSelfEvaluation(
+      user({ role: UserRole.ecd_director, centerId: 'center-1' }),
+      {
+        centerId: 'center-1',
+        facilityTypeId: 'daycare',
+        standardsVersion: '2024.1',
+        assessmentDate: '2026-09-08',
+        earnedScore: 168,
+        maxScore: 199,
+        percent: 84,
+        rank: 'blue',
+      },
+    );
+
+    eq(result.overallRank, 'blue');
+    eq(result.overallPercent, 84);
+    eq(created[0]?.overallRank, 'blue');
+    eq(items.length, 1);
+    eq(centerUpdates.length, 1);
+    eq(notified.length, 1);
+  });
+
+  await assert('submitSelfEvaluation: rejects mismatched percent', async () => {
+    const prisma = {
+      ecdCenter: {
+        findFirst: async () => ({
+          id: 'center-1',
+          name: 'Center One',
+          districtId: 'district-1',
+        }),
+      },
+    };
+    const service = new ComplianceService(
+      prisma as never,
+      { log: async () => undefined } as never,
+      { onComplianceAssessmentStatusChanged: async () => {} } as never,
+    );
+
+    let threw = false;
+    try {
+      await service.submitSelfEvaluation(
+        user({ role: UserRole.ecd_director, centerId: 'center-1' }),
+        {
+          centerId: 'center-1',
+          facilityTypeId: 'daycare',
+          standardsVersion: '2024.1',
+          assessmentDate: '2026-09-08',
+          earnedScore: 100,
+          maxScore: 199,
+          percent: 99,
+          rank: 'green',
+        },
+      );
+    } catch (e) {
+      threw = e instanceof BadRequestException;
+    }
+    eq(threw, true);
+  });
+
   console.log('\nAll compliance tests passed.');
 }
 

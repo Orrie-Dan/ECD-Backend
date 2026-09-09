@@ -28,6 +28,7 @@ import {
   StandardResponseDto,
 } from './dto/compliance-response.dto';
 import { ListAssessmentsQueryDto } from './dto/list-assessments-query.dto';
+import { SubmitSelfEvaluationDto } from './dto/submit-self-evaluation.dto';
 import { UpdateAssessmentDto } from './dto/update-assessment.dto';
 import { UpdateAssessmentItemDto } from './dto/update-assessment-item.dto';
 
@@ -52,6 +53,20 @@ export class ComplianceController {
   @ApiStandardClientErrors()
   listAssessments(@CurrentUser() user: AuthUser, @Query() query: ListAssessmentsQueryDto) {
     return this.complianceService.listAssessments(user, query);
+  }
+
+  @Post('self-evaluations')
+  @Roles(UserRole.caregiver, UserRole.ecd_director)
+  @ApiOperation({
+    summary: 'Submit ECD Standards self-evaluation',
+    description:
+      'Center staff submit a scored self-assessment with percent and color rank (green/blue/yellow/red).',
+  })
+  @ApiCreatedResponse({ type: AssessmentResponseDto })
+  @ApiStandardClientErrors()
+  @ApiNotFoundError('Center')
+  submitSelfEvaluation(@CurrentUser() user: AuthUser, @Body() dto: SubmitSelfEvaluationDto) {
+    return this.complianceService.submitSelfEvaluation(user, dto);
   }
 
   @Get('assessments/:id')
