@@ -34,6 +34,7 @@ function createService(
   auth?: Partial<AuthService>,
   notificationsOverride?: Partial<any>,
   emailOverride?: { sendBestEffort?: (...args: unknown[]) => Promise<unknown> },
+  auditOverride?: { log?: (...args: unknown[]) => Promise<unknown> },
 ) {
   const authService = {
     hashPassword: async (plain: string) => `hashed:${plain}`,
@@ -59,12 +60,18 @@ function createService(
     ...(emailOverride ?? {}),
   } as any;
 
+  const mockAudit = {
+    log: async () => undefined,
+    ...(auditOverride ?? {}),
+  } as any;
+
   return new UsersService(
     prisma as never,
     authService,
     config,
     mockNotifications,
     mockEmail,
+    mockAudit,
   );
 }
 
@@ -300,6 +307,363 @@ async function run() {
     eq(result.gender, PersonSex.female);
   });
 
+  await assert('SF-12 caregiver can be created with zero trainings', async () => {
+    const trainingCreates: unknown[] = [];
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: { findFirst: async () => ({ id: 'c1', districtId: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) => createdUserRow(data),
+          },
+          passwordResetToken: { create: async () => ({}) },
+          staffTraining: {
+            create: async (args: unknown) => {
+              trainingCreates.push(args);
+              return { id: 'st-orphan' };
+            },
+          },
+        }),
+    };
+
+    const svc = createService(prisma);
+    await svc.create(director, {
+      username: 'cg_zero_train',
+      fullName: 'Zero Train',
+      role: UserRole.caregiver,
+      centerId: 'c1',
+      gender: PersonSex.female,
+      trainings: [],
+    });
+    eq(trainingCreates.length, 0);
+  });
+
+  await assert('SF-12 caregiver can be created with one linked training', async () => {
+    const trainingCreates: Record<string, unknown>[] = [];
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: { findFirst: async () => ({ id: 'c1', districtId: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) =>
+              createdUserRow({ ...data, id: 'new-user-id' }),
+          },
+          passwordResetToken: { create: async () => ({}) },
+          staffTraining: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              trainingCreates.push(data);
+              return {
+                id: 'st-1',
+                ...data,
+                version: 1,
+              };
+            },
+          },
+        }),
+    };
+
+    const svc = createService(prisma);
+    await svc.create(director, {
+      username: 'cg_one_train',
+      fullName: 'One Train',
+      role: UserRole.caregiver,
+      centerId: 'c1',
+      gender: PersonSex.female,
+      trainings: [
+        {
+          trainingDate: '2026-02-10',
+          trainingProvider: 'NCDA',
+          topic: 'Early stimulation',
+          durationDays: 3,
+          certificateReceived: true,
+        },
+      ],
+    });
+
+    eq(trainingCreates.length, 1);
+    eq(trainingCreates[0].traineeUserId, 'new-user-id');
+    eq(trainingCreates[0].centerId, 'c1');
+    eq(trainingCreates[0].traineeName, 'One Train');
+    eq(trainingCreates[0].topic, 'Early stimulation');
+    eq(trainingCreates[0].trainingProvider, 'NCDA');
+    eq(trainingCreates[0].durationDays, 3);
+    eq(trainingCreates[0].certificateReceived, true);
+    eq(trainingCreates[0].recordedById, 'dir-1');
+  });
+
+  await assert('SF-12 caregiver can be created with multiple linked trainings', async () => {
+    const trainingCreates: Record<string, unknown>[] = [];
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: { findFirst: async () => ({ id: 'c1', districtId: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) => createdUserRow(data),
+          },
+          passwordResetToken: { create: async () => ({}) },
+          staffTraining: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              trainingCreates.push(data);
+              return { id: `st-${trainingCreates.length}`, ...data, version: 1 };
+            },
+          },
+        }),
+    };
+
+    const svc = createService(prisma);
+    await svc.create(director, {
+      username: 'cg_multi_train',
+      fullName: 'Multi Train',
+      role: UserRole.caregiver,
+      centerId: 'c1',
+      gender: PersonSex.male,
+      trainings: [
+        {
+          trainingDate: '2026-01-01',
+          trainingProvider: 'District',
+          topic: 'WASH',
+          durationDays: 1,
+          certificateReceived: false,
+        },
+        {
+          trainingDate: '2026-03-01',
+          trainingProvider: 'NCDA',
+          topic: 'Nutrition',
+          durationDays: 2,
+          certificateReceived: true,
+          notes: 'Refresher',
+        },
+      ],
+    });
+
+    eq(trainingCreates.length, 2);
+    eq(trainingCreates[0].traineeUserId, 'new-user-id');
+    eq(trainingCreates[1].traineeUserId, 'new-user-id');
+    eq(trainingCreates[0].topic, 'WASH');
+    eq(trainingCreates[1].topic, 'Nutrition');
+    eq(trainingCreates[1].notes, 'Refresher');
+  });
+
+  await assert('SF-12 trainings rejected for non-caregiver role', async () => {
+    const svc = createService({
+      userAccount: { findUnique: async () => null },
+      district: { findUnique: async () => ({ id: 'd1' }) },
+    });
+    let caught: unknown;
+    try {
+      await svc.create(ncda, {
+        username: 'focal_with_train',
+        fullName: 'Focal',
+        role: UserRole.district_focal_person,
+        districtId: 'd1',
+        trainings: [
+          {
+            trainingDate: '2026-02-10',
+            trainingProvider: 'NCDA',
+            topic: 'Should fail',
+            durationDays: 1,
+            certificateReceived: false,
+          },
+        ],
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof BadRequestException, true);
+  });
+
+  await assert('SF-12 training create failure rolls back caregiver (no orphan)', async () => {
+    let userCreated = false;
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: { findFirst: async () => ({ id: 'c1', districtId: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+        try {
+          return await fn({
+            userAccount: {
+              create: async ({ data }: { data: Record<string, unknown> }) => {
+                userCreated = true;
+                return createdUserRow(data);
+              },
+            },
+            passwordResetToken: { create: async () => ({}) },
+            staffTraining: {
+              create: async () => {
+                throw new Error('training insert failed');
+              },
+            },
+          });
+        } catch (err) {
+          userCreated = false;
+          throw err;
+        }
+      },
+    };
+
+    const svc = createService(prisma);
+    let caught: unknown;
+    try {
+      await svc.create(director, {
+        username: 'cg_fail_train',
+        fullName: 'Fail Train',
+        role: UserRole.caregiver,
+        centerId: 'c1',
+        gender: PersonSex.female,
+        trainings: [
+          {
+            trainingDate: '2026-02-10',
+            trainingProvider: 'NCDA',
+            topic: 'Fail',
+            durationDays: 1,
+            certificateReceived: false,
+          },
+        ],
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof Error, true);
+    eq(userCreated, false);
+  });
+
+  await assert('SF-13 caregiver can be created with zero work experiences', async () => {
+    const workCreates: unknown[] = [];
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: { findFirst: async () => ({ id: 'c1', districtId: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) => createdUserRow(data),
+          },
+          passwordResetToken: { create: async () => ({}) },
+          caregiverWorkExperience: {
+            create: async (args: unknown) => {
+              workCreates.push(args);
+              return { id: 'we-1' };
+            },
+          },
+        }),
+    };
+    const svc = createService(prisma);
+    await svc.create(director, {
+      username: 'cg_zero_work',
+      fullName: 'Zero Work',
+      role: UserRole.caregiver,
+      centerId: 'c1',
+      gender: PersonSex.female,
+      workExperiences: [],
+    });
+    eq(workCreates.length, 0);
+  });
+
+  await assert('SF-13 caregiver can be created with linked work experiences', async () => {
+    const workCreates: Record<string, unknown>[] = [];
+    const prisma = {
+      userAccount: { findUnique: async () => null },
+      ecdCenter: { findFirst: async () => ({ id: 'c1', districtId: 'd1' }) },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          userAccount: {
+            create: async ({ data }: { data: Record<string, unknown> }) => createdUserRow(data),
+          },
+          passwordResetToken: { create: async () => ({}) },
+          caregiverWorkExperience: {
+            create: async ({ data }: { data: Record<string, unknown> }) => {
+              workCreates.push(data);
+              return { id: `we-${workCreates.length}`, ...data, version: 1 };
+            },
+          },
+        }),
+    };
+    const svc = createService(prisma);
+    await svc.create(director, {
+      username: 'cg_with_work',
+      fullName: 'With Work',
+      role: UserRole.caregiver,
+      centerId: 'c1',
+      gender: PersonSex.female,
+      workExperiences: [
+        {
+          employer: 'NCDA',
+          jobTitle: 'Caregiver',
+          startDate: '2021-01-01',
+          endDate: '2023-12-31',
+          description: 'Classroom support',
+        },
+        {
+          employer: 'District ECD',
+          jobTitle: 'Assistant',
+          startDate: '2024-01-01',
+        },
+      ],
+    });
+    eq(workCreates.length, 2);
+    eq(workCreates[0].userId, 'new-user-id');
+    eq(workCreates[0].employer, 'NCDA');
+    eq(workCreates[0].jobTitle, 'Caregiver');
+    eq(workCreates[1].employer, 'District ECD');
+    eq(workCreates[1].endDate, null);
+    eq(workCreates[1].recordedById, 'dir-1');
+  });
+
+  await assert('SF-13 workExperiences rejected for non-caregiver role', async () => {
+    const svc = createService({
+      userAccount: { findUnique: async () => null },
+      district: { findUnique: async () => ({ id: 'd1' }) },
+    });
+    let caught: unknown;
+    try {
+      await svc.create(ncda, {
+        username: 'focal_with_work',
+        fullName: 'Focal',
+        role: UserRole.district_focal_person,
+        districtId: 'd1',
+        workExperiences: [
+          {
+            employer: 'X',
+            jobTitle: 'Y',
+            startDate: '2020-01-01',
+          },
+        ],
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof BadRequestException, true);
+  });
+
+  await assert('SF-13 invalid endDate before startDate is rejected', async () => {
+    const svc = createService({
+      userAccount: { findUnique: async () => null },
+      ecdCenter: { findFirst: async () => ({ id: 'c1', districtId: 'd1' }) },
+    });
+    let caught: unknown;
+    try {
+      await svc.create(director, {
+        username: 'cg_bad_dates',
+        fullName: 'Bad Dates',
+        role: UserRole.caregiver,
+        centerId: 'c1',
+        gender: PersonSex.female,
+        workExperiences: [
+          {
+            employer: 'NCDA',
+            jobTitle: 'Caregiver',
+            startDate: '2024-01-01',
+            endDate: '2020-01-01',
+          },
+        ],
+      });
+    } catch (err) {
+      caught = err;
+    }
+    eq(caught instanceof BadRequestException, true);
+  });
+
   await assert('caregiver create without gender is rejected', async () => {
     const svc = createService({
       userAccount: { findUnique: async () => null },
@@ -360,8 +724,7 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           userAccount: {
-            create: async ({ data }: { data: Record<string, unknown> }) =>
-              createdUserRow(data),
+            create: async ({ data }: { data: Record<string, unknown> }) => createdUserRow(data),
           },
           passwordResetToken: { create: async () => ({}) },
         }),
@@ -401,8 +764,7 @@ async function run() {
       $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
           userAccount: {
-            create: async ({ data }: { data: Record<string, unknown> }) =>
-              createdUserRow(data),
+            create: async ({ data }: { data: Record<string, unknown> }) => createdUserRow(data),
           },
           passwordResetToken: { create: async () => ({}) },
         }),

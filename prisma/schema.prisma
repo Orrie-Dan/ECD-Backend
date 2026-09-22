@@ -294,6 +294,8 @@ model UserAccount {
   hostedCenterVisits             CenterVisit[]                @relation("CenterVisitHostedBy")
   recordedStaffTrainings         StaffTraining[]              @relation("StaffTrainingRecordedBy")
   traineeStaffTrainings          StaffTraining[]              @relation("StaffTrainingTraineeUser")
+  workExperiences                CaregiverWorkExperience[]    @relation("CaregiverWorkExperienceUser")
+  recordedWorkExperiences        CaregiverWorkExperience[]    @relation("CaregiverWorkExperienceRecordedBy")
 
   @@index([username])
   @@index([role])
@@ -1164,6 +1166,30 @@ model StaffTraining {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("staff_training")
+  @@schema("sde")
+}
+
+model CaregiverWorkExperience {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  employer     String
+  jobTitle     String    @map("job_title")
+  startDate    DateTime  @map("start_date") @db.Date
+  endDate      DateTime? @map("end_date") @db.Date
+  description  String?   @db.Text
+  recordedById String    @map("recorded_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+  version      Int       @default(1)
+
+  user       UserAccount @relation("CaregiverWorkExperienceUser", fields: [userId], references: [id])
+  recordedBy UserAccount @relation("CaregiverWorkExperienceRecordedBy", fields: [recordedById], references: [id])
+
+  @@index([userId, startDate])
+  @@index([recordedById])
+  @@index([deletedAt])
+  @@map("caregiver_work_experience")
   @@schema("sde")
 }
 

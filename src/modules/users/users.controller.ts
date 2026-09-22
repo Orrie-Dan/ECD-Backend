@@ -39,6 +39,9 @@ export class UsersController {
       'NCDA can create district officers, ECD directors, and caregivers; ' +
       'district officers can create ECD directors and caregivers in their district; ' +
       'ECD directors can create caregivers at their center. ' +
+      'When role is caregiver, optional `trainings` creates linked StaffTraining records ' +
+      '(Amahugurwa yabonye) and optional `workExperiences` creates CaregiverWorkExperience ' +
+      'rows (Ubunararibonye) in the same transaction. ' +
       'Returns a one-time `temporaryPassword` (also emailed when the account has an email); ' +
       'it is never included on subsequent GET/list/update responses.',
   })

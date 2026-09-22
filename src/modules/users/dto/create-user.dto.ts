@@ -1,6 +1,8 @@
 import { EducationLevel, PersonSex, UserRole } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -10,7 +12,10 @@ import {
   MaxLength,
   MinLength,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
+import { CreateCaregiverTrainingDto } from './create-caregiver-training.dto';
+import { CreateCaregiverWorkExperienceDto } from './caregiver-work-experience.dto';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -94,4 +99,28 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(EducationLevel)
   educationLevel?: EducationLevel;
+
+  @ApiPropertyOptional({
+    type: [CreateCaregiverTrainingDto],
+    description:
+      'Optional trainings already received (Amahugurwa yabonye). Only allowed when role is caregiver. ' +
+      'Created as StaffTraining rows linked to the new user — zero trainings is valid.',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateCaregiverTrainingDto)
+  trainings?: CreateCaregiverTrainingDto[];
+
+  @ApiPropertyOptional({
+    type: [CreateCaregiverWorkExperienceDto],
+    description:
+      'Optional CV work experiences (Ubunararibonye). Only allowed when role is caregiver. ' +
+      'Created as CaregiverWorkExperience rows linked to the new user — zero entries is valid.',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateCaregiverWorkExperienceDto)
+  workExperiences?: CreateCaregiverWorkExperienceDto[];
 }

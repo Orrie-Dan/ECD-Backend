@@ -8,8 +8,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
+import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
+import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import {
   assertCenterAccess,
   assertDistrictAccess,
@@ -20,6 +21,8 @@ import { AuthService } from '../auth/auth.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { EmailService } from '../email/email.service';
 import { EmailTemplateId } from '../email/email-template.ids';
+import { CreateCaregiverTrainingDto } from './dto/create-caregiver-training.dto';
+import { CreateCaregiverWorkExperienceDto } from './dto/caregiver-work-experience.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
@@ -39,6 +42,8 @@ const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 /** Readable temp password length (unambiguous alphabet → ~59 bits at 10 chars). */
 const TEMP_PASSWORD_LENGTH = 10;
 const TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+/** Default trainee role label when linking StaffTraining at caregiver registration. */
+const CAREGIVER_TRAINEE_ROLE = 'Umurezi';
 
 @Injectable()
 export class UsersService {
@@ -50,11 +55,30 @@ export class UsersService {
     private readonly config: ConfigService,
     private readonly notifications: NotificationsService,
     private readonly email: EmailService,
+    private readonly audit: AuditService,
   ) {}
 
   async create(actor: AuthUser, dto: CreateUserDto): Promise<CreateUserResponseDto> {
     this.assertCanManageUsers(actor);
     this.assertCanCreateRole(actor, dto.role);
+
+    const trainings = dto.trainings ?? [];
+    if (trainings.length > 0 && dto.role !== UserRole.caregiver) {
+      throw new BadRequestException('trainings may only be provided when creating a caregiver');
+    }
+    for (const training of trainings) {
+      this.assertTrainingDuration(training.durationDays);
+    }
+
+    const workExperiences = dto.workExperiences ?? [];
+    if (workExperiences.length > 0 && dto.role !== UserRole.caregiver) {
+      throw new BadRequestException(
+        'workExperiences may only be provided when creating a caregiver',
+      );
+    }
+    for (const experience of workExperiences) {
+      this.assertWorkExperienceDates(experience.startDate, experience.endDate);
+    }
 
     const mapped = userMapper.toCreateInput(dto);
     this.assertGenderForRole(mapped.role, mapped.gender);
@@ -64,6 +88,10 @@ export class UsersService {
       mapped.districtId,
       mapped.centerId,
     );
+
+    if (trainings.length > 0 && !centerId) {
+      throw new BadRequestException('centerId is required to record caregiver trainings');
+    }
 
     const existing = await this.prisma.userAccount.findUnique({
       where: { username: mapped.username },
@@ -108,6 +136,24 @@ export class UsersService {
           expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
         },
       });
+
+      if (trainings.length > 0 && centerId) {
+        await this.createCaregiverTrainings(tx, {
+          actorId: actor.id,
+          centerId,
+          traineeUserId: user.id,
+          traineeName: user.fullName,
+          trainings,
+        });
+      }
+
+      if (workExperiences.length > 0) {
+        await this.createCaregiverWorkExperiences(tx, {
+          actorId: actor.id,
+          userId: user.id,
+          workExperiences,
+        });
+      }
 
       return user;
     });
@@ -355,10 +401,7 @@ export class UsersService {
   }
 
   private assertGenderForRole(role: UserRole, gender: PersonSex | null): void {
-    if (
-      (role === UserRole.caregiver || role === UserRole.ecd_director) &&
-      gender == null
-    ) {
+    if ((role === UserRole.caregiver || role === UserRole.ecd_director) && gender == null) {
       throw new BadRequestException(`gender is required for ${role}`);
     }
   }
@@ -484,7 +527,7 @@ export class UsersService {
     return and.length > 0 ? { AND: and } : {};
   }
 
-  private async requireVisibleUser(actor: AuthUser, id: string): Promise<UserWithRelations> {
+  async requireVisibleUser(actor: AuthUser, id: string): Promise<UserWithRelations> {
     const user = await this.prisma.userAccount.findUnique({
       where: { id },
       include: this.defaultInclude(),
@@ -536,10 +579,7 @@ export class UsersService {
    * Application-level uniqueness (email is optional and not unique in Prisma yet).
    * Stored emails are lowercased; null clears / skips the check.
    */
-  private async assertEmailAvailable(
-    email: string | null,
-    excludeUserId?: string,
-  ): Promise<void> {
+  private async assertEmailAvailable(email: string | null, excludeUserId?: string): Promise<void> {
     if (!email) {
       return;
     }
@@ -601,5 +641,123 @@ export class UsersService {
       },
       { entityType: 'user_account', entityId: args.userId, userId: args.userId },
     );
+  }
+
+  private assertTrainingDuration(durationDays: number): void {
+    if (!Number.isInteger(durationDays) || durationDays < 1) {
+      throw new BadRequestException('durationDays must be a positive integer');
+    }
+  }
+
+  private assertWorkExperienceDates(startDate: string, endDate?: string | null): void {
+    if (!endDate) return;
+    if (new Date(endDate) < new Date(startDate)) {
+      throw new BadRequestException('endDate must be on or after startDate');
+    }
+  }
+
+  /**
+   * Persist nested caregiver trainings as StaffTraining rows in the same
+   * transaction as user creation so failed training writes roll back the user.
+   */
+  private async createCaregiverTrainings(
+    tx: Prisma.TransactionClient,
+    args: {
+      actorId: string;
+      centerId: string;
+      traineeUserId: string;
+      traineeName: string;
+      trainings: CreateCaregiverTrainingDto[];
+    },
+  ): Promise<void> {
+    const now = new Date();
+    for (const training of args.trainings) {
+      const row = await tx.staffTraining.create({
+        data: {
+          centerId: args.centerId,
+          traineeUserId: args.traineeUserId,
+          traineeName: args.traineeName.trim(),
+          traineeRole: CAREGIVER_TRAINEE_ROLE,
+          trainingDate: new Date(training.trainingDate),
+          trainingProvider: training.trainingProvider.trim(),
+          topic: training.topic.trim(),
+          durationDays: training.durationDays,
+          certificateReceived: training.certificateReceived,
+          notes: training.notes ?? null,
+          recordedById: args.actorId,
+          createdAt: now,
+          updatedAt: now,
+          version: 1,
+          syncStatus: RecordSyncStatus.synced,
+          lastModifiedAt: now,
+        },
+      });
+
+      await this.audit.log({
+        tx,
+        entityType: 'staff_training',
+        entityId: row.id,
+        action: AuditAction.CREATE,
+        userId: args.actorId,
+        oldValues: null,
+        newValues: toAuditJson({
+          centerId: row.centerId,
+          traineeUserId: row.traineeUserId,
+          durationDays: row.durationDays,
+          certificateReceived: row.certificateReceived,
+          version: row.version,
+          source: 'caregiver_registration',
+        }),
+        metadata: { source: 'rest', nest: 'user_create' },
+      });
+    }
+  }
+
+  /**
+   * Persist nested caregiver CV work experiences in the same transaction as
+   * user creation so failed writes roll back the user (SF-13).
+   */
+  private async createCaregiverWorkExperiences(
+    tx: Prisma.TransactionClient,
+    args: {
+      actorId: string;
+      userId: string;
+      workExperiences: CreateCaregiverWorkExperienceDto[];
+    },
+  ): Promise<void> {
+    const now = new Date();
+    for (const experience of args.workExperiences) {
+      const row = await tx.caregiverWorkExperience.create({
+        data: {
+          userId: args.userId,
+          employer: experience.employer.trim(),
+          jobTitle: experience.jobTitle.trim(),
+          startDate: new Date(experience.startDate),
+          endDate: experience.endDate ? new Date(experience.endDate) : null,
+          description: experience.description?.trim() || null,
+          recordedById: args.actorId,
+          createdAt: now,
+          updatedAt: now,
+          version: 1,
+        },
+      });
+
+      await this.audit.log({
+        tx,
+        entityType: 'caregiver_work_experience',
+        entityId: row.id,
+        action: AuditAction.CREATE,
+        userId: args.actorId,
+        oldValues: null,
+        newValues: toAuditJson({
+          userId: row.userId,
+          employer: row.employer,
+          jobTitle: row.jobTitle,
+          version: row.version,
+          source: 'caregiver_registration',
+        }),
+        metadata: { source: 'rest', nest: 'user_create' },
+      });
+    }
   }
 }
