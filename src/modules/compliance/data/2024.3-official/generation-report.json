@@ -1,0 +1,4390 @@
+{
+  "catalogVersion": "2024.3-official",
+  "assessmentType": "self_assessment",
+  "source": {
+    "path": "docs/self-evaluation/Self Evaluation Tool for Compliance with ECD Standards.docx",
+    "sha256": "2d4226832c1ada19bcae67173c1311008594df1c2953291fe65970895c884cb6"
+  },
+  "activationGate": "READY_FOR_ACTIVATION",
+  "facilities": [
+    {
+      "id": "daycare",
+      "sectionCount": 16,
+      "itemCount": 130,
+      "computedMaxScore": 195,
+      "documentDeclaredMaximum": 195
+    },
+    {
+      "id": "home_based",
+      "sectionCount": 8,
+      "itemCount": 50,
+      "computedMaxScore": 66,
+      "documentDeclaredMaximum": 66
+    },
+    {
+      "id": "community_based",
+      "sectionCount": 15,
+      "itemCount": 119,
+      "computedMaxScore": 161,
+      "documentDeclaredMaximum": 161
+    },
+    {
+      "id": "ecd_3_5",
+      "sectionCount": 22,
+      "itemCount": 172,
+      "computedMaxScore": 251,
+      "documentDeclaredMaximum": 251
+    }
+  ],
+  "warnings": [
+    {
+      "code": "ORPHAN_WEIGHTED_ROW",
+      "facility": "home_based",
+      "message": "Scored row has empty '#' cell but explicit weight; included as a scored item using document order.",
+      "location": "table=2 row=56",
+      "declared": null,
+      "computed": null,
+      "status": "RESOLVED FROM SOURCE STRUCTURE"
+    },
+    {
+      "code": "NUMBERED_OR_PATH_AS_INDICATOR",
+      "facility": "home_based",
+      "message": "Numbered qualification path folded into OR parent as indicator (ALIGN-05C: printed section maximum / 'one of the following' semantics).",
+      "location": "table=2 row=64 #2",
+      "declared": null,
+      "computed": null,
+      "status": "RESOLVED — OFFICIAL PRINTED OR SEMANTICS (ALIGN-05C)"
+    },
+    {
+      "code": "NUMBERED_OR_PATH_AS_INDICATOR",
+      "facility": "home_based",
+      "message": "Numbered qualification path folded into OR parent as indicator (ALIGN-05C: printed section maximum / 'one of the following' semantics).",
+      "location": "table=2 row=65 #3",
+      "declared": null,
+      "computed": null,
+      "status": "RESOLVED — OFFICIAL PRINTED OR SEMANTICS (ALIGN-05C)"
+    },
+    {
+      "code": "SECTION_SUBTOTAL_MISMATCH",
+      "facility": "home_based",
+      "message": "Section item weight sum (11) != printed S/TOTAL (10) for '6. Information about Child Protection and Safety/Umutekano no kurinda umwana'; scoring uses printed/declared maximum 10.",
+      "location": "OFFICIAL-HOME_BASED-S06",
+      "declared": 10,
+      "computed": 11,
+      "status": "RESOLVED — OFFICIAL PRINTED SECTION MAXIMUM GOVERNS (ALIGN-05C)"
+    },
+    {
+      "code": "MISSING_EXPLICIT_WEIGHT",
+      "facility": "community_based",
+      "message": "Row has no explicit weight cell; defaulted parent maxScore=1 (typical for 'one of the following' parents).",
+      "location": "table=3 row=145 text='Caregivers have one of the following qualifications:/ Impamy'",
+      "declared": null,
+      "computed": null,
+      "status": "RESOLVED FROM SOURCE STRUCTURE"
+    },
+    {
+      "code": "ORPHAN_WEIGHTED_ROW",
+      "facility": "ecd_3_5",
+      "message": "Scored row has empty '#' cell but explicit weight; included as a scored item using document order.",
+      "location": "table=4 row=24",
+      "declared": null,
+      "computed": null,
+      "status": "RESOLVED FROM SOURCE STRUCTURE"
+    }
+  ],
+  "traceability": [
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 1,
+      "sectionOrder": 1,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S01-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 2,
+      "sectionOrder": 1,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S01-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 3,
+      "sectionOrder": 1,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S01-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 4,
+      "sectionOrder": 1,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S01-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 7,
+      "sectionOrder": 2,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 8,
+      "sectionOrder": 2,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 9,
+      "sectionOrder": 2,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 10,
+      "sectionOrder": 2,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 11,
+      "sectionOrder": 2,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 12,
+      "sectionOrder": 2,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 13,
+      "sectionOrder": 2,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q007"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 14,
+      "sectionOrder": 2,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q008"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 15,
+      "sectionOrder": 2,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q009"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 16,
+      "sectionOrder": 2,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q010"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 17,
+      "sectionOrder": 2,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q011"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 18,
+      "sectionOrder": 2,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q012"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 19,
+      "sectionOrder": 2,
+      "questionPosition": 13,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S02-Q013"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 22,
+      "sectionOrder": 3,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S03-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 23,
+      "sectionOrder": 3,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S03-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 24,
+      "sectionOrder": 3,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S03-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 25,
+      "sectionOrder": 3,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S03-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 28,
+      "sectionOrder": 4,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S04-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 29,
+      "sectionOrder": 4,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S04-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 30,
+      "sectionOrder": 4,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S04-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 31,
+      "sectionOrder": 4,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S04-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 34,
+      "sectionOrder": 5,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S05-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 35,
+      "sectionOrder": 5,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S05-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 36,
+      "sectionOrder": 5,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S05-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 37,
+      "sectionOrder": 5,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S05-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 38,
+      "sectionOrder": 5,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S05-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 41,
+      "sectionOrder": 6,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 42,
+      "sectionOrder": 6,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 43,
+      "sectionOrder": 6,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 44,
+      "sectionOrder": 6,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 45,
+      "sectionOrder": 6,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 46,
+      "sectionOrder": 6,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 47,
+      "sectionOrder": 6,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q007"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 48,
+      "sectionOrder": 6,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q008"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 49,
+      "sectionOrder": 6,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S06-Q009"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 52,
+      "sectionOrder": 7,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S07-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 53,
+      "sectionOrder": 7,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S07-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 54,
+      "sectionOrder": 7,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S07-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 57,
+      "sectionOrder": 8,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 58,
+      "sectionOrder": 8,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 59,
+      "sectionOrder": 8,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 60,
+      "sectionOrder": 8,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 61,
+      "sectionOrder": 8,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 62,
+      "sectionOrder": 8,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 63,
+      "sectionOrder": 8,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q007"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 64,
+      "sectionOrder": 8,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q008"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 65,
+      "sectionOrder": 8,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q009"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 66,
+      "sectionOrder": 8,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q010"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 67,
+      "sectionOrder": 8,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S08-Q011"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 70,
+      "sectionOrder": 9,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S09-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 71,
+      "sectionOrder": 9,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S09-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 72,
+      "sectionOrder": 9,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S09-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 73,
+      "sectionOrder": 9,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S09-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 74,
+      "sectionOrder": 9,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S09-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 75,
+      "sectionOrder": 9,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S09-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 78,
+      "sectionOrder": 10,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 79,
+      "sectionOrder": 10,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 80,
+      "sectionOrder": 10,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 81,
+      "sectionOrder": 10,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 82,
+      "sectionOrder": 10,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 83,
+      "sectionOrder": 10,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 84,
+      "sectionOrder": 10,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q007"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 85,
+      "sectionOrder": 10,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q008"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 86,
+      "sectionOrder": 10,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q009"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 87,
+      "sectionOrder": 10,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q010"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 88,
+      "sectionOrder": 10,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S10-Q011"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 91,
+      "sectionOrder": 11,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 92,
+      "sectionOrder": 11,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 93,
+      "sectionOrder": 11,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 94,
+      "sectionOrder": 11,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 95,
+      "sectionOrder": 11,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 96,
+      "sectionOrder": 11,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 97,
+      "sectionOrder": 11,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q007"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 98,
+      "sectionOrder": 11,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q008"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 99,
+      "sectionOrder": 11,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q009"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 100,
+      "sectionOrder": 11,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q010"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 101,
+      "sectionOrder": 11,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q011"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 102,
+      "sectionOrder": 11,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q012"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 103,
+      "sectionOrder": 11,
+      "questionPosition": 13,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S11-Q013"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 106,
+      "sectionOrder": 12,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 107,
+      "sectionOrder": 12,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 108,
+      "sectionOrder": 12,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 109,
+      "sectionOrder": 12,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 110,
+      "sectionOrder": 12,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 111,
+      "sectionOrder": 12,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 112,
+      "sectionOrder": 12,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q007"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 113,
+      "sectionOrder": 12,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q008"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 114,
+      "sectionOrder": 12,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q009"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 115,
+      "sectionOrder": 12,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q010"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 116,
+      "sectionOrder": 12,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q011"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 117,
+      "sectionOrder": 12,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q012"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 118,
+      "sectionOrder": 12,
+      "questionPosition": 13,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q013"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 119,
+      "sectionOrder": 12,
+      "questionPosition": 14,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q014"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 120,
+      "sectionOrder": 12,
+      "questionPosition": 15,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S12-Q015"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 123,
+      "sectionOrder": 13,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 124,
+      "sectionOrder": 13,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 125,
+      "sectionOrder": 13,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 126,
+      "sectionOrder": 13,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 127,
+      "sectionOrder": 13,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 128,
+      "sectionOrder": 13,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 129,
+      "sectionOrder": 13,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q007"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 130,
+      "sectionOrder": 13,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q008"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 131,
+      "sectionOrder": 13,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q009"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 132,
+      "sectionOrder": 13,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q010"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 133,
+      "sectionOrder": 13,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q011"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 134,
+      "sectionOrder": 13,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q012"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 135,
+      "sectionOrder": 13,
+      "questionPosition": 13,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q013"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 136,
+      "sectionOrder": 13,
+      "questionPosition": 14,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q014"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 137,
+      "sectionOrder": 13,
+      "questionPosition": 15,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q015"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 138,
+      "sectionOrder": 13,
+      "questionPosition": 16,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q016"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 139,
+      "sectionOrder": 13,
+      "questionPosition": 17,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S13-Q017"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 142,
+      "sectionOrder": 14,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S14-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 143,
+      "sectionOrder": 14,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S14-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 144,
+      "sectionOrder": 14,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S14-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 147,
+      "sectionOrder": 15,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S15-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 148,
+      "sectionOrder": 15,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S15-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 149,
+      "sectionOrder": 15,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S15-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 150,
+      "sectionOrder": 15,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S15-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 151,
+      "sectionOrder": 15,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S15-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 152,
+      "sectionOrder": 15,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S15-Q006"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 155,
+      "sectionOrder": 16,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S16-Q001"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 156,
+      "sectionOrder": 16,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S16-Q002"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 157,
+      "sectionOrder": 16,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S16-Q003"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 158,
+      "sectionOrder": 16,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S16-Q004"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 159,
+      "sectionOrder": 16,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S16-Q005"
+    },
+    {
+      "facility": "daycare",
+      "tableIndex": 1,
+      "rowIndex": 160,
+      "sectionOrder": 16,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-DAYCARE-S16-Q006"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 1,
+      "sectionOrder": 1,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S01-Q001"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 2,
+      "sectionOrder": 1,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S01-Q002"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 3,
+      "sectionOrder": 1,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S01-Q003"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 4,
+      "sectionOrder": 1,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S01-Q004"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 7,
+      "sectionOrder": 2,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q001"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 8,
+      "sectionOrder": 2,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q002"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 9,
+      "sectionOrder": 2,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q003"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 10,
+      "sectionOrder": 2,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q004"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 11,
+      "sectionOrder": 2,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q005"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 12,
+      "sectionOrder": 2,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q006"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 13,
+      "sectionOrder": 2,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q007"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 14,
+      "sectionOrder": 2,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q008"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 15,
+      "sectionOrder": 2,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q009"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 16,
+      "sectionOrder": 2,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S02-Q010"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 19,
+      "sectionOrder": 3,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S03-Q001"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 20,
+      "sectionOrder": 3,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S03-Q002"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 21,
+      "sectionOrder": 3,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S03-Q003"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 22,
+      "sectionOrder": 3,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S03-Q004"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 23,
+      "sectionOrder": 3,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S03-Q005"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 24,
+      "sectionOrder": 3,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S03-Q006"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 27,
+      "sectionOrder": 4,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S04-Q001"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 28,
+      "sectionOrder": 4,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S04-Q002"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 29,
+      "sectionOrder": 4,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S04-Q003"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 30,
+      "sectionOrder": 4,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S04-Q004"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 31,
+      "sectionOrder": 4,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S04-Q005"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 32,
+      "sectionOrder": 4,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S04-Q006"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 35,
+      "sectionOrder": 5,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S05-Q001"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 36,
+      "sectionOrder": 5,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S05-Q002"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 37,
+      "sectionOrder": 5,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S05-Q003"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 38,
+      "sectionOrder": 5,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S05-Q004"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 39,
+      "sectionOrder": 5,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S05-Q005"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 42,
+      "sectionOrder": 6,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q001"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 43,
+      "sectionOrder": 6,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q002"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 44,
+      "sectionOrder": 6,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q003"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 45,
+      "sectionOrder": 6,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q004"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 46,
+      "sectionOrder": 6,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q005"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 47,
+      "sectionOrder": 6,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q006"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 48,
+      "sectionOrder": 6,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q007"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 49,
+      "sectionOrder": 6,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q008"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 50,
+      "sectionOrder": 6,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S06-Q009"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 53,
+      "sectionOrder": 7,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S07-Q001"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 54,
+      "sectionOrder": 7,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S07-Q002"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 55,
+      "sectionOrder": 7,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S07-Q003"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 56,
+      "sectionOrder": 7,
+      "questionPosition": 4,
+      "kind": "item_orphan",
+      "id": "OFFICIAL-HOME_BASED-S07-Q004"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 57,
+      "sectionOrder": 7,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S07-Q005"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 58,
+      "sectionOrder": 7,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S07-Q006"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 59,
+      "sectionOrder": 7,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S07-Q007"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 60,
+      "sectionOrder": 7,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S07-Q008"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 63,
+      "sectionOrder": 8,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S08-Q001"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 63,
+      "sectionOrder": 8,
+      "questionPosition": 1,
+      "kind": "indicator",
+      "id": "OFFICIAL-HOME_BASED-S08-Q001-IND01 embedded_or_path"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 64,
+      "sectionOrder": 8,
+      "questionPosition": 1,
+      "kind": "indicator",
+      "id": "OFFICIAL-HOME_BASED-S08-Q001-IND02 numbered_or_path"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 65,
+      "sectionOrder": 8,
+      "questionPosition": 1,
+      "kind": "indicator",
+      "id": "OFFICIAL-HOME_BASED-S08-Q001-IND03 numbered_or_path"
+    },
+    {
+      "facility": "home_based",
+      "tableIndex": 2,
+      "rowIndex": 66,
+      "sectionOrder": 8,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-HOME_BASED-S08-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 1,
+      "sectionOrder": 1,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S01-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 2,
+      "sectionOrder": 1,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S01-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 3,
+      "sectionOrder": 1,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S01-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 4,
+      "sectionOrder": 1,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S01-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 5,
+      "sectionOrder": 1,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S01-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 8,
+      "sectionOrder": 2,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S02-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 9,
+      "sectionOrder": 2,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S02-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 10,
+      "sectionOrder": 2,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S02-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 11,
+      "sectionOrder": 2,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S02-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 12,
+      "sectionOrder": 2,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S02-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 13,
+      "sectionOrder": 2,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S02-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 14,
+      "sectionOrder": 2,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S02-Q007"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 17,
+      "sectionOrder": 3,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 18,
+      "sectionOrder": 3,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 19,
+      "sectionOrder": 3,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 20,
+      "sectionOrder": 3,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 21,
+      "sectionOrder": 3,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 22,
+      "sectionOrder": 3,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 23,
+      "sectionOrder": 3,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q007"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 24,
+      "sectionOrder": 3,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q008"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 25,
+      "sectionOrder": 3,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q009"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 26,
+      "sectionOrder": 3,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q010"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 27,
+      "sectionOrder": 3,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q011"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 28,
+      "sectionOrder": 3,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q012"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 29,
+      "sectionOrder": 3,
+      "questionPosition": 13,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q013"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 30,
+      "sectionOrder": 3,
+      "questionPosition": 14,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q014"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 31,
+      "sectionOrder": 3,
+      "questionPosition": 15,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S03-Q015"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 34,
+      "sectionOrder": 4,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 35,
+      "sectionOrder": 4,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 36,
+      "sectionOrder": 4,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 37,
+      "sectionOrder": 4,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 38,
+      "sectionOrder": 4,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 39,
+      "sectionOrder": 4,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 40,
+      "sectionOrder": 4,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q007"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 41,
+      "sectionOrder": 4,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q008"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 42,
+      "sectionOrder": 4,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q009"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 43,
+      "sectionOrder": 4,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q010"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 44,
+      "sectionOrder": 4,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q011"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 45,
+      "sectionOrder": 4,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S04-Q012"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 48,
+      "sectionOrder": 5,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S05-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 49,
+      "sectionOrder": 5,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S05-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 50,
+      "sectionOrder": 5,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S05-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 51,
+      "sectionOrder": 5,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S05-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 52,
+      "sectionOrder": 5,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S05-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 55,
+      "sectionOrder": 6,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 56,
+      "sectionOrder": 6,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 57,
+      "sectionOrder": 6,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 58,
+      "sectionOrder": 6,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 59,
+      "sectionOrder": 6,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 60,
+      "sectionOrder": 6,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 61,
+      "sectionOrder": 6,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q007"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 62,
+      "sectionOrder": 6,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q008"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 63,
+      "sectionOrder": 6,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q009"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 64,
+      "sectionOrder": 6,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q010"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 65,
+      "sectionOrder": 6,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S06-Q011"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 68,
+      "sectionOrder": 7,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 69,
+      "sectionOrder": 7,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 70,
+      "sectionOrder": 7,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 71,
+      "sectionOrder": 7,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 72,
+      "sectionOrder": 7,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 73,
+      "sectionOrder": 7,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 74,
+      "sectionOrder": 7,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q007"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 75,
+      "sectionOrder": 7,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q008"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 76,
+      "sectionOrder": 7,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S07-Q009"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 79,
+      "sectionOrder": 8,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S08-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 80,
+      "sectionOrder": 8,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S08-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 81,
+      "sectionOrder": 8,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S08-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 82,
+      "sectionOrder": 8,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S08-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 85,
+      "sectionOrder": 9,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 86,
+      "sectionOrder": 9,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 87,
+      "sectionOrder": 9,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 88,
+      "sectionOrder": 9,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 89,
+      "sectionOrder": 9,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 90,
+      "sectionOrder": 9,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 91,
+      "sectionOrder": 9,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q007"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 92,
+      "sectionOrder": 9,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q008"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 93,
+      "sectionOrder": 9,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q009"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 94,
+      "sectionOrder": 9,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q010"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 95,
+      "sectionOrder": 9,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q011"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 96,
+      "sectionOrder": 9,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q012"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 97,
+      "sectionOrder": 9,
+      "questionPosition": 13,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S09-Q013"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 100,
+      "sectionOrder": 10,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 101,
+      "sectionOrder": 10,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 102,
+      "sectionOrder": 10,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 103,
+      "sectionOrder": 10,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 104,
+      "sectionOrder": 10,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 105,
+      "sectionOrder": 10,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 106,
+      "sectionOrder": 10,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q007"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 107,
+      "sectionOrder": 10,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q008"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 108,
+      "sectionOrder": 10,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q009"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 109,
+      "sectionOrder": 10,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q010"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 110,
+      "sectionOrder": 10,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S10-Q011"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 113,
+      "sectionOrder": 11,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 114,
+      "sectionOrder": 11,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 115,
+      "sectionOrder": 11,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 116,
+      "sectionOrder": 11,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 117,
+      "sectionOrder": 11,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 118,
+      "sectionOrder": 11,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 119,
+      "sectionOrder": 11,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q007"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 120,
+      "sectionOrder": 11,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q008"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 121,
+      "sectionOrder": 11,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q009"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 122,
+      "sectionOrder": 11,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S11-Q010"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 125,
+      "sectionOrder": 12,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S12-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 126,
+      "sectionOrder": 12,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S12-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 127,
+      "sectionOrder": 12,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S12-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 128,
+      "sectionOrder": 12,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S12-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 129,
+      "sectionOrder": 12,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S12-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 130,
+      "sectionOrder": 12,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S12-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 133,
+      "sectionOrder": 13,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S13-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 134,
+      "sectionOrder": 13,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S13-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 137,
+      "sectionOrder": 14,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S14-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 138,
+      "sectionOrder": 14,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S14-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 139,
+      "sectionOrder": 14,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S14-Q003"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 140,
+      "sectionOrder": 14,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S14-Q004"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 141,
+      "sectionOrder": 14,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S14-Q005"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 142,
+      "sectionOrder": 14,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S14-Q006"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 145,
+      "sectionOrder": 15,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S15-Q001"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 146,
+      "sectionOrder": 15,
+      "questionPosition": 1,
+      "kind": "indicator",
+      "id": "OFFICIAL-COMMUNITY_BASED-S15-Q001-IND01"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 147,
+      "sectionOrder": 15,
+      "questionPosition": 1,
+      "kind": "indicator",
+      "id": "OFFICIAL-COMMUNITY_BASED-S15-Q001-IND02"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 148,
+      "sectionOrder": 15,
+      "questionPosition": 1,
+      "kind": "indicator",
+      "id": "OFFICIAL-COMMUNITY_BASED-S15-Q001-IND03"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 149,
+      "sectionOrder": 15,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S15-Q002"
+    },
+    {
+      "facility": "community_based",
+      "tableIndex": 3,
+      "rowIndex": 150,
+      "sectionOrder": 15,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-COMMUNITY_BASED-S15-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 2,
+      "sectionOrder": 1,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S01-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 3,
+      "sectionOrder": 1,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S01-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 4,
+      "sectionOrder": 1,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S01-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 5,
+      "sectionOrder": 1,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S01-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 6,
+      "sectionOrder": 1,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S01-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 7,
+      "sectionOrder": 1,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S01-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 10,
+      "sectionOrder": 2,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 11,
+      "sectionOrder": 2,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 12,
+      "sectionOrder": 2,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 13,
+      "sectionOrder": 2,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 14,
+      "sectionOrder": 2,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 15,
+      "sectionOrder": 2,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 16,
+      "sectionOrder": 2,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 17,
+      "sectionOrder": 2,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 18,
+      "sectionOrder": 2,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S02-Q009"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 21,
+      "sectionOrder": 3,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 22,
+      "sectionOrder": 3,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 23,
+      "sectionOrder": 3,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 24,
+      "sectionOrder": 3,
+      "questionPosition": 4,
+      "kind": "item_orphan",
+      "id": "OFFICIAL-ECD_3_5-S03-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 25,
+      "sectionOrder": 3,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 26,
+      "sectionOrder": 3,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 27,
+      "sectionOrder": 3,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 28,
+      "sectionOrder": 3,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 29,
+      "sectionOrder": 3,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q009"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 30,
+      "sectionOrder": 3,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S03-Q010"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 33,
+      "sectionOrder": 4,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S04-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 34,
+      "sectionOrder": 4,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S04-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 35,
+      "sectionOrder": 4,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S04-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 36,
+      "sectionOrder": 4,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S04-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 37,
+      "sectionOrder": 4,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S04-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 38,
+      "sectionOrder": 4,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S04-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 41,
+      "sectionOrder": 5,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S05-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 42,
+      "sectionOrder": 5,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S05-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 43,
+      "sectionOrder": 5,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S05-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 44,
+      "sectionOrder": 5,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S05-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 45,
+      "sectionOrder": 5,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S05-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 46,
+      "sectionOrder": 5,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S05-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 47,
+      "sectionOrder": 5,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S05-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 48,
+      "sectionOrder": 5,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S05-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 51,
+      "sectionOrder": 6,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S06-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 52,
+      "sectionOrder": 6,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S06-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 53,
+      "sectionOrder": 6,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S06-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 54,
+      "sectionOrder": 6,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S06-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 55,
+      "sectionOrder": 6,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S06-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 58,
+      "sectionOrder": 7,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 59,
+      "sectionOrder": 7,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 60,
+      "sectionOrder": 7,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 61,
+      "sectionOrder": 7,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 62,
+      "sectionOrder": 7,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 63,
+      "sectionOrder": 7,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 64,
+      "sectionOrder": 7,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 65,
+      "sectionOrder": 7,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 66,
+      "sectionOrder": 7,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q009"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 67,
+      "sectionOrder": 7,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q010"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 68,
+      "sectionOrder": 7,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q011"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 69,
+      "sectionOrder": 7,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q012"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 70,
+      "sectionOrder": 7,
+      "questionPosition": 13,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q013"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 71,
+      "sectionOrder": 7,
+      "questionPosition": 14,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q014"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 72,
+      "sectionOrder": 7,
+      "questionPosition": 15,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S07-Q015"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 75,
+      "sectionOrder": 8,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S08-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 76,
+      "sectionOrder": 8,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S08-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 77,
+      "sectionOrder": 8,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S08-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 78,
+      "sectionOrder": 8,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S08-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 79,
+      "sectionOrder": 8,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S08-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 82,
+      "sectionOrder": 9,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S09-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 83,
+      "sectionOrder": 9,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S09-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 84,
+      "sectionOrder": 9,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S09-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 85,
+      "sectionOrder": 9,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S09-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 86,
+      "sectionOrder": 9,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S09-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 87,
+      "sectionOrder": 9,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S09-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 88,
+      "sectionOrder": 9,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S09-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 89,
+      "sectionOrder": 9,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S09-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 92,
+      "sectionOrder": 10,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S10-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 93,
+      "sectionOrder": 10,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S10-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 94,
+      "sectionOrder": 10,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S10-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 95,
+      "sectionOrder": 10,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S10-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 96,
+      "sectionOrder": 10,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S10-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 97,
+      "sectionOrder": 10,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S10-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 98,
+      "sectionOrder": 10,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S10-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 99,
+      "sectionOrder": 10,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S10-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 102,
+      "sectionOrder": 11,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 103,
+      "sectionOrder": 11,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 104,
+      "sectionOrder": 11,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 105,
+      "sectionOrder": 11,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 106,
+      "sectionOrder": 11,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 107,
+      "sectionOrder": 11,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 108,
+      "sectionOrder": 11,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 109,
+      "sectionOrder": 11,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 110,
+      "sectionOrder": 11,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S11-Q009"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 113,
+      "sectionOrder": 12,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S12-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 114,
+      "sectionOrder": 12,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S12-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 115,
+      "sectionOrder": 12,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S12-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 116,
+      "sectionOrder": 12,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S12-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 117,
+      "sectionOrder": 12,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S12-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 118,
+      "sectionOrder": 12,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S12-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 121,
+      "sectionOrder": 13,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 122,
+      "sectionOrder": 13,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 123,
+      "sectionOrder": 13,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 124,
+      "sectionOrder": 13,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 125,
+      "sectionOrder": 13,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 126,
+      "sectionOrder": 13,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 127,
+      "sectionOrder": 13,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 128,
+      "sectionOrder": 13,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 129,
+      "sectionOrder": 13,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q009"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 130,
+      "sectionOrder": 13,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q010"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 131,
+      "sectionOrder": 13,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q011"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 132,
+      "sectionOrder": 13,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q012"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 133,
+      "sectionOrder": 13,
+      "questionPosition": 13,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q013"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 134,
+      "sectionOrder": 13,
+      "questionPosition": 14,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q014"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 135,
+      "sectionOrder": 13,
+      "questionPosition": 15,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S13-Q015"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 138,
+      "sectionOrder": 14,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 139,
+      "sectionOrder": 14,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 140,
+      "sectionOrder": 14,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 141,
+      "sectionOrder": 14,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 142,
+      "sectionOrder": 14,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 143,
+      "sectionOrder": 14,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 144,
+      "sectionOrder": 14,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 145,
+      "sectionOrder": 14,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 146,
+      "sectionOrder": 14,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q009"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 147,
+      "sectionOrder": 14,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q010"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 148,
+      "sectionOrder": 14,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q011"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 149,
+      "sectionOrder": 14,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S14-Q012"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 152,
+      "sectionOrder": 15,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S15-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 153,
+      "sectionOrder": 15,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S15-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 154,
+      "sectionOrder": 15,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S15-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 155,
+      "sectionOrder": 15,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S15-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 156,
+      "sectionOrder": 15,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S15-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 157,
+      "sectionOrder": 15,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S15-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 160,
+      "sectionOrder": 16,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 161,
+      "sectionOrder": 16,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 162,
+      "sectionOrder": 16,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 163,
+      "sectionOrder": 16,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 164,
+      "sectionOrder": 16,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 165,
+      "sectionOrder": 16,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 166,
+      "sectionOrder": 16,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 167,
+      "sectionOrder": 16,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 168,
+      "sectionOrder": 16,
+      "questionPosition": 9,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q009"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 169,
+      "sectionOrder": 16,
+      "questionPosition": 10,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q010"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 170,
+      "sectionOrder": 16,
+      "questionPosition": 11,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q011"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 171,
+      "sectionOrder": 16,
+      "questionPosition": 12,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S16-Q012"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 174,
+      "sectionOrder": 17,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S17-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 175,
+      "sectionOrder": 17,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S17-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 176,
+      "sectionOrder": 17,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S17-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 177,
+      "sectionOrder": 17,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S17-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 178,
+      "sectionOrder": 17,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S17-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 179,
+      "sectionOrder": 17,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S17-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 180,
+      "sectionOrder": 17,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S17-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 181,
+      "sectionOrder": 17,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S17-Q008"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 184,
+      "sectionOrder": 18,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S18-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 185,
+      "sectionOrder": 18,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S18-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 186,
+      "sectionOrder": 18,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S18-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 189,
+      "sectionOrder": 19,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S19-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 190,
+      "sectionOrder": 19,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S19-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 193,
+      "sectionOrder": 20,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S20-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 194,
+      "sectionOrder": 20,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S20-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 195,
+      "sectionOrder": 20,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S20-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 196,
+      "sectionOrder": 20,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S20-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 197,
+      "sectionOrder": 20,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S20-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 198,
+      "sectionOrder": 20,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S20-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 201,
+      "sectionOrder": 21,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S21-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 202,
+      "sectionOrder": 21,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S21-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 203,
+      "sectionOrder": 21,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S21-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 204,
+      "sectionOrder": 21,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S21-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 205,
+      "sectionOrder": 21,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S21-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 208,
+      "sectionOrder": 22,
+      "questionPosition": 1,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S22-Q001"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 209,
+      "sectionOrder": 22,
+      "questionPosition": 2,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S22-Q002"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 210,
+      "sectionOrder": 22,
+      "questionPosition": 3,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S22-Q003"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 211,
+      "sectionOrder": 22,
+      "questionPosition": 4,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S22-Q004"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 212,
+      "sectionOrder": 22,
+      "questionPosition": 5,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S22-Q005"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 213,
+      "sectionOrder": 22,
+      "questionPosition": 6,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S22-Q006"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 214,
+      "sectionOrder": 22,
+      "questionPosition": 7,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S22-Q007"
+    },
+    {
+      "facility": "ecd_3_5",
+      "tableIndex": 4,
+      "rowIndex": 215,
+      "sectionOrder": 22,
+      "questionPosition": 8,
+      "kind": "item",
+      "id": "OFFICIAL-ECD_3_5-S22-Q008"
+    }
+  ]
+}

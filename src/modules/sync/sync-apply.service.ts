@@ -1046,6 +1046,9 @@ export class SyncApplyService {
                 capacity: payload.capacity != null ? Number(payload.capacity) : null,
               }),
               ...(payload.status != null && { status: payload.status as never }),
+              ...(payload.facilityType !== undefined && {
+                facilityType: (payload.facilityType as string) ?? null,
+              }),
               ...meta,
             },
           })
@@ -1599,6 +1602,9 @@ export class SyncApplyService {
             latitude: payload.latitude != null ? Number(payload.latitude) : null,
             longitude: payload.longitude != null ? Number(payload.longitude) : null,
             ...(centerStatus != null ? { status: centerStatus } : {}),
+            ...(payload.facilityType !== undefined
+              ? { facilityType: (payload.facilityType as string) ?? null }
+              : {}),
             ...meta,
           },
         });

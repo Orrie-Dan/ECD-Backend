@@ -181,6 +181,7 @@ export class CentersService {
       latitude: existing.latitude,
       longitude: existing.longitude,
       status: existing.status,
+      facilityType: existing.facilityType,
       villageId: existing.villageId,
       version: existing.version,
     });
@@ -205,6 +206,7 @@ export class CentersService {
             longitude: dto.longitude == null ? null : dto.longitude,
           }),
           ...(dto.status != null && { status: dto.status }),
+          ...(dto.facilityType !== undefined && { facilityType: dto.facilityType }),
           ...(dto.villageId != null && { villageId: dto.villageId }),
           updatedAt: now,
           updatedById: user.id,
@@ -244,6 +246,7 @@ export class CentersService {
           latitude: updated.latitude,
           longitude: updated.longitude,
           status: updated.status,
+          facilityType: updated.facilityType,
           villageId: updated.villageId,
           version: updated.version,
         }),

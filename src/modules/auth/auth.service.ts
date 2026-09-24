@@ -1,4 +1,10 @@
-import { UserAccountStatus, UserRole, asDomainEnum } from '../../common/domain';
+import {
+  UserAccountStatus,
+  UserRole,
+  EcdFacilityType,
+  asDomainEnum,
+  asDomainEnumNullable,
+} from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
@@ -14,7 +20,11 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { EmailTemplateId } from '../email/email-template.ids';
 import { EmailService } from '../email/email.service';
 import { AuthTokensResponseDto } from './dto/auth-tokens-response.dto';
-import { AuthMeResponseDto, AuthUserResponseDto } from './dto/auth-user-response.dto';
+import {
+  AuthCenterSummaryDto,
+  AuthMeResponseDto,
+  AuthUserResponseDto,
+} from './dto/auth-user-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { PasswordResetConfirmDto } from './dto/password-reset-confirm.dto';
 import { PasswordResetRequestDto } from './dto/password-reset-request.dto';
@@ -23,6 +33,18 @@ import { AuthUser, JwtPayload } from './interfaces/jwt-payload.interface';
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
+
+function mapAuthCenter(
+  center: { id: string; code: string; name: string; facilityType: string | null } | null,
+): AuthCenterSummaryDto | null {
+  if (!center) return null;
+  return {
+    id: center.id,
+    code: center.code,
+    name: center.name,
+    facilityType: asDomainEnumNullable<EcdFacilityType>(center.facilityType),
+  };
+}
 
 @Injectable()
 export class AuthService {
@@ -40,7 +62,7 @@ export class AuthService {
       where: { username: dto.username },
       include: {
         center: {
-          select: { id: true, code: true, name: true },
+          select: { id: true, code: true, name: true, facilityType: true },
         },
       },
     });
@@ -79,7 +101,7 @@ export class AuthService {
       districtId: user.districtId,
       sectorId: user.sectorId,
       centerId: user.centerId,
-      center: user.center,
+      center: mapAuthCenter(user.center),
     });
   }
 
@@ -102,7 +124,7 @@ export class AuthService {
       where: { id: payload.sub },
       include: {
         center: {
-          select: { id: true, code: true, name: true },
+          select: { id: true, code: true, name: true, facilityType: true },
         },
       },
     });
@@ -122,7 +144,7 @@ export class AuthService {
       districtId: user.districtId,
       sectorId: user.sectorId,
       centerId: user.centerId,
-      center: user.center,
+      center: mapAuthCenter(user.center),
     });
   }
 
@@ -139,7 +161,7 @@ export class AuthService {
         sectorId: true,
         centerId: true,
         center: {
-          select: { id: true, code: true, name: true },
+          select: { id: true, code: true, name: true, facilityType: true },
         },
       },
     });
@@ -157,7 +179,7 @@ export class AuthService {
       districtId: user.districtId,
       sectorId: user.sectorId,
       centerId: user.centerId,
-      center: user.center,
+      center: mapAuthCenter(user.center),
     };
   }
 

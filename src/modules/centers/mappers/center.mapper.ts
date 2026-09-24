@@ -1,4 +1,9 @@
-import { EcdCenterStatus, asDomainEnum, asDomainEnumNullable } from '../../../common/domain';
+import {
+  EcdCenterStatus,
+  EcdFacilityType,
+  asDomainEnum,
+  asDomainEnumNullable,
+} from '../../../common/domain';
 import { EcdCenter, ComplianceClassification, Prisma } from '@prisma/client';
 import { CenterDetailResponseDto, CenterResponseDto } from '../dto/center-response.dto';
 
@@ -38,6 +43,7 @@ export const centerMapper = {
       latitude: decimalToNumber(row.latitude),
       longitude: decimalToNumber(row.longitude),
       status: asDomainEnum<EcdCenterStatus>(row.status),
+      facilityType: asDomainEnumNullable<EcdFacilityType>(row.facilityType),
       districtId: row.districtId,
       districtName: row.district?.name ?? null,
       villageId: row.villageId,

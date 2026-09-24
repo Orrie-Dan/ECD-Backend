@@ -12,6 +12,17 @@ export enum EcdCenterStatus {
   inactive = 'inactive',
 }
 
+/**
+ * Canonical ECD facility setting type (ALIGN-05A).
+ * Persisted as TEXT on ecd_center.facility_type; never invent from display labels.
+ */
+export enum EcdFacilityType {
+  daycare = 'daycare',
+  home_based = 'home_based',
+  community_based = 'community_based',
+  ecd_3_5 = 'ecd_3_5',
+}
+
 export enum UserRole {
   caregiver = 'caregiver',
   district_focal_person = 'district_focal_person',
@@ -176,6 +187,7 @@ export enum CenterSupportCategory {
 /** All domain enum objects for bulk validation or OpenAPI registration. */
 export const DOMAIN_ENUMS = {
   EcdCenterStatus,
+  EcdFacilityType,
   UserRole,
   UserAccountStatus,
   ChildGender,

@@ -1,4 +1,4 @@
-import { EcdCenterStatus } from '../../../common/domain';
+import { EcdCenterStatus, EcdFacilityType } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -11,6 +11,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 
 export class UpdateCenterDto {
@@ -68,6 +69,21 @@ export class UpdateCenterDto {
   @IsOptional()
   @IsEnum(EcdCenterStatus)
   status?: EcdCenterStatus;
+
+  /**
+   * Canonical ECD facility type. Null clears classification.
+   * Allowed: daycare | home_based | community_based | ecd_3_5
+   */
+  @ApiPropertyOptional({
+    enum: EcdFacilityType,
+    enumName: 'EcdFacilityType',
+    nullable: true,
+    description: 'Canonical facility type (null clears)',
+  })
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsEnum(EcdFacilityType)
+  facilityType?: EcdFacilityType | null;
 
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()

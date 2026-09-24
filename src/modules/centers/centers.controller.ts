@@ -75,7 +75,7 @@ export class CentersController {
   })
   @ApiParam({ name: 'id', format: 'uuid', description: 'Center UUID' })
   @ApiDeviceIdHeader()
-  @ApiOkResponse({ type: CenterResponseDto })
+  @ApiOkResponse({ type: CenterDetailResponseDto })
   @ApiStandardClientErrors()
   @ApiNotFoundError('Center')
   @ApiOptimisticLockConflict()
@@ -84,7 +84,7 @@ export class CentersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateCenterDto,
     @Headers('x-device-id') deviceHeader?: string,
-  ) {
+  ): Promise<CenterDetailResponseDto> {
     return this.centersService.update(user, id, {
       ...dto,
       deviceId: dto.deviceId ?? deviceHeader,

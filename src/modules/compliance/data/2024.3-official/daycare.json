@@ -1,0 +1,1033 @@
+{
+  "id": "daycare",
+  "title": "A. Self-Evaluation Tool for Daycare Facilities (Creches)",
+  "version": "2024.3-official",
+  "grandTotalMax": 195,
+  "computedMaxScore": 195,
+  "sectionCount": 16,
+  "itemCount": 130,
+  "sections": [
+    {
+      "id": "OFFICIAL-DAYCARE-S01",
+      "title": "1. Care and Support before birth/ Kwita ku mwana mbere y’uko avuka",
+      "subtotalMax": 4,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S01-Q001",
+          "number": 1,
+          "text": "Pregnant mothers are visited at home to ensure they attend antenatal services (Evidence of home visitation)/ Gusura ababyeyi batwite mu ngo birakorwa.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S01-Q002",
+          "number": 2,
+          "text": "The facility files the reports of home visit/ Irerero rikora raporo zo gusura ababyeyi batwite rikazibika.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S01-Q003",
+          "number": 3,
+          "text": "The daycare checks if pregnant mothers respect the protocols for antenatal visits as prescribed./ Irerero rigenzura ko ababyeyi batwite bakurikiza gahunda yo kwisuzumisha mbere yo kubyara nk’uko iteganyijwe.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S01-Q004",
+          "number": 4,
+          "text": "The day-care facility encourages fathers to ensure the security of their pregnant woman/ Irerero rikangurira ababyeyi b’abagabo kwita ku mutekano w’abagore babo batwite.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S02",
+      "title": "2. Food and Nutrition practices",
+      "subtotalMax": 15,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q001",
+          "number": 1,
+          "text": "Children are provided with healthy, balanced diets as per MIYCN counselling package/ Abana bahabwa indyo yuzuye.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q002",
+          "number": 2,
+          "text": "ECD food handlers, including cooks and food suppliers, are trained on food hygiene and safety/ Abatetsi n’abandi bafite aho bahurira n’amafunguro bahawe amahugurwa ku bijyanye n’umutekano n’isuku y’ibiribwa.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q003",
+          "number": 3,
+          "text": "Cooks and food suppliers maintain proper personal hygiene: washing hands and covering their hair./ Abatetsi bapfuka imisatsi yabo bambara ingofero kandi bakagira umwambaro ubaranga",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q004",
+          "number": 4,
+          "text": "Children with eating difficulties are identified and receive adequate support/ Abana bagaragaje ibibazo mu mirire bafashwa bahabwa indyo ikungahaye ku ntungamubiri zikwiye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q005",
+          "number": 5,
+          "text": "Clean drinking water is always available to children/ Abana bahabwa amazi yo kunywa ku buryo buhoraho",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q006",
+          "number": 6,
+          "text": "Children attending all day are offered meals at designated intervals/ Abana bamara umunsi wose mu irerero bagaburirwa mu byiciro bidahindagurika",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q007",
+          "number": 7,
+          "text": "Staff request information from parents about any special dietary requirements, preferences or food allergies the child may have/ Abarezi babaza ababyeyi amakuru ku bijyanye n’ibiribwa abana bakunda, n’ibibagiraho ingaruka.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q008",
+          "number": 8,
+          "text": "Facilities for the hygienic preparation of babies’ foods are available./ Irerero rigira ibikoresho by’isuku bijyanye no gutegura amafunguro",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q009",
+          "number": 9,
+          "text": "Suitable sterilization equipment is used for babies’ feeding equipment before every meal./ Ibikoresho byica za ikorobe bikoreshwa mu gutunganya ibikoresho byo ku meza.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q010",
+          "number": 10,
+          "text": "ECD caregivers are trained how to adapt feeding practices to minimize harm and maximize nutritional intake for children with eating and drinking difficulties/ Abarezi bahugurwa ku byahinduka mu migaburirire kugira ngo bagabanye ingaruka z’imirire mibi",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q011",
+          "number": 11,
+          "text": "ECD caregivers ensure that children aged 6–23 months receive micronutrient powders/ Abarezi mu irerero bagenzura ko abana bafite amezi kuva kuri 6 kugeza kuri 23 bahabwa ifu ya Ongera Intungamubiri cyangwa ibindi biribwa byunganira mu mirire.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q012",
+          "number": 12,
+          "text": "Parents/caregivers receive monthly cooking demonstrations and sessions on holistic child development at the facilities./ Ababyeyi bombi bahabwa amasomo yo guteka n’amasomo ku mikurire y’umwana mu buryo bukomatanyije ku irerero.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S02-Q013",
+          "number": 13,
+          "text": "ECD caregivers encourage parents to provide adequate complementary food in addition to breast milk after 6 months./ Abarezi bashishikariza ababyeyi guha abana imfashabere nyuma y’amezi 6",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S03",
+      "title": "4. Responsive care and support services to children from birth to 3 years/ Kwita ku bana bavutse kugeza ku myaka 3",
+      "subtotalMax": 6,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S03-Q001",
+          "number": 1,
+          "text": "The daycare has records of whether the working parents took maternity and paternity leave./ Abatanga ikiruhuko cy’ababyeyi bagomba kugenzura ko umubyeyi ahabwa igihe gihagije k’ikiruhuko.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S03-Q002",
+          "number": 2,
+          "text": "Support and guidance are provided for parents and families of children having developmental delay or disability./ Ababyeyi cyangwa imiryango ifite abana bafite ubukererwe mu mikurire cyangwa ubumuga bahabwa ubufasha.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S03-Q003",
+          "number": 3,
+          "text": "Both parents attend parenting sessions at the day-care facility./ Ababyeyi n’abandi barera abana bagomba gukurikirana amasomo ku burere mu miryango",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S03-Q004",
+          "number": 4,
+          "text": "The facility follows-up on whether CHWs and IZU conduct home visits to families with young children to monitor children’s growth./ Abajyanama b’ubuzima, Inshuti z’Umuryango basura imiryango ifite abana bato kugira ngo bakurikirane imikurire yabo.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S04",
+      "title": "5. Day-care staffing/ Abakozi b’Irerero",
+      "subtotalMax": 7,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S04-Q001",
+          "number": 1,
+          "text": "Caregivers have basic training in holistic child development, childcare methods and first aid./ Umurezi yahuguwe ku mikurire y’umwana mu buryo bukomatanyije, uburyo butandukanye bwo kwita ku bana bato no gutanga ubutabazi bw’ibanze.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S04-Q002",
+          "number": 2,
+          "text": "Staff have medical certificates/ Buri mukozi mu irerero (daycare) afite ikemezo kigaragaza ko ari muzima gitanzwe n’umuganga ubifitiye ububasha mbere yo gutangira akazi.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S04-Q003",
+          "number": 3,
+          "text": "Every staff member in a day care facility has a working contract./ Buri mukozi mu irerero afite amasezerano y’akazi yanditse.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S04-Q004",
+          "number": 4,
+          "text": "There is a plan for continuous professional development of staff as required./ Hashyizweho gahunda y’amahugurwa ahoraho y’abakozi hagendewe ku byo umukozi akeneye guhugurwamo.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S05",
+      "title": "6. Physical Environment/ Imiterere y’Irerero",
+      "subtotalMax": 14,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S05-Q001",
+          "number": 1,
+          "text": "The day-care facility has access to the road./ Irerero rifite umuhanda urigeraho.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S05-Q002",
+          "number": 2,
+          "text": "The day-care facility has an early learning room, breastfeeding room, sleeping room, kitchen, store, child-friendly toilets, outdoor playground./ Irerero rifite icyumba cyo kwigiramo, icyumba cyo konkerezamo, icyumba cyo kuryamamo cyangwa kuruhukiramo, igikoni, ububiko, imisarani iri ku kigero cy’abana, ahantu ho gukinira hanze.",
+          "maxScore": 7,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S05-Q003",
+          "number": 3,
+          "text": "The day-care facilities are not placed in a risky zone (landslides, erosion area, floods, etc.)/ Irerero ntiriri ahantu h’amanegeka hashobora kwibasirwa n’ibiza (inkangu, isuri, imyuzure, n’ibindi",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S05-Q004",
+          "number": 4,
+          "text": "There is a good lighting system./ Ibyumba bifite urumuri ruhagije;",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S05-Q005",
+          "number": 5,
+          "text": "Play areas are large enough to allow free movement (2mX2m/Child=4 sqm) - Total square of playground/Total number of children./ Aho abana bakinira harahagije ku buryo buri mwana yisanzura.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S06",
+      "title": "7. Sanitary Facilities/ Ibikoresho by’Isuku mu Irerero",
+      "subtotalMax": 14,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q001",
+          "number": 1,
+          "text": "There is a clean, washable, hygienic space to change diapers; and a safe disposal of child faeces/ Hari ahantu hasukuye, hozwa, kandi hafite isuku, bahindurira abana ibyo bababinze igihe babyitumyemo kandi hakaba ahantu bajugunya imyanda y’abana hafite umutekano.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q002",
+          "number": 2,
+          "text": "The toilets are appropriate for children with separate toilets for boys and girls./ Irerero rifite imisarane iri ku kigero cy’abana imisarane n’abahungu itandukanye n’iy’abakobwa.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q003",
+          "number": 3,
+          "text": "Every child has a labelled potty / Buri mwana afite agatebe ke ko kwitumamo kanditseho amazina ye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q004",
+          "number": 4,
+          "text": "Potties are cleaned and sanitized after each use./ Agatebe k’umwana yitumyemo karasukurwa kandi kakarindwa mikorobe nyuma y’uko umwana agakoresheje.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q005",
+          "number": 5,
+          "text": "Every child has at least one pair of bed sheets./ Buri mwana afite nibura amashuka abiri.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q006",
+          "number": 6,
+          "text": "Sanitary materials are kept out of children’s reach./ Ibikoresho byose by’isuku bibikwa kure aho abana batagera kugira ngo bitaba byabakomeretsa.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q007",
+          "number": 7,
+          "text": "Waste bins are covered./ Aho bamena imyanda harapfundikirwa",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q008",
+          "number": 8,
+          "text": "Children are guided on how to use waste bins./ Abana berekwa uko bakoresha ububiko bw’imyanda.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S06-Q009",
+          "number": 9,
+          "text": "There is at least one toilet specifically designed for children with special needs and one for staff with special needs./ Irerero rifite umusarani w’abafite ubumuga ku bana no ku barezi.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S07",
+      "title": "8. Handwashing practices/ Gukaraba Intoki",
+      "subtotalMax": 3,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S07-Q001",
+          "number": 1,
+          "text": "There is a poster reminding people to wash their hands./ Hari icyapa kigisha abana uburyo bwo gukaraba intoki.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S07-Q002",
+          "number": 2,
+          "text": "Staff ensure that children wash their hands before eating and after using the toilet./ Abarezi n’abana bagenzura ko bakoresha igihe cyagenwe mu gukaraba intoki: hagati y’amasogonda 40-60",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S07-Q003",
+          "number": 3,
+          "text": "Staff have written guidelines on when to wash hands./ Aho bakarabira mu ntoki haba hari amazi meza n’isabune.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S08",
+      "title": "9. Building specifications/ Ibisabwa ku Nyubako",
+      "subtotalMax": 17,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q001",
+          "number": 1,
+          "text": "The facility has protection for children in windows and anywhere children may fall (all conditions have to be met)/ Igihe irerero rikoreye mu nzu yo hejuru, inyubako igomba kugira senyenge mu madirishya no ku ibaraza.\nNote: If there is anywhere in the compound where children may fall and it is not protected, the whole standard is not met.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q002",
+          "number": 2,
+          "text": "The location of the facility is away from hazards (public toilets, rubbish dumps, main roads, etc.)/ Irerero riri kure y’imisarani ya rusange, ibimoteri, umuhanda munini cyangwa ikindi kintu cyateza impanuka ku barikoreramo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q003",
+          "number": 3,
+          "text": "The doors are fixed, and none is swinging./ Nta nzugi zifunga zikifungura zikoreshwa ku miryango yo mu irerero.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q004",
+          "number": 4,
+          "text": "The floor has a smooth, non-slip surface./ Mu cyumba k’ishuri hasi aho abana bakorera ibikorwa bitandukanye nta byobo bihari ahubwo hahora hashashe, hozwa kandi hatanyerera.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q005",
+          "number": 5,
+          "text": "The facility has an area for recreational activities./ Irerero rifite ahantu hagenewe ibikorwa by’imikino no kuruhuka.\nNote: this can be indoor or outdoor",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q006",
+          "number": 6,
+          "text": "The facility has storage areas for children’s things./ Buri mwana mu irerero afite ububiko bw’ibintu bye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q007",
+          "number": 7,
+          "text": "The drains are covered./ Imiyoboro y’amazi iratwikiriye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q008",
+          "number": 8,
+          "text": "Staircases are closed at both ends./ Ahari ingazi hose zirafunze ku mpera zombi.\nNote: this applies to storeyed building",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q009",
+          "number": 9,
+          "text": "Electric sockets are raised to be out of reach of children and rendered harmless./ Aho bacomekera ibikoresho by’amashanyarazi higiye hejuru aho abana batagera kandi hararindwa ku buryo hatateza abana impanuka.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q010",
+          "number": 10,
+          "text": "The day-care facility is inclusive. (The facility can accommodate children with disabilities)/ Irerero ryakira abana bose ridaheza abafite ubumuga.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S08-Q011",
+          "number": 11,
+          "text": "The facility is equipped with learning materials accessible to all children./ Irerero rifite imfashanyigisho n’ibikinisho bifasha abana mu myigire kandi zidaheza abana bafite ubumuga.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S09",
+      "title": "10. Equipment/Ibikoresho",
+      "subtotalMax": 12,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S09-Q001",
+          "number": 1,
+          "text": "Furniture (chairs and tables) is appropriate for children’s size and age. (30 cm high)/ Intebe n’ameza bijyanye n’ikigero cy’abana.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S09-Q002",
+          "number": 2,
+          "text": "Equipment is arranged to create an accessible and stimulating environment/ Ibikoresho biteguye mu buryo bushimishije, butabuza abana kwisanzura no gukora ingendo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S09-Q003",
+          "number": 3,
+          "text": "The equipment is of suitable design and condition, well maintained and conforms to safety standards./ Ibikoresho bikoze mu mashusho atandukanye atuma bishimisha abana, byitabwaho kandi ntibibangamiye umutekano w’abana.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S09-Q004",
+          "number": 4,
+          "text": "The play equipment is stimulating and safe for children./ Ibikinisho n’imfashanyigisho bikurura abana kandi bishobora gukoreshwa mu bikorwa bitandukanye by’imikino.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S09-Q005",
+          "number": 5,
+          "text": "There are sufficient and suitable indoor and outdoor toys and play materials. (Every child can have a toy/play material without watching others playing) / Hari ibikinisho bihagije kandi bikwiye",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S09-Q006",
+          "number": 6,
+          "text": "There are sufficient, safe and age appropriate chairs, tables, carpets and mats to allow children to play and eat together./ Hari umubare uhagije w’intebe n’ameza bijyanye n’ikigero cy’abana ndetse n’imikeka kugira ngo abana bashobore gukina no gusangirira amafunguro hamwe.",
+          "maxScore": 3,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S10",
+      "title": "11. Breastfeeding Room/ Icyumba cyo konkerezamo",
+      "subtotalMax": 17,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q001",
+          "number": 1,
+          "text": "The room is easy to reach directly, away from the bathroom, away from where garbage and other old materials are disposed of./ Icyumba cyo konkerezamo kiri ahantu horoshye kugera, kure y’ubwiherero, kure y’aho bamena imyanda n’ibindi bintu.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q002",
+          "number": 2,
+          "text": "It complies with privacy standards, with the door securely locked and equipment to screen lactating mothers if they wish./ Icyumba cyo konkerezamo gifite urugi rukingwa ku buryo umubyeyi aba yihereye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q003",
+          "number": 3,
+          "text": "It provides fresh air or a ventilation system./ Icyumba gifite icyuma gitanga umuyaga kugira ngo ababyeyi baruhuke neza igihe bonsa",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q004",
+          "number": 4,
+          "text": "There are handwashing facilities, soap, clean hand towels or paper towels./ Icyumba cyo konkerezamo gifite ibikoresho bifasha mu gukaraba intoki: isabune, isume isukuye cyangwa impapuro z’isuku zabugenewe.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q005",
+          "number": 5,
+          "text": "There is safe water for drinking and washing hands./ Icyumba cyo konkerezamo gifite amazi meza yo kunywa n’ayo gukaraba intoki.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q006",
+          "number": 6,
+          "text": "The room has a chair and a table adapted for the lactating mother, and other necessary equipment when the mother is breastfeeding./ Icyumba cyo konkerezamo gifite intebe n’ameza bikwiriye umubyeyi uri konsa, n’ibindi bikoresho yakenera.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q007",
+          "number": 7,
+          "text": "The room has a small baby bed (cot/berceau). / Icyumba gifite uburiri bw’umwana.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q008",
+          "number": 8,
+          "text": "If used by more than one mother, the seats are separated by a curtain to ensure privacy/ Mu gihe icyumba cyo konkerezamo gikoreshwa n’ababyeyi barenze umwe, intebe zabo itanduknywa n’amarido.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q009",
+          "number": 9,
+          "text": "The breastfeeding room has a sink to clean the cups used by the mother when extracting milk./ Icyumba cyo konkerezamo gifite aho kogereza udukombe dukoreshwa igihe umubyeyi yikama amashyereka.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q010",
+          "number": 10,
+          "text": "The room has facilities for extraction of breast milk/ Icyumba gifite ibikoresho bifasha umubyeyi igihe yikama amashyereka",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S10-Q011",
+          "number": 11,
+          "text": "Expressed breast milk (kept in a safe container at room temperature) is stored for no longer than 6–8 hours./ Amashyereka yakamwe abikwa mu gikoresho gifite umutekano ku bushyuhe buringaniye amara amasha hagati ya 6 na 8.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S11",
+      "title": "12. Care, learning and play/ Kwitabwaho, Kwiga no Gukina",
+      "subtotalMax": 23,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q001",
+          "number": 1,
+          "text": "Children are provided with items to look at, touch, smell, hear and taste./ Abana bahabwa ibikorwa bihagije bikangura ubwonko bwabo bahabwa ibintu byo kwitegereza, gukorakora, kwihumuriza, kumvisha amatwi no kumva uburyohe.",
+          "maxScore": 5,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q002",
+          "number": 2,
+          "text": "Children are given language stimulation activities: narrating stories, reading picture books, picture story books, singing, etc./ Abana bahabwa ibikorwa bihagije bizamura ubushobozi bwabo bw’ururimi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q003",
+          "number": 3,
+          "text": "Children are supported to acquire new motor, and thinking skills./ Abana bafashwa kuzamura ubushobozi mu miyego, no gutekereza.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q004",
+          "number": 4,
+          "text": "Children are helped to learn how to control their own behavior/ Abana bafashwa kumenya uko bakwigenzurira imyitwarire yabo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q005",
+          "number": 5,
+          "text": "The daily schedule gives children opportunities to practise sensory activities with non-harmful materials/ Ibikorwa, ibikinisho, n’ibikoresho byo mu mikino biha abana umwanya wo gukoresha ibyumviro byabo n’ubunararibonye bafite mu buzima.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q006",
+          "number": 6,
+          "text": "Caregivers plan to interact with every child every day on what they are doing./ Abarezi batega amatwi abana bakanabaganiza ku byo barigukora.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q007",
+          "number": 7,
+          "text": "Children are given the opportunity to begin to care for themselves: dressing, feeding, washing, etc./ Abana bahabwa umwanya wo kwiga kwiyitaho: kwiyambika imyambaro, kwigaburira; kwikarabya intoki, n’ibindi",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q008",
+          "number": 8,
+          "text": "Sleeping is included in the daily schedule./ Abana bagira umwanya wo kuruhuka nk’uko biteganyijwe.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q009",
+          "number": 9,
+          "text": "Children are washed before sleeping, and before and after mealtimes/ Abana buhagirwa mbere y’uko basinzira kugira ngo bagire ubuzima bwiza",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q010",
+          "number": 10,
+          "text": "There is adequate recreational space for children to relax./ Irerero riteganya ahantu heza abana bagomba gukinira baruhuka.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q011",
+          "number": 11,
+          "text": "Play items are made of wood or non-toxic materials./ Irerero riha abana ibikinisho n’imfashanyigisho zikozwe mu biti cyangwa bidasizeho irangi ryakwangiza.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q012",
+          "number": 12,
+          "text": "Children with developmental delay or disability receive additional support to meet their individual learning needs/ Abana bagaragaye ko bafite ibibazo by’ubukererwe mu mikurire, abafite ibibazo byihariye cyangwa ubumuga, bahabwa ubufasha bw’inyongera.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S11-Q013",
+          "number": 13,
+          "text": "There are swings, climbing frames and other playground equipment for gross motor skills development./ Irerero rigira ibikoresho by’imikino bitandukanye nk’imyicungo, ingazi zo kuzamukaho n’ibindi bikinisho.",
+          "maxScore": 3,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S12",
+      "title": "13. Health/ Ubuzima",
+      "subtotalMax": 19,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q001",
+          "number": 1,
+          "text": "Children aged 0–2 are screened for risk of developmental delay or disability every 6 months. (present the report)/ Abana kugeza ku myaka 2 bakorerwa isuzuma buri mezi 6 rigamije kureba niba nta byago byo kudindira bafite cyangwa ubumuga.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q002",
+          "number": 2,
+          "text": "Parents and caregivers ensure that their children have been immunized according to the vaccination schedule./ Ababyeyi n’abarezibagenzura ko abana bahabwa inkingo uko ziteganyijwe kuri gahunda y’ikingira.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q003",
+          "number": 3,
+          "text": "Staff are taken through health screening before employment/ Mbere yo gutangira akazi, abakozi b’irerero bakorerwa isumwa ry’ubuzima bwabo muri rusange.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q004",
+          "number": 4,
+          "text": "Staff are regularly made aware of the importance of good hygiene practices to prevent the spread of infection./ Abakozi bamenyeshwa kandi bagakangurirwa ibyiza by’isuku kugira ngo hirindwe ikwirakwizwa ry’indwara zandura.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q005",
+          "number": 5,
+          "text": "ECD caregivers ensure that their children receive vitamin A and deworming as per Ministry of Health calendar./ Abarezi bagenzura ko abana bahabwa vitamin A, imiti y’inzoka hagendewe ku ngengabihe ya Minisiteri y’Ubuzima.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q006",
+          "number": 6,
+          "text": "Children are regularly monitored for healthy growth by the local CHW or health professionals./ Imikurire y’abana ikurikiranwa n’umujyanama w’ubuzima, cyangwa undi mukozi ushinzwe ubuzima.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q007",
+          "number": 7,
+          "text": "There are protocols on handling sick children with infectious diseases and use of medicines. (showing the protocols/ guidelines)/ Hagomba kubaho amabwiriza y’uburyo bafata abana bafite indwara zandura n’imikoreshereze y’imiti mu irerero.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q008",
+          "number": 8,
+          "text": "Medicines are clearly labelled and stored in their original containers./ Imiti igomba kubikwa mu bubiko bwayo kandi hagashyirwaho ikimenyetso.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q009",
+          "number": 9,
+          "text": "Medicines are kept out of children’s reach./ Imiti igomba kubikwa kure aho abana batagera.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q010",
+          "number": 10,
+          "text": "There are first aid kits and staff are trained on their use./ Irerero rifite nibura agasanduku k’ubutabazi bw’ibanze kandi abakozi bahuguriwe kugakoresha.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q011",
+          "number": 11,
+          "text": "Specific attention is given to children with HIV/AIDS, special needs and disabilities to promote an inclusive, stigma-free environment and support nutrition and medication./ Abana bafite ubwandu bw’agakoko gatera Sida, abafite ibibazo byihariye n’abafite ubumuga bitabwaho by’umwihariko.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q012",
+          "number": 12,
+          "text": "Owners of the day-care facility provide support to services for children with developmental delays and disabilities./ Nyiri irerero atanga ubufasha ku bana bafite ibibazo by’idindira mu mikurire cyangwa ubumuga.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q013",
+          "number": 13,
+          "text": "The facilities ensure children have medical insurance./ Amarerero agenzura ko abana bafite ubwishingizi bw’indwara",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q014",
+          "number": 14,
+          "text": "The facilities conduct parent education sessions on family planning./ Amarerero ashyiraho gahunda y’amasomo ahabwa ababyeyi ku bijyanye no kuboneza urubyaro.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S12-Q015",
+          "number": 15,
+          "text": "The facility has a health worker’s contact for health-related issues./ Irerero rifite inomero za terefone z’umujyanama w’ubuzima cyangwa abandi bakozi bashinzwe ubuzima.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S13",
+      "title": "14. Child safety and protection/ Umutekano no kurinda umwana ihohoterwa.",
+      "subtotalMax": 23,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q001",
+          "number": 1,
+          "text": "Caregivers are trained on safeguarding children’s rights and welfare./ Abakozi bahuguwe ku bibazo byose bijyanye no kurinda umwana ihohoterwa.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q002",
+          "number": 2,
+          "text": "All staff are aware of the possible signs and symptoms of children at risk./ Abakozi bose basobanukiwe n’ibimenyetso biranga umwana wahohotewe.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q003",
+          "number": 3,
+          "text": "There is a code of conduct on safeguarding child’s rights and child protection./ Hari amategeko ngengamyitwarire ku bijyanye n’uburenganzira bw’umwana no kumurinda ihohoterwa.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q004",
+          "number": 4,
+          "text": "The facility is a drug-free environment. (having a sign post at the gate preventing any drug to enter the facility)/ Mu irerero ry’abana ntihinjiramo ibiyobyabwenge.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q005",
+          "number": 5,
+          "text": "Parental consent is obtained before taking pictures of children or sharing information on social media. (Having it in the safeguarding child’s rights)/ Gufata amafoto y’abana no kuyasangiza ku mbuga nkoranyambaga bigomba uruhushya rutangwa n’ababyeyi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q006",
+          "number": 6,
+          "text": "There are mechanisms for dropping off and collecting children from the facility. (written instructions)/ Irerero rishyiraho ingamba zijyanye no kuhageza abana no kubacyura.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q007",
+          "number": 7,
+          "text": "Drop-off and pick-up of children is supervised by a caregiver (schedule of who is on duty which day)/ Ibikorwa byose byo kugeza abana ku irerero no kubacyura bigenzurwa n’umurezi",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q008",
+          "number": 8,
+          "text": "The compound is fenced, with a guard and a lockable gate./ Irerero rigira uruzitiro, amarembo afungwa n’umuzamu kugira ngo umutekano w’abana ubungabungwe neza.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q009",
+          "number": 9,
+          "text": "Electrical outlets accessible to a child have child-proof covers or safety outlets./ Aho bacomekera ibikoresho by’amashanyarazi haba hapfutse mu rwego rwo kurinda abana kugira ibyo binjizamo byabateza impanuka.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q010",
+          "number": 10,
+          "text": "The premises are free from poisonous or potentially harmful plants./ Mu irerero imbere nta byatsi bihumanya birimo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q011",
+          "number": 11,
+          "text": "There are operational procedures for the safe conduct of any outings/ Irerero rigira amabwiriza ajyanye n’uko abantu bitwara barimo imbere n’iyo basohotse hanze",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q012",
+          "number": 12,
+          "text": "Records of vehicles in which children are transported, including insurance details, valid technical check-up and a list of named drivers are kept./ Irerero ribitse amakuru ajyanye n’imodoka zitwara abana: ubwishingizi bwazo, icyemezo cy’ubuziranenge bw’ikinyabiziga, amazina y’abashoferi na terefone zabo.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q013",
+          "number": 13,
+          "text": "Sleeping babies are frequently supervised / Abana baragenzurwa igihe baryamye basinziriye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q014",
+          "number": 14,
+          "text": "The facility has fire extinguishers, sand or water and caregivers are trained on how to use them./ Irerero rifite ibikoresho byo kuzimya inkongi y’umuriro.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q015",
+          "number": 15,
+          "text": "Toys, play materials and equipment are clean and safe for use by children./ Ibikinisho n’ibindi bikoresho bikoreshwa mu mikino bigirirwa isuku kandi ntibyatera abana impanuka igihe babikoresha",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q016",
+          "number": 16,
+          "text": "The kitchen area is not accessible by children unless it is being used solely for a supervised children’s activity./ Abana ntibemerewe kujya mu gikoni keretse iyo hari igikorwa bakoreramo kiyobowe n’umurezi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S13-Q017",
+          "number": 17,
+          "text": "The facility works closely with IZU and local leaders to promote safety at household and facility level for children’s wellbeing./ Irerero rikorana bya hafi n’Inshuti z’Umuryango (IZU) ndetse n’abayobozi b’inzego z’ibanze mu kubungabunga umutekano w’abana.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S14",
+      "title": "15. Positive discipline/ Gukosora umwana utamuhutaje",
+      "subtotalMax": 3,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S14-Q001",
+          "number": 1,
+          "text": "There are positive behaviour posters for reference by both children and caregivers./ Mu kigo hamanitse ibyapa bigaragaza imyitwarire myiza kugira ngo bibere ikitegererezo abana n’abarezi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S14-Q002",
+          "number": 2,
+          "text": "Caregivers for children are trained on children’s positive behaviour management/ Abarezi b’abana bahawe amahugurwa ku burezi budahutaza ndetse no ku micungire y’imyitwarire y’abana bato.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S14-Q003",
+          "number": 3,
+          "text": "Caregivers conduct regular parenting education sessions on positive discipline./ Abarezi bategurira ababyeyi amasomo ahoraho ku bijyanye n’uburezi budahutaza.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S15",
+      "title": "16. Record Keeping/ Kubika Amakuru ku Bana",
+      "subtotalMax": 8,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S15-Q001",
+          "number": 1,
+          "text": "Accreditation certificate is available./ Kugaragaza icyemezo cyo kwemererwa gukora",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S15-Q002",
+          "number": 2,
+          "text": "There is an individual child information form completed, updated and kept confidential./ Buri mwana afite ifishi yuzuzwaho amakuru ye ahora avugururwa kandi ayo makuru akagirwa ibanga.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S15-Q003",
+          "number": 3,
+          "text": "Health data are well documented and safely kept./ Amakuru ajyanye n’ubuzima bw’umwana arakusanywa akabikwa neza;",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S15-Q004",
+          "number": 4,
+          "text": "There is a record of the person designated to drop and collect each child. (Showing the list)/ Irerero ribika amakuru y’umuntu uzana umwana ku irerero akanamucyura.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S15-Q005",
+          "number": 5,
+          "text": "There is a system for the exchange of information between parents and staff members. (Showing a group whatsap)/ Hashyirwaho uburyo ababyeyi n’abakozi b’irerero basangizanya amakuru areba umwana ku irerero cyangwa mu rugo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S15-Q006",
+          "number": 6,
+          "text": "An occurrence and action logbook/record is kept./ Habaho igitabo cyandikwamo ibikorwa byose byabaye mu irerero.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-DAYCARE-S16",
+      "title": "17. Education/ Uburezi",
+      "subtotalMax": 10,
+      "items": [
+        {
+          "id": "OFFICIAL-DAYCARE-S16-Q001",
+          "number": 1,
+          "text": "The national parenting curriculum and related guides are available and in use./ Integanyanyigisho ku burere butangirwa mu muryango ikoreshwa mu irerero kimwe n’izindi nyobora bijyana.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S16-Q002",
+          "number": 2,
+          "text": "Early Learning and Development Standards (ELDS) are available and in proper use./ Kugira no gukoresha neza ibipimo ngenderwaho ku mikurire n’imyigire (ELDS).",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S16-Q003",
+          "number": 3,
+          "text": "Learning is holistic and creates opportunities for play-based inquiry and sensory stimulation./ Imyigire mu irerero komatanya, ishingiye ku mikino, ku bushakashatsi no gukangura ibyumviro.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S16-Q004",
+          "number": 4,
+          "text": "There is a daily schedule of activities./ Irerero rifite gahunda y’ibikorwa by’umunsi",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S16-Q005",
+          "number": 5,
+          "text": "Caregivers are trained on the use of the national parenting curriculum and related guides./ Abarezi mu irerero bahuguwe ku mikoreshereze y’integanyanyigisho ku burere butangirwa mu miryango n’izindi nyandiko zijyanye na yo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-DAYCARE-S16-Q006",
+          "number": 6,
+          "text": "There is a learning environment/room well equipped and attractive./ Hari icyumba giteguye gifasha umwana gukangura ubwonko, kwiga no gukura mu buryo bukomatanyije.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    }
+  ]
+}

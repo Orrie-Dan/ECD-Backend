@@ -57,6 +57,7 @@ function centerRow(overrides: Record<string, unknown> = {}) {
     latitude: null,
     longitude: null,
     status: EcdCenterStatus.active,
+    facilityType: null,
     currentComplianceLevel: null,
     currentComplianceAssessedAt: null,
     createdAt: now,
@@ -82,6 +83,17 @@ async function main() {
     eq(dto.activeChildrenCount, 12);
     eq(dto.districtName, 'Gasabo');
     eq(dto.version, 3);
+    eq(dto.facilityType, null);
+  });
+
+  await assert('mapper: facilityType daycare persists on dto', () => {
+    const dto = centerMapper.toListDto(centerRow({ facilityType: 'daycare' }) as never);
+    eq(dto.facilityType, 'daycare');
+  });
+
+  await assert('mapper: nullable legacy center accepted', () => {
+    const dto = centerMapper.toListDto(centerRow({ facilityType: null }) as never);
+    eq(dto.facilityType, null);
   });
 
   await assert('list: district focal scoped to own district', async () => {

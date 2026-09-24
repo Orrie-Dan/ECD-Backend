@@ -1,0 +1,1369 @@
+{
+  "id": "ecd_3_5",
+  "title": "D. Self-Evaluation Tool for School-Based and Model ECD Facilities",
+  "version": "2024.3-official",
+  "grandTotalMax": 251,
+  "computedMaxScore": 251,
+  "sectionCount": 22,
+  "itemCount": 172,
+  "sections": [
+    {
+      "id": "OFFICIAL-ECD_3_5-S01",
+      "title": "2. Geographical location/Aho ruherereye",
+      "subtotalMax": 7,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S01-Q001",
+          "number": 1,
+          "text": "There is access to the road/Urugo rukora ku muhanda",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S01-Q002",
+          "number": 2,
+          "text": "Children live within 2 km of the facility./ Urugo rwakira abana baturuka mu ntera itarenga kirometero 2",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S01-Q003",
+          "number": 3,
+          "text": "The facility is close to a primary school (within 2 km)/ Hari ishuri ribanza hafi y’urugo mbonezamikurire.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S01-Q004",
+          "number": 4,
+          "text": "There is no excessive noise in the surroundings (workshop, industrial parks and markets)/ Aho ruherereye nta rusaku rukabije ruhari",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S01-Q005",
+          "number": 5,
+          "text": "The facility is recognized by local leaders. /Urugo mbonezamikurire ruzwi n’inzego z’ubuyobozi bw’ibanze.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S01-Q006",
+          "number": 6,
+          "text": "The facility is close to a health centre (within 2 km)/ Hari ivuriro hafi y’urugo mbonezamikurire",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S02",
+      "title": "2. Preschool physical environment/Imiterere y’aho urugo rukorera",
+      "subtotalMax": 11,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q001",
+          "number": 1,
+          "text": "The facility is fenced and has a lockable gate /Urugo mbonezamikurire rurazitiye kandi amarembo yarwo arafungwa",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q002",
+          "number": 2,
+          "text": "The compound and surroundings are clean./ Urugo gifite isuku mo imbere n’ahagikikije",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q003",
+          "number": 3,
+          "text": "The buildings are safe and disability-friendly /Inyubako zacyo nta mpanuka zateza kandi ntiziheza abana bafite ubumuga.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q004",
+          "number": 4,
+          "text": "The playground is dry, not waterlogged /Ikibuga abana bakiniraho kirumutse nta mazi aretsemo",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q005",
+          "number": 5,
+          "text": "Play materials are appropriate to children’s age./ Ibikinisho bijyanye n’ikigero cy’abana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q006",
+          "number": 6,
+          "text": "There are signs that prohibit smoking and alcohol consumption within the premises by staff members and visitors./ Hari icyapa kibuza abantu gukoresha ibiyobyabwenge mu rugo mbonezamikurire.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q007",
+          "number": 7,
+          "text": "There are no footpaths crossing the facility. /Nta nzira y’abanyamaguru yambukiranya urugo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q008",
+          "number": 8,
+          "text": "There are water collection facilities (rain or from the Water and Sanitation Corporation, WASAC). / Hari ibikoresho bifata amazi y’imvura cyangwa aya WASAC.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S02-Q009",
+          "number": 9,
+          "text": "The facility has electricity. /Urugo mbonezamikurire rufite amashanyarazi",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S03",
+      "title": "3. Classroom/Indoor space /Ibyumba byo kwigiramo",
+      "subtotalMax": 14,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q001",
+          "number": 1,
+          "text": "There are three classrooms – for Grade 1, Grade 2, and Grade 3. /Urugo rufite ibyumba byo kwigiramo bitatu bihwanye n’imyaka y’inshuke: umwaka wa 1, 2, 3.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q002",
+          "number": 2,
+          "text": "Children enroll in Grade one at the age of 3 years or if their third birthday falls in the first trimester. /Abana bemererwa kujya mu mwaka wa mbere ni abujuje imyaka 3 cyangwa bazayuzuza mu gihembwe cya mbere.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q003",
+          "number": 3,
+          "text": "The walls and roof are built in durable materials./ Inkuta n’igisenge byubakishije ibikoresho biramba.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q004",
+          "number": 4,
+          "text": "Enrolment for each early classroom does not exceed 30 children (Caregiver-child ratio)/ Umubare w’abana mu cyumba nturenga 30.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q005",
+          "number": 5,
+          "text": "Indoor space allows free movement between furniture for mobility-aid users and children with visual impairment./ Mu cyumba kigirwamo hari umwanya uhagije hagati y’intebe kugira ngo byorohere abana bafite ubumuga kwinyagambura.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q006",
+          "number": 6,
+          "text": "Each classroom has two windows at least 1m x 1m to allow enough light and ventilation. /Buri cyumba kigirwamo gifite amadirishya abiri ya metero kuri metero kugira ngo abana babone urumuri n’umwuka bihagije.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q007",
+          "number": 7,
+          "text": "Classrooms are accessible for use by children with special needs, and have ramps, rails and lower door handles. /Icyumba cyo kwigiramo ntigifite ingazi (esikariye) kugira ngo byorohere abana bose kwinjira no gusohoka.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q008",
+          "number": 8,
+          "text": "The classrooms are child-friendly, with age-appropriate, visually stimulating and meaningful decorations. /Ibyumba abana bigiramo bijyanye n’imyaka yabo, bitatse ku buryo bikurura abana bikanabashishikariza gukora.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q009",
+          "number": 9,
+          "text": "The facility has a store for teaching, learning and other materials./ Etajeri, akabati, udusanduku cyangwa ibindi bikoresho bikoreshwa mu kubika ibikinisho n’izindi mfashanyigisho.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S03-Q010",
+          "number": 10,
+          "text": "Drawings and other materials displayed on the wall are hung at an appropriate height (20 cm from floor) so that children can see them easily. / Ibishushanyo n’izindi mfashanyigisho bikwiye kuba bimanitse guhera muri sentimetero 20 uvuye hasi kugira ngo abana babirebeho bitabagoye.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S04",
+      "title": "4. Furniture/Intebe n’Ameza",
+      "subtotalMax": 11,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S04-Q001",
+          "number": 1,
+          "text": "Tables and benches/chairs are age appropriate (30cm high), durable and painted in bright colours./ Ameza n’intebe bijyanye n’ikigero cy’abana (ubuhagarike bwa cm30), biraramba, kandi bisize amarangi y’amabara atandukanye.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S04-Q002",
+          "number": 2,
+          "text": "A caregiver’s chair, table and cupboard are available in each classroom./ Mu cyumba abana bigiramo cyangwa mu biro by’umuyobozi hari intebe n’ameza.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S04-Q003",
+          "number": 3,
+          "text": "Mats and child-friendly tables are available in each classroom for activities such as reading, storytelling, and play, corner play, theme display, group work etc./ Umusambi/umukeka uteguye mu ishuri kugira ngo abana bakorereho ibikorwa bitandukanye byo gusoma, kubara inkuru n’indi mikino.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S04-Q004",
+          "number": 4,
+          "text": "Open shelves, cupboard, boxes or other containers are used to store learning materials./ Etajeri, akabati, udusanduku cyangwa ibindi bikoreshobikoreshwa mu kubika ibikinisho n’izindi mfashanyigisho.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S04-Q005",
+          "number": 5,
+          "text": "Each class has enough bag/clothes hooks for children./ Buri cyumba kigirwamo gifite aho kumanika imipira, ibikapu by’abana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S04-Q006",
+          "number": 6,
+          "text": "The chalkboard/white board is placed slightly above the floor (20cm) for children to use easily./ Ikibaho gitereye kuri santimetero 20 uvuye ku butaka kugira ngo abana bose bashobore kugikoresha.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S05",
+      "title": "5. Kitchen /Igikoni",
+      "subtotalMax": 11,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S05-Q001",
+          "number": 1,
+          "text": "The cooking place is at least 2 m x 2 m and uses an economical stove or gas. /Ameza n’intebe bijyanye n’ikigero cy’abana (ubuhagarike bwa cm30), biraramba, kandi bisize amarangi y’amabara atandukanye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S05-Q002",
+          "number": 2,
+          "text": "The kitchen has a sink for washing utensils /Igikoni gifite ibikoresho bogerezamo ibyombo",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S05-Q003",
+          "number": 3,
+          "text": "The kitchen has a supply of clean water./ Igikoni gifite amazi meza",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S05-Q004",
+          "number": 4,
+          "text": "Plastic containers (plates and cups) are not used for hot food or drinks. /Ibikoresho bya purasitike ntibikoreshwa ku biribwa cyangwa ibinyobwa bishyushye cyane.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S05-Q005",
+          "number": 5,
+          "text": "Waste disposal facilities are in place. /Igikoni gifite ibikoresho bigenewe gushyiramo imyanda.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S05-Q006",
+          "number": 6,
+          "text": "Kitchen has a drying area for dishes after washing. /Igikoni gifite ahantu ho kumukiriza amasahani, ibiyiko n’amakanya nyuma yo kubyoza.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S05-Q007",
+          "number": 7,
+          "text": "Kitchen is separated from classrooms and toilets. / Igikoni kitaruye amashuri n’imisarani.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S05-Q008",
+          "number": 8,
+          "text": "The kitchen is ventilated, well-lit and equipped with a chimney./Igikoni gifite umwuka n’urumuri bihagije kandi gifite umuyoboro usohora umwotsi hanze.",
+          "maxScore": 3,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S06",
+      "title": "6. Kitchen Store/Ububiko bw’igikoni",
+      "subtotalMax": 5,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S06-Q001",
+          "number": 1,
+          "text": "The kitchen has a separate storage room./ Igikoni gifite icyumba kihariye kigenewe ububiko.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S06-Q002",
+          "number": 2,
+          "text": "Kitchen store has locked cupboards for crockery, cooking utensils and stores of groceries and other consumables. /Ububiko bufite etajeri cyangwa akabati bifungwa",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S06-Q003",
+          "number": 3,
+          "text": "The storeroom is rodent- and insect-proof./ Inkuta no hasi mu bubiko nta myobo irimo kugira ngo hirindwe ibyonnyi n’udukoko twakwangiza ibiribwa.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S06-Q004",
+          "number": 4,
+          "text": "Windows and other openings are covered with wire mesh./ Amadirishya y’ububiko n’amakositara atwikiriwe na senyenge /akayunguruzo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S06-Q005",
+          "number": 5,
+          "text": "A weighing scale is available. /Mu bubiko hari umunzani bapimiraho ibyo bagiye guteka.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S07",
+      "title": "7. Toilets/Latrines/Ubwiherero",
+      "subtotalMax": 20,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q001",
+          "number": 1,
+          "text": "There is at least one toilet/children latrine for every 40 children./ Umubare w’abana bakoresha umusarani umwe nturenga 40",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q002",
+          "number": 2,
+          "text": "There are separate child-friendly and accessible toilets/latrines for boys and for girls, clearly labelled with child friendly signs. /Imisarani iri ku kigero cy’abana kandi iy’abakobwa itandukanye n’iy’abahungu hifashishijwe amagambo n’amashusho ku buryo byorohera abana kuyitandukanya.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q003",
+          "number": 3,
+          "text": "Adults have their own lockable toilets, separate for males and females. /Abantu bakuru bafite umusarani wabo kandi ukingwa abagabo bakagira uwabo n’abagore uwabo.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q004",
+          "number": 4,
+          "text": "The toilet facility has a storage area to keep cleaning materials separately from other cleaning materials. /Ibikoresho by’isuku yo mu bwiherero bifite ububiko bwabyo bwihariye kugira ngo bitandukane n’ibindi bikoresho.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q005",
+          "number": 5,
+          "text": "There is at least one toilet meeting the required standards for people with disabilities. /Urugo mbonezamikurire rufite nibura umusarani umwe ugenewe abantu bafite ubumuga.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q006",
+          "number": 6,
+          "text": "Latches (locks) inside and outside are fixed at the height of 60-80 cm from bottom. /Icyo bakingisha inyuma n’imbere gitereye kuri cm 60-80 uvuye hasi kugira ngo abana bashobore kuhagera biboroheye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q007",
+          "number": 7,
+          "text": "Toilets doors open outwards with 10 cm of free space between the floor and the door. /Urugi rw’ubwiherero rukingukira hanze kandi hari umwanya wa cm 10 kuva hasi kugera ku rugi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q008",
+          "number": 8,
+          "text": "Door height ranges from 100 to120 cm so that caregivers can open from outside if a child needs help. / Uburebure bw’urugi buri hagati ya cm100 na cm120 kugira ngo umurezi abe yafungura ari inyuma igihe umwana yahezemo imbere.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q009",
+          "number": 9,
+          "text": "The diameter of a borehole in a pit latrine does not exceed 15 cm. /Umurambararo w’umwobo w’umusarani nturenga cm 15.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q010",
+          "number": 10,
+          "text": "Toilets are close to classrooms for easy accessibility by young children. /Ubwiherero ntiburi kure y’ibyumba byigirwamokugira ngo byorohere abana kubugeraho.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q011",
+          "number": 11,
+          "text": "There is a pictorial hand-wash sign on each toilet/latrine door to remind everyone to wash hands with water and soap after using the toilet./ Hari ishusho/ifoto cyangwa inyandiko yibutsa abana n’abandi gukaraba intoki.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q012",
+          "number": 12,
+          "text": "There are urinals for boys set at a child appropriate height (30cm) from the floor. /Hari aho abahungu bihagarika hajyanye n’uburebure bw’abana nibura kuri cm 30 uvuye hasi.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q013",
+          "number": 13,
+          "text": "The space inside the toilet is large enough to enable caregivers to bend over/move around to support the child. /Umwanya uri mu musarani imbere urahagije ku buryo umurezi yakwinjiranamo n’umwana akaba yakunama igihe afasha umwana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q014",
+          "number": 14,
+          "text": "The handwashing facility is age appropriate and installed at the height of 50 cm from the floor. /Igikarabiro cyangwa kandagira ukarabe biri ku kigero cy’abana kandi biri kuri cm 50 uvuye hasi",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S07-Q015",
+          "number": 15,
+          "text": "The pathways are clean and accessible by children with disabilities. /Inzira ijya ku misarani irapavomye cyangwa ishashemo amabuye/amatafari kandi ikoreshwa n’abana bose ndetse n’abafite ubuga.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S08",
+      "title": "8. Sleeping Area/ Aho abana baryama",
+      "subtotalMax": 11,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S08-Q001",
+          "number": 1,
+          "text": "The sleeping space is designed so that boys and girls can sleep separately. /Aho abana baryama hateguye mu buryo abahungu batandukana n’abakobwa.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S08-Q002",
+          "number": 2,
+          "text": "The sleeping space is cemented/tiled/sealed earthen floor and cleaned every day. /Aho abana baryama hasi hakurungiye, harimo isima, cyangwa amakaro kandi hasukurwa buri munsi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S08-Q003",
+          "number": 3,
+          "text": "Furniture and walls are child-friendly (brightly painted with happy images)./ Inkuta z’aho abana baryama zikurura abana ni ukuvuga zisize amarangi abana bakunda, hariho ibishushanyo abana bakunda kandi mu cyumba harimo n’ibikinisho nk’ibipupe.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S08-Q004",
+          "number": 4,
+          "text": "Furniture includes a mattress (covered with waterproof material), bed covers, bed sheets and storage space/shelves. /Ibikoresho by’aho abana baryama bigizwe na matera/umufariso ufubitse ikintu kitinjiza amazi. Ibitwikira uburiri nk’ikiringiti n’amashuka bihora bisukuye.",
+          "maxScore": 4,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S08-Q005",
+          "number": 5,
+          "text": "The sleeping room is well lit and ventilated. Windows should have movable curtains. /Icyumba abana baryamamo gifite urumuri n’umwuka bihagije kandi amadirishya afite amarido yimukanwa.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S09",
+      "title": "9. Playground/Outdoor Play Area/Ikibuga/Aho abana bakinira hanze",
+      "subtotalMax": 11,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S09-Q001",
+          "number": 1,
+          "text": "The outside play area is clean and free from hazards. /Hanze aho abana bakinira harasukuye kandi nta byakwangiza abana bihari.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S09-Q002",
+          "number": 2,
+          "text": "There is at least 2 m2 space per child for outdoor play. (total sqm of the playground/Total number of children) /Harinibura ahantu ho kwisanzurira hangana na m2 kuri buri mwana mu mikino yo hanze",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S09-Q003",
+          "number": 3,
+          "text": "There is safe outdoor play equipment and materials for motor skills and holistic development. /Hanze hari aho gukinira hatekanye kandi hari n’ibikinisho bimwe bifasha abana mu mikurire mu buryo bukomatanyije",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S09-Q004",
+          "number": 4,
+          "text": "Where the facility includes primary/secondary sections, the ECD playground is separate. /Ahari ikigo mbonezamikurire, amashuri abanza n’ayisumbuye, ibibuga biratandukanye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S09-Q005",
+          "number": 5,
+          "text": "The playground has a variety of surface areas: earth, grass or sand. /Ikibuga k’imikino gifite ahantu hatandukanye hakinirwa imikino itandukanye: itaka, kuba gipavomye cyangwa gitwikiriwe n’umucaca.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S09-Q006",
+          "number": 6,
+          "text": "Outdoor play area is step-free and well maintained to ensure children with visual or physical impairments move without hindrance. /Aho abana bakinira hanze nta ngazi zihari/esikariye kandi hahora hitabwaho kugira ngo abana bafite ubumuga bwo kutabona n’abafite ubundi bumuga bw’ingingo bashobore gutambagira nta nkomyi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S09-Q007",
+          "number": 7,
+          "text": "A fenced playground is available and play equipment is installed away from a reserved running space. /Ikibuga k’imikino kirazitiye kandi ibikoresho by’imikino ntibibangamira ukwisanzura kw’abana.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S09-Q008",
+          "number": 8,
+          "text": "Indoor and outdoor play are always supervised by adult (s). /Imikino yo hanze n’iyo mu cyumba k’ishuri buri gihe ikurikiranwa n’umuntu mukuru.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S10",
+      "title": "10. Play equipment/Ibikinisho byo hanze",
+      "subtotalMax": 11,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S10-Q001",
+          "number": 1,
+          "text": "There is child-friendly fixed equipment (climbing frame, swings, merry-go-round, etc.) /Ibikoresho by’imikino byo hanze bijyanye n’ikigero cy’abana nk’imyicungo n’ibyo bagenderaho, inzego burira, ibyo banyuramo bunamye, n’ibindi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S10-Q002",
+          "number": 2,
+          "text": "There are movable play materials including ropes, balls, tyres, hoops etc./ Hari ibikinisho byimukanwa bigizwe n’imigozi, imipira, amapine, ibiziga, n’ibindi",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S10-Q003",
+          "number": 3,
+          "text": "There is a sandpit with recycled scoops and containers./ Urugo  mbonezamikurire rufite icyobo kirimo umucanga wo gukiniramo n’ibikoresho bitandukanye byo gukinisha mu mucanga",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S10-Q004",
+          "number": 4,
+          "text": "There is a water play area with recycled containers and other world discovery tools./ Urugo mbonezamikurire gifite aho abana bakinira n’amazi bifashishije ibikoresho bitandukanye bituma bavumbura ibintu byinshi ku mazi.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S10-Q005",
+          "number": 5,
+          "text": "Play materials are undamaged, with no sharp edges or protruding surfaces. /Ibikinisho bifite ubuso bunyerera, butabyimbye, imigongo idatyaye, ku buryo bitangiza abana mu buryo ubwo ari bwo bwose.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S10-Q006",
+          "number": 6,
+          "text": "Areas for jumping, climbing and sliding are covered with soft ground, sand or grass. /Aho abana basimbukira, aho bazamukira ku ngazi, aho bicungira hari itaka ryoroshye, umucanga cyangwa ibyatsi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S10-Q007",
+          "number": 7,
+          "text": "There is play equipment accessible by children with disabilities. /Hari ibikinisho by’abana bafite ubumuga.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S10-Q008",
+          "number": 8,
+          "text": "Locally made play and learning materials and toys are available. /Uretse ibikinisho bigurwa byakorewe mu nganda, hari n’ibikinisho byakozwe mu bikoresho biboneka aho urugo mbonezamikurire ruherereye.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S11",
+      "title": "11. Health Practices and Procedures/ Ubuzima",
+      "subtotalMax": 12,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q001",
+          "number": 1,
+          "text": "Children’s registration forms (including identification, health status, immunizations, contact information and any parental concerns) are available. /Hari ifishi igaragaza umwirondoro w’umwana, ubuzima bwe, inkingo, terefone z’ababyeyi ndetse n’ibindi bibazo ababyeyi bazi ku mwana.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q002",
+          "number": 2,
+          "text": "Immunization cards are verified at the time of registration. /Ifishi y’ikingira igenzurwa mu gihe cyo kwandika umwana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q003",
+          "number": 3,
+          "text": "The facility has a health worker’s contact for health-related issues./ Urugo mbonezamikurire rufite terefone y’umujyanama w’ubuzima yitabazwa mu bibazo bijyanye n’ubuzima bw’abana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q004",
+          "number": 4,
+          "text": "Containers with safe drinking water and clean cups for each child are available. /Urugo rufite ibikoresho byo kubikamo amazi yo kunywa kandi buri mwana akagira igikombe ke cyo kunywesha.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q005",
+          "number": 5,
+          "text": "The facility has information about children with medical insurance. /Urugo mbonezamikurire rubika amakuru ku bwishingizi bw’indwara ku bana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q006",
+          "number": 6,
+          "text": "Guidelines with child-friendly pictures on how to manage communicable disease outbreaks or promote good practices such as handwashing are on display. /Amabwiriza ajyanye n’uko abantu birinda indwara zandura, ibyorezo, gukaraba intoki amanitse kandi aherekejwe n’amashusho abisobanura.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q007",
+          "number": 7,
+          "text": "Children aged 3–6 are screened for developmental delay/disability by community health workers, or early detection by parents, health professionals. /Abana kuva ku myaka 3- 6 basuzumwa hagamijwe kureba abafite cyangwa bafite ibyago byo kugira ibibazo by’idindira mu mikurire cyangwa ubumuga, bigakorwa n’abajyanama b’ubuzima cyangwa ababyeyi n’inzobere mu buzima.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q008",
+          "number": 8,
+          "text": "Referral procedures are established for children with suspected developmental disability. /Abana bagaragaje ibibazo by’idindira cyangwa ubumuga bashakirwa ubufasha bujyanye n’ibibazo byagaragajwe.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S11-Q009",
+          "number": 9,
+          "text": "There are guidelines for children and staff during emergency cases (diseases, outbreak, risks etc.). /Hari amabwiriza asobanura uko abakozi n’abana bakwitwara mu gihe k’ibyago cyangwa Ibiza.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S12",
+      "title": "12. Food and Nutrition Practices /Imirire",
+      "subtotalMax": 8,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S12-Q001",
+          "number": 1,
+          "text": "Children are provided with healthy, balanced diets as per MIYCN National Counselling package. /Abana bahabwa indyo yuzuye nk’uko amabwiriza agenga kugaburira abana ku ishuri abiteganya.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S12-Q002",
+          "number": 2,
+          "text": "Cooks and food suppliers are trained on food hygiene and safety. /Abatetsi n’abandi bafite aho bahurira n’ibiribwa bahuguwe ku bijyanye n’ibiribwa, isuku yabyo ndetse n’umutekano w’abana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S12-Q003",
+          "number": 3,
+          "text": "Cooks and food suppliers maintain proper personal hygiene: washing hands and covering their hair. /Abatetsi n’abandi bafite aho bahurira n’ibiribwa bahorana isuku bakaraba intoki bakanambara ingofero.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S12-Q004",
+          "number": 4,
+          "text": "During mealtimes, children are always supervised by an adult to ensure that all children are eating, to prevent choking and teach good table manners. /Mu gihe cyo gufata amafunguro, abana bakurikiranwa n’umuntu mukuru kugira ngo arebe ko abana bose barya, arinde abana ko ibiryo byabaniga akanabigisha imyitwarire ikwiye ku meza.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S12-Q005",
+          "number": 5,
+          "text": "ECD facility has a kitchen garden with fruit and vegetables to be used in a balanced diet. /Urugo mbonezamikurire rufite akarima k’igikoni karimo imbuto n’imboga bikoreshwa mu gutegura indyo yuzuye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S12-Q006",
+          "number": 6,
+          "text": "Children with eating difficulties are identified and parents are informed of any issues. /Abana bafite ibibazo mu mirire, bimenyeshwa ababyeyi babo kugira ngo bifatirwe imyanzuro.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S13",
+      "title": "13. Child Protection/Safety Practices/Umutekano no kurinda umwana",
+      "subtotalMax": 19,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q001",
+          "number": 1,
+          "text": "Children are accompanied to and from the ECD facility by an adult. /Umwana aza ku rugo ambonezamikurire kanataha aherekejwe n’umuntu mukuru.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q002",
+          "number": 2,
+          "text": "All staff receive regular training on health and safety issues pertaining to the ECD facility. /Abakozi bose bahawe amahugurwa ahoraho ku bijyanye n’ubuzima n’umutekano w’abana bibera mu rugo mbonezamikurire.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q003",
+          "number": 3,
+          "text": "ECD facilities have materials to use in case of fire outbreak (fire extinguisher or a sand bucket and water); caregivers are trained how to use them. /Hari ibikoresho byakwifashishwa mu kuzimya inkongi y’umuriro (kizimyamwoto, amazi, umucanga) kandi abakozi bahuguwe uko bikoreshwa.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q004",
+          "number": 4,
+          "text": "Covered sockets are used to protect children from electric shock. /Aho bacomekera ibikoresho by’amashanyarazi hakoreshwa ibikoresho byabugenwe bidatuma abana binjizamo ibintu uko biboneye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q005",
+          "number": 5,
+          "text": "First aid kits and any medicines for children are kept out of children’s reach. /Agasanduku k’ubutabazi bw’ibanze n’imiti ibamo bibitswe kure aho abana bategera.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q006",
+          "number": 6,
+          "text": "All ECD service providers are trained on how to use the contents of the first aid box and how to deal with accidents. /Abatanga serivisi z’imbonezamikurire bose bahuguwe ku bijyanye no gukoresha ibiri mu gasanduku k’ubutabazi bw’ibanze.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q007",
+          "number": 7,
+          "text": "A lightning conductor is installed on the roof. /Umurindankuba washyizwe ku gisenge kugira ngo inyubako n’abantu barindwe inkuba",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q008",
+          "number": 8,
+          "text": "A list of emergency contacts readily available to the staff. /Nimero za terefone zihamagarwa mu gihe habaye impanuka ikomeye cyangwa ikindi cyago zimanitse ahantu byoroheye abakozi bose kuzibona.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q009",
+          "number": 9,
+          "text": "Children are supervised by an adult when playing outside. /Abana bafite umuntu ubakurikirana igihe bakina hanze. Nibura umurezi umwe ku bana 30.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q010",
+          "number": 10,
+          "text": "A sign prohibiting intruders from the ECD facility is placed at the entry point. /Icyapa kibuza abantu bo hanze kwinjira mu kigo kimanitswe ku marembo aho binjirira.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q011",
+          "number": 11,
+          "text": "Hazardous materials and sharp objects are kept out of children’s reach. /Ibikoresho byateza impanuka bibikwa kure aho abana batagera.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q012",
+          "number": 12,
+          "text": "All toys for younger children are non-toxic and oversized so that children cannot swallow or choke on them, or put them in their ears. /Ibikinisho byose bigenewe abana bato bisize irangi ritakwangiza abana baramutse babishyize mu kanwa, nta n’ubwo ari bito cyane ku buryo byateza impanuka.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q013",
+          "number": 13,
+          "text": "The compound is fully fenced and has a lockable gate. /Urugo mbonezamikurire rufite uruzitiro n’amarembo afungwa ku mpamvu z’umutekano w’abana.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q014",
+          "number": 14,
+          "text": "An enclosed compost pit is located at the farthest corner of the compound. /Icyobo k’ingarani (ikimoteri) kimenwamo inyanda kiri kure y’aho abana bakinira kandi kiratwikiriye ku bw’umutekano w’abana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S13-Q015",
+          "number": 15,
+          "text": "Where transport is provided, the school bus has adequate, comfortable seats fitted with child-appropriate safety belts. /Urugo girufite imodoka itwara abana, imodoka ifite intebe zikwiranye n’abana, zifunze neza kandi buri ntebe ifite umukandara.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S14",
+      "title": "14. WASH/ Amazi, Isuku n’Isukura",
+      "subtotalMax": 22,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q001",
+          "number": 1,
+          "text": "Safe drinking water is always available for drinking and washing hands. /Abarezi n’abana bafite amazi yo kunywa ku buryo buhoraho.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q002",
+          "number": 2,
+          "text": "There are enough water storage containers for drinking water and they are regularly cleaned. /Hari ibikoresho bibika amazi yo kunywa kandi bikagirirwa isuku ku buryo buhoraho.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q003",
+          "number": 3,
+          "text": "Drinking guidelines are observed (1,000 ml per day for children aged 3; 1,200 ml for children aged 4-5). /Abana bafite imyaka 3 bagenewe mililitiro 1000 z’amazi ku munsi naho abafite guhera ku myaka 4-6 bagenewe mililitiro 1200 z’amazi ku munsi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q004",
+          "number": 4,
+          "text": "There is running water at the premises or a public water point within 500 m. /Mu rugo mbonezamikurire hari isoko y’amazi cyangwa amazi aboneka nibura muri metero 500 uvuye ku kigo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q005",
+          "number": 5,
+          "text": "The entire compound and equipment (including classrooms, toilets, kitchen, and playground) are cleaned every day. /Urugo mbonezamikurire, ibikoresho, ibyumba by’amashuri, imisarani, igikoni n’ikibuga abana bakiniraho bisukurwa buri munsi.",
+          "maxScore": 4,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q006",
+          "number": 6,
+          "text": "There is a staff member in charge of hygiene and sanitation. /Hari umukozi uhoraho ushinzwe isuku n’isukura.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q007",
+          "number": 7,
+          "text": "Children are clean and wear uniform for easy identification. /Abana bahorana isuku kandi bambaye umwambaro w’ishuri ubaranga.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q008",
+          "number": 8,
+          "text": "A water container with clean water and soap is available for use in the classroom, toilets, kitchen and other places. /Ibikoresho bibika amazi n’isabune biba bihari kugira ngo byifashishwe mu isuku yo mu mashuri, mu misarani, mu gikoni n’ahandi hantu.",
+          "maxScore": 4,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q009",
+          "number": 9,
+          "text": "Mobile handwashing stations and/ or a multitap handwashing stand are available and inclusive. /Ibikarabiro cyangwa kandagira ukarabe biri ku burebure bw’abana kandi ntibiheza abana bafite ubumuga.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q010",
+          "number": 10,
+          "text": "Adequate enclosed facilities for the disposal of waste are available and regularly emptied. /Ibikoresho byabugenwe byo gushyiramo imyanda birahari, bikavidurwa ku gihe kandi bipfundikirwa ku bw’umutekano w’abana.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q011",
+          "number": 11,
+          "text": "Bushes and pools of water around the ECD facility are cleared./ Ibihuru n’ibizenga by’amazi biri mu rugo mbonezamikurire bikurwaho kugira ngo bitaba indiri y’inzoka n’imibu.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S14-Q012",
+          "number": 12,
+          "text": "Each facility has health education posters teaching children handwashing practices. /Urugo mbonezamikurire rufite icyapa kigisha abana ibijyanye no gukaraba intoki ndetse n’indyo yuzuye.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S15",
+      "title": "15. Teaching and learning approaches, methods and strategies/Uburyo bw’imyigishirize mu rugo mbonezamikurire",
+      "subtotalMax": 8,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S15-Q001",
+          "number": 1,
+          "text": "Caregivers apply thematic-integrated, holistic and contextualized approaches/ Abarezi bakoresha uburyo bushingiye ku nsanganyamatsiko, uburyo bukomatanyije kandi bushingira ku byo abana basanzwe bazi.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S15-Q002",
+          "number": 2,
+          "text": "Caregivers apply a play-based learning approach. / Abarezi bakoresha uburyo bushingiye ku mikino.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S15-Q003",
+          "number": 3,
+          "text": "Caregivers use multi-sensory approach./ Abarezi bakoresha uburyo bushingiye ku byumviro byose: kureba, kumvisha amatwi, gukorakora, kumvisha amazuru, kumvisha ururimi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S15-Q004",
+          "number": 4,
+          "text": "Caregivers tell/read stories to children reflecting the themes of the week. / Abarezi babwira/basomera abana inkuru zijyanye n’insanganyamatsiko y’icyumweru.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S15-Q005",
+          "number": 5,
+          "text": "Caregivers use songs/rhymes/poems to develop different skills connected to themes. / Abarezi bakoresha indirimbo/imivugo kugira ngo bazamure ubushobozi bw’abana ku nsanganyamatsiko zitandukanye bijyanye",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S15-Q006",
+          "number": 6,
+          "text": "The facility is rich in inclusive teaching and learning materials. / Urugo mbonezamikurire rukungahaye ku mfashanyigisho zidaheza abana bafite ubumuga.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S16",
+      "title": "16. Organisation of teaching and learning activities/play activities/Kuyobora ibikorwa by’imyigire n’imyigishirize.",
+      "subtotalMax": 22,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q001",
+          "number": 1,
+          "text": "The CBC and national parenting curriculum are used / Integanyanyigisho y’amashuri y’inshuke ishingiye ku bushobozi n’integanyanyigisho ku burere buboneye ni zo zikoreshwa.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q002",
+          "number": 2,
+          "text": "Children aged 3–5 have access to activities that promote skills in the six learning areas. /Abana kuva ku myaka 3-5 bakora ibikorwa biteza imbere ubushobozi mu byigwa 6 by’integanyanyigisho.",
+          "maxScore": 6,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q003",
+          "number": 3,
+          "text": "Children are given opportunities to express themselves using all forms of communication (verbal and non-verbal) and are listened to. / Abana bahabwa umwanya wo kwisobanura bakoresheje uburyo bwose (ubukoresha kuvuga, ubudakoresha kuvuga) kandi bagategwa amatwi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q004",
+          "number": 4,
+          "text": "Children have access to a print-rich environment (indoor and outdoor). / Abana bigira mu ishuri rikungahaye ku mfashanyigisho zanditse (mu cyumba k’ishuri no hanze)",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q005",
+          "number": 5,
+          "text": "Children have access to activities that develop fine motor and pre-writing skills. / Abana bahabwa ibikorwa bibafasha kuzamura ubushobozi bwo gukoresha intoki n’ibibategura kwandika.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q006",
+          "number": 6,
+          "text": "The daily schedule runs to at least 4 hours. / Gahunda y’ibikorwa by’umunsi imara nibura amasaha 4.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q007",
+          "number": 7,
+          "text": "Children with sensory impairment have access to materials that maximize their capabilities. / Abana bafite ubumuga mu byumviro bitandukanye bafite ibikoresho bibafasha kubona amakuru ashoboka ku mfashanyigisho ku byigwa bitandukanye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q008",
+          "number": 8,
+          "text": "The daily schedule balances and alternates activities: quiet-noisy; indoor-outdoor, active-passive etc. / Gahunda y’umunsi igenda isimburanya ibikorwa: ibikorwa bituje-ibisaba kuvuga, ibikorwa byo mu ishuri, ibikorwa byo hanze, ibikorwa abana bagiramo uruhare.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q009",
+          "number": 9,
+          "text": "The classroom encourages children to play with various materials, including locally available items. / Uburyo ishuri riteguye bukurura abana kandi bubashishikariza gukinisha ibikinisho bitandukanye harimo n’ibikozwe mu bikoresho biboneka aho ishuri riherereye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q010",
+          "number": 10,
+          "text": "Children’s original drawings, writing and other work are displayed on the walls at their eye level. / Ibishushanyo by’abana, inyandiko zabo n’ibindi bikorwa byabo bimanikwa ku rukuta rw’ishuri aho biborohera kubirebaho.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q011",
+          "number": 11,
+          "text": "Children with communication needs are supported to use different communication method(s). / Abana bafite ibibazo byihariye mu kumvikanisha ibitekerezo byabo bahabwa ubwisanzure n’ubufasha bwo gukoresha uburyo buboroheye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S16-Q012",
+          "number": 12,
+          "text": "Assessment tools and materials are adapted to cater for children with special needs and disabilities. / Abana bagaragaye ko bakeneye ubufasha bwihariye mu myigire bakorerwa isuzuma ryihariye.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S17",
+      "title": "17. Teaching and learning resources/play materials /Imfashanyigisho n’ibikinisho by’imyigire n’imyigishirize.",
+      "subtotalMax": 21,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S17-Q001",
+          "number": 1,
+          "text": "Play materials are adapted to suit all children. / Ibikinisho n’imfashanyigisho bijyanishwa n’ikigero cy’abana",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S17-Q002",
+          "number": 2,
+          "text": "Learning and play materials are accessible to all children in all six learning areas of the curriculum./ Hari ibikinisho n’imfashanyigisho kuri buri kigwa: imibare, indimi, ubugeni n’umuco, ibidukikije, imibanire n’abandi  n’imbamutima, ibonezabuzima.",
+          "maxScore": 6,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S17-Q003",
+          "number": 3,
+          "text": "Learning promotes the use of ICT in activities such as lesson preparation, making materials, research etc. / Imyigire mu rugo mbonezamikurire iteza imbere imikoreshereze y’ikoranabuhanga.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S17-Q004",
+          "number": 4,
+          "text": "There is a variety of Rwandan picture books with culturally and age-appropriate stories. (e.g. 1 score/ 1 title) / Urugo mbonezamikurire rufite ibitabo bitandukanye by’amashusho akoze inkuru zijyanye n’ikigero n’umuco by’abana. (1 kuri buri bwoko)",
+          "maxScore": 5,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S17-Q005",
+          "number": 5,
+          "text": "Pre-writing materials like pencils, chalks, crayons, paper and drawing notebooks are available. / Abana bafite ibikoresho bibategurira kwandika: amakaramu y’umuti, amakaramu y’igiti, ingwa, amakarmu y’amabara, urupapuro n’amakayi yo gushushanyamo. (1 score/1 title)",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S17-Q006",
+          "number": 6,
+          "text": "Learning materials are maintained and stored correctly to ensure their safety after use. / Imfashanyigisho n’ibikinisho byakoreshejwe birasukurwa bikabikwa neza kugira ngo umutekano wabyo witabweho.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S17-Q007",
+          "number": 7,
+          "text": "The facility has and uses CBC guides, scheme of work, training modules/manuals etc. / Urugo mbonezamikurire rufite kandi rukoresha inyoborabarezi ku nteganyanyigisho, isaranganyamasomo, imfashanyigisho z’amahugurwa.",
+          "maxScore": 3,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S17-Q008",
+          "number": 8,
+          "text": "Manila paper/rice sacks and other locally available materials for display are available. / Urugo rufite impapuro nini, imifuka yo kwandikaho n’izindi mfashanyigisho zo kumanika.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S18",
+      "title": "17. Organization of field/study visits/ Gutegura no gukora ingendoshuri",
+      "subtotalMax": 3,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S18-Q001",
+          "number": 1,
+          "text": "Children leave the compound to explore themes within their community every week. / Abana basohoka urugo mbonezamikurire rimwe mu cyumweru bakitegereza ibintu bibakikije bijyanye n’insanganyamatsiko biga.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S18-Q002",
+          "number": 2,
+          "text": "One caregiver or parent supervises a group of 10 children and has a list of those children with parents’ contacts. / Umurezi umwe cyangwa umubyeyi akurikirana itsinda ry’abana 10 kandi akaba afite urutonde rw’abana na nimero za terefone z’ababyeyi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S18-Q003",
+          "number": 3,
+          "text": "The lead caregiver carries a first aid kit during the study visit. / Umurezi uyoboye urugendo shuri atwara agasanduku k’ubutabazi bw’ibanze.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S19",
+      "title": "18. Establishment, registration and accreditation /Gutangiza, kwandikisha no kwemeza urugo mbonezamikurire",
+      "subtotalMax": 2,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S19-Q001",
+          "number": 1,
+          "text": "The ECD facility is registered / Urugo mbonezamikurire ruranditse",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S19-Q002",
+          "number": 2,
+          "text": "The ECD facility is accredited / Urugo mbonezamikurire rwahawe uburenganzira bwo gukora.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S20",
+      "title": "19. Collaborative, supportive relationships with families and communities/Imikoranire hagati y’urugo mbonezamikurire n’ababyeyi",
+      "subtotalMax": 6,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S20-Q001",
+          "number": 1,
+          "text": "Parents were involved in setting up the facility. / Ushinzwe urugo mbonezamikurire afatanya n’ababyeyi mu gutangiza ibikorwa byo guha abana serivisi mbonezamikurire.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S20-Q002",
+          "number": 2,
+          "text": "Parents have a general assembly meeting once a term. / Ababyeyi bose cyangwa abarera abana bahura nibura rimwe mu gihembwe.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S20-Q003",
+          "number": 3,
+          "text": "Parents visit the facility to get feedback on the children’s progress. / Ababyeyi basura abana kugira ngo bahabwe amakuru y’uko abana bahagaze mu byigwa bitandukanye by’integanyanyigisho n’imikurire muri rusange.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S20-Q004",
+          "number": 4,
+          "text": "The PTC is available. / Hari komite nyobozi y’inama y’ababyeyi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S20-Q005",
+          "number": 5,
+          "text": "The ECD provider establishes communication and feedback mechanisms between parents and the facility management. / Ushinzwe urugo mbonezamikurire ashyiraho uburyo ababyeyi n’ubuyobozi bw’urugo bazajya bahanahana amakuru ku buzima bw’abana mu rugo mbonezamikurire ndetse n’iwabo mu ngo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S20-Q006",
+          "number": 6,
+          "text": "Collaboration between the ECD facility and local authorities is evidenced by quarterly reports, meetings and supervision. / Hari imikoranire myiza hagati y’urugo mbonezamikurire n’ubuyobozi bw’ibanze bigaragarira muri raporo zitangwa, mu nama n’igenzurabikorwa.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S21",
+      "title": "20. Assessment/ Isuzuma",
+      "subtotalMax": 5,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S21-Q001",
+          "number": 1,
+          "text": "Assessment is formative and holistic / Isuzuma rikoreshwa mu rugo mbonezamikurire ni iry’imyigire n’imyigishirize aho kuba irisoza inyigisho.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S21-Q002",
+          "number": 2,
+          "text": "The assessment covers all six learning areas of the curriculum. / Isuzuma rikorwa ku byigwa 6 biri mu nteganyanyigisho y’amashuri y’inshuke ishingiye ku bushobozi bireba imikurire y’umwana n’imyigire bishingiye ku bushobozi bwitezwe ku mwana nyuma ya buri kigwa.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S21-Q003",
+          "number": 3,
+          "text": "Progress reports are shared and discussed with individual parents and/or in groups. / Amanota y’abana asangizwa ababyeyi bakayaganiraho buri mubyeyi ku giti ke cyangwa itsinda ry’ababyeyi",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S21-Q004",
+          "number": 4,
+          "text": "Children’s progress reports contain detailed developmental and learning information./ Amanota y’abana atanga amakuru arambuye ku mikurire n’imyigire y’umwana.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S21-Q005",
+          "number": 5,
+          "text": "A colour-coded rating is used to share children’s progress with parents: Green, Blue, Yellow and Red. / Mu rugo mbonezamikurire hakoreshwa amabara mu kugaragariza ababyeyi uko abana bateye imbere mu byigwa bitandukanye by’integanyanyigisho: Icyatsi, Ubururu, Umuhondo, Umutuku",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-ECD_3_5-S22",
+      "title": "21. ECD Staff recruitment and CPD/Ishyirwamukazi ku barezi mu rugo mbonezamikurire.",
+      "subtotalMax": 11,
+      "items": [
+        {
+          "id": "OFFICIAL-ECD_3_5-S22-Q001",
+          "number": 1,
+          "text": "If an ECD facility not attached to a primary school, there is an ECD coordinator. / Gushyira abarezi b’abana mu rugo mbonezamikurire bikurikiza amabwiriza ya Minisiteri y’Uburezi agenga ishyirwa mu kazi ry’abarimu.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S22-Q002",
+          "number": 2,
+          "text": "There is one caregiver and an assistant in each classroom. / Icyumba abana bigiramo gishyirwamo abarezi babiri",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S22-Q003",
+          "number": 3,
+          "text": "There is at least one cook recruited under a renewable contract. / Urugo mbonezamikurire rufite nibura umutetsi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S22-Q004",
+          "number": 4,
+          "text": "There is at least one guard recruited for security purposes / Urugo mbonezamikurire rufite nibura umuzamu.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S22-Q005",
+          "number": 5,
+          "text": "ECD caregivers and support staff are entitled to salary or fringe benefits/incentives. / Abarezi n’abandi bakozi b’urugo mbonezamikurire bemerewe ibi bikurikira: umushahara n’amashimwe kimwe n’abandi bakozi bari ku rwego rumwe mu mashuri abanza.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S22-Q006",
+          "number": 6,
+          "text": "CPD activities are organized by the school or via links with neighbouring schools. / Amahugurwa ahoraho ategurwa n’ubuyobozi bw’urugo mbonezamikurire cyangwa rukihuza n’izindi mu kuyategura.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S22-Q007",
+          "number": 7,
+          "text": "All ECD providers receive initial and ongoing training. / Abashinzwe ingo mbonezamikurire bose bahabwa amahugurwa y’ibanze n’andi mahugurwa ahoraho ku buryo bwo gutanga serivisi mbonezamikurire.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-ECD_3_5-S22-Q008",
+          "number": 8,
+          "text": "The training content in ECD programme is validated jointly by REB and NCDA. / Kwemeza imfashanyigisho z’amahugurwa ku mbonezamikurire bizajya bikorwa ku bufatanye hagati y’Urwego rw’Igihugu rushinzwe Uburezi bw’Ibanze (REB) n’Ikigo k’Igihugu Gishinzwe Imikurire no Kurengera Umwana (NCDA).",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    }
+  ]
+}

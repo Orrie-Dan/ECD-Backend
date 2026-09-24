@@ -1,0 +1,800 @@
+{
+  "api": "http://localhost:3000",
+  "results": [
+    {
+      "step": "env",
+      "data": {
+        "api": "http://localhost:3000",
+        "selfAssessmentCurrent": "2024.3-official",
+        "supportiveSupervisionCurrent": "2024.2-weighted"
+      },
+      "at": "2026-09-24T12:18:25.977Z"
+    },
+    {
+      "step": "officialMaxima",
+      "data": {
+        "daycare": 195,
+        "home_based": 66,
+        "community_based": 161,
+        "ecd_3_5": 251
+      },
+      "at": "2026-09-24T12:18:26.120Z"
+    },
+    {
+      "step": "inspectionMaxima",
+      "data": {
+        "daycare": 230,
+        "ecd_3_5": 312
+      },
+      "at": "2026-09-24T12:18:26.121Z"
+    },
+    {
+      "step": "inspectionNotOnOfficial",
+      "data": {
+        "registered": false
+      },
+      "at": "2026-09-24T12:18:26.121Z"
+    },
+    {
+      "step": "scoreScenario daycare",
+      "data": {
+        "allYes": {
+          "earnedScore": 195,
+          "maxScore": 195,
+          "percent": 100,
+          "rank": "green"
+        },
+        "allNo": {
+          "earnedScore": 0,
+          "maxScore": 195,
+          "percent": 0,
+          "rank": "red"
+        }
+      },
+      "at": "2026-09-24T12:18:28.650Z"
+    },
+    {
+      "step": "scoreScenario home_based",
+      "data": {
+        "allYes": {
+          "earnedScore": 66,
+          "maxScore": 66,
+          "percent": 100,
+          "rank": "green"
+        },
+        "allNo": {
+          "earnedScore": 0,
+          "maxScore": 66,
+          "percent": 0,
+          "rank": "red"
+        }
+      },
+      "at": "2026-09-24T12:18:28.651Z"
+    },
+    {
+      "step": "scoreScenario community_based",
+      "data": {
+        "allYes": {
+          "earnedScore": 161,
+          "maxScore": 161,
+          "percent": 100,
+          "rank": "green"
+        },
+        "allNo": {
+          "earnedScore": 0,
+          "maxScore": 161,
+          "percent": 0,
+          "rank": "red"
+        }
+      },
+      "at": "2026-09-24T12:18:28.653Z"
+    },
+    {
+      "step": "scoreScenario ecd_3_5",
+      "data": {
+        "allYes": {
+          "earnedScore": 251,
+          "maxScore": 251,
+          "percent": 100,
+          "rank": "green"
+        },
+        "allNo": {
+          "earnedScore": 0,
+          "maxScore": 251,
+          "percent": 0,
+          "rank": "red"
+        }
+      },
+      "at": "2026-09-24T12:18:28.655Z"
+    },
+    {
+      "step": "E2E daycare",
+      "data": {
+        "facility": "daycare",
+        "availability": {
+          "available": true,
+          "facilityTypeId": "daycare",
+          "standardsVersion": "2024.3-official"
+        },
+        "catalog": {
+          "version": "2024.3-official",
+          "max": 195,
+          "sections": 16,
+          "items": 130,
+          "sectionIds": [
+            "OFFICIAL-DAYCARE-S01",
+            "OFFICIAL-DAYCARE-S02",
+            "OFFICIAL-DAYCARE-S03",
+            "OFFICIAL-DAYCARE-S04",
+            "OFFICIAL-DAYCARE-S05",
+            "OFFICIAL-DAYCARE-S06",
+            "OFFICIAL-DAYCARE-S07",
+            "OFFICIAL-DAYCARE-S08",
+            "OFFICIAL-DAYCARE-S09",
+            "OFFICIAL-DAYCARE-S10",
+            "OFFICIAL-DAYCARE-S11",
+            "OFFICIAL-DAYCARE-S12",
+            "OFFICIAL-DAYCARE-S13",
+            "OFFICIAL-DAYCARE-S14",
+            "OFFICIAL-DAYCARE-S15",
+            "OFFICIAL-DAYCARE-S16"
+          ]
+        },
+        "draftSave": {
+          "status": 200,
+          "id": "873976ac-838f-472f-95dd-bab2ffec5127",
+          "standardsVersion": "2024.3-official/daycare"
+        },
+        "resume": {
+          "status": 200,
+          "standardsVersion": "2024.3-official/daycare",
+          "facilityParsed": {
+            "version": "2024.3-official",
+            "facilityTypeId": "daycare"
+          },
+          "itemCount": 5
+        },
+        "submit": {
+          "status": 201,
+          "id": "873976ac-838f-472f-95dd-bab2ffec5127",
+          "standardsVersion": "2024.3-official/daycare",
+          "overallPercent": 0,
+          "overallRank": "red",
+          "expected": {
+            "earnedScore": 0,
+            "maxScore": 195,
+            "percent": 0,
+            "rank": "red"
+          }
+        },
+        "history": {
+          "status": 200,
+          "found": true,
+          "sampleVersions": [
+            {
+              "id": "873976ac-838f-472f-95dd-bab2ffec5127",
+              "v": "2024.3-official/daycare",
+              "status": "submitted"
+            },
+            {
+              "id": "087e3bd1-ac0c-4c11-b980-b37ea69c5aa7",
+              "v": "2024.1/ecd_3_5",
+              "status": "submitted"
+            }
+          ]
+        },
+        "detail": {
+          "status": 200,
+          "standardsVersion": "2024.3-official/daycare",
+          "overallPercent": 0,
+          "overallRank": "red",
+          "itemCount": 2,
+          "snapshotCount": 1,
+          "sampleSnapshot": {
+            "questionCodeSnapshot": "OFFICIAL-DAYCARE-S01-Q001",
+            "questionTextSnapshot": "Pregnant mothers are visited at home to ensure they attend antenatal services (E",
+            "weightSnapshot": 1,
+            "sectionCodeSnapshot": "OFFICIAL-DAYCARE-S01",
+            "sectionTitleSnapshot": "1. Care and Support before birth/ Kwita ku mwana mbere y’uko avuka",
+            "questionOrderSnapshot": 1
+          }
+        },
+        "db": {
+          "id": "873976ac-838f-472f-95dd-bab2ffec5127",
+          "assessmentType": "self_assessment",
+          "standardsVersion": "2024.3-official/daycare",
+          "centerId": "9b754e5c-9058-4aa1-8946-94b9ec3903ee",
+          "status": "submitted",
+          "overallPercent": "0",
+          "overallRank": "red",
+          "submittedAt": "2026-09-24T12:18:39.558Z"
+        },
+        "scoring": {
+          "earnedScore": 0,
+          "maxScore": 195,
+          "percent": 0,
+          "rank": "red"
+        }
+      },
+      "at": "2026-09-24T12:18:45.383Z"
+    },
+    {
+      "step": "E2E home_based",
+      "data": {
+        "facility": "home_based",
+        "availability": {
+          "available": true,
+          "facilityTypeId": "home_based",
+          "standardsVersion": "2024.3-official"
+        },
+        "catalog": {
+          "version": "2024.3-official",
+          "max": 66,
+          "sections": 8,
+          "items": 50,
+          "sectionIds": [
+            "OFFICIAL-HOME_BASED-S01",
+            "OFFICIAL-HOME_BASED-S02",
+            "OFFICIAL-HOME_BASED-S03",
+            "OFFICIAL-HOME_BASED-S04",
+            "OFFICIAL-HOME_BASED-S05",
+            "OFFICIAL-HOME_BASED-S06",
+            "OFFICIAL-HOME_BASED-S07",
+            "OFFICIAL-HOME_BASED-S08"
+          ]
+        },
+        "homeBased": {
+          "s6Criteria": 9,
+          "s6SubtotalMax": 10,
+          "s6WeightSum": 11,
+          "s8SubtotalMax": 2,
+          "s8Q1Mode": "any",
+          "s8Q1Indicators": 3,
+          "s8Q2Max": 1,
+          "grand": 66,
+          "computed": 66
+        },
+        "homeBasedAllYes": {
+          "earnedScore": 66,
+          "maxScore": 66,
+          "percent": 100,
+          "rank": "green"
+        },
+        "homeBasedS8MultiPathOnly": {
+          "earnedScore": 2,
+          "maxScore": 66,
+          "percent": 3,
+          "rank": "red"
+        },
+        "draftSave": {
+          "status": 200,
+          "id": "b36efbbf-5b09-4a4c-a508-f80d67b1e7f2",
+          "standardsVersion": "2024.3-official/home_based"
+        },
+        "resume": {
+          "status": 200,
+          "standardsVersion": "2024.3-official/home_based",
+          "facilityParsed": {
+            "version": "2024.3-official",
+            "facilityTypeId": "home_based"
+          },
+          "itemCount": 5
+        },
+        "submit": {
+          "status": 201,
+          "id": "b36efbbf-5b09-4a4c-a508-f80d67b1e7f2",
+          "standardsVersion": "2024.3-official/home_based",
+          "overallPercent": 0,
+          "overallRank": "red",
+          "expected": {
+            "earnedScore": 0,
+            "maxScore": 66,
+            "percent": 0,
+            "rank": "red"
+          }
+        },
+        "history": {
+          "status": 200,
+          "found": true,
+          "sampleVersions": [
+            {
+              "id": "873976ac-838f-472f-95dd-bab2ffec5127",
+              "v": "2024.3-official/daycare",
+              "status": "submitted"
+            },
+            {
+              "id": "b36efbbf-5b09-4a4c-a508-f80d67b1e7f2",
+              "v": "2024.3-official/home_based",
+              "status": "submitted"
+            },
+            {
+              "id": "087e3bd1-ac0c-4c11-b980-b37ea69c5aa7",
+              "v": "2024.1/ecd_3_5",
+              "status": "submitted"
+            }
+          ]
+        },
+        "detail": {
+          "status": 200,
+          "standardsVersion": "2024.3-official/home_based",
+          "overallPercent": 0,
+          "overallRank": "red",
+          "itemCount": 2,
+          "snapshotCount": 1,
+          "sampleSnapshot": {
+            "questionCodeSnapshot": "OFFICIAL-HOME_BASED-S01-Q001",
+            "questionTextSnapshot": "The household was selected by parents themselves. / Ababyeyi ubwabo bahitamo uru",
+            "weightSnapshot": 1,
+            "sectionCodeSnapshot": "OFFICIAL-HOME_BASED-S01",
+            "sectionTitleSnapshot": "1. Information about establishment/Imiterere y’urugo mbonezamikurire",
+            "questionOrderSnapshot": 1
+          }
+        },
+        "db": {
+          "id": "b36efbbf-5b09-4a4c-a508-f80d67b1e7f2",
+          "assessmentType": "self_assessment",
+          "standardsVersion": "2024.3-official/home_based",
+          "centerId": "9b754e5c-9058-4aa1-8946-94b9ec3903ee",
+          "status": "submitted",
+          "overallPercent": "0",
+          "overallRank": "red",
+          "submittedAt": "2026-09-24T12:18:50.401Z"
+        },
+        "scoring": {
+          "earnedScore": 0,
+          "maxScore": 66,
+          "percent": 0,
+          "rank": "red"
+        }
+      },
+      "at": "2026-09-24T12:18:54.465Z"
+    },
+    {
+      "step": "E2E community_based",
+      "data": {
+        "facility": "community_based",
+        "availability": {
+          "available": true,
+          "facilityTypeId": "community_based",
+          "standardsVersion": "2024.3-official"
+        },
+        "catalog": {
+          "version": "2024.3-official",
+          "max": 161,
+          "sections": 15,
+          "items": 119,
+          "sectionIds": [
+            "OFFICIAL-COMMUNITY_BASED-S01",
+            "OFFICIAL-COMMUNITY_BASED-S02",
+            "OFFICIAL-COMMUNITY_BASED-S03",
+            "OFFICIAL-COMMUNITY_BASED-S04",
+            "OFFICIAL-COMMUNITY_BASED-S05",
+            "OFFICIAL-COMMUNITY_BASED-S06",
+            "OFFICIAL-COMMUNITY_BASED-S07",
+            "OFFICIAL-COMMUNITY_BASED-S08",
+            "OFFICIAL-COMMUNITY_BASED-S09",
+            "OFFICIAL-COMMUNITY_BASED-S10",
+            "OFFICIAL-COMMUNITY_BASED-S11",
+            "OFFICIAL-COMMUNITY_BASED-S12",
+            "OFFICIAL-COMMUNITY_BASED-S13",
+            "OFFICIAL-COMMUNITY_BASED-S14",
+            "OFFICIAL-COMMUNITY_BASED-S15"
+          ]
+        },
+        "draftSave": {
+          "status": 200,
+          "id": "6355689d-200f-4faa-aa3b-226173e9036c",
+          "standardsVersion": "2024.3-official/community_based"
+        },
+        "resume": {
+          "status": 200,
+          "standardsVersion": "2024.3-official/community_based",
+          "facilityParsed": {
+            "version": "2024.3-official",
+            "facilityTypeId": "community_based"
+          },
+          "itemCount": 5
+        },
+        "submit": {
+          "status": 201,
+          "id": "6355689d-200f-4faa-aa3b-226173e9036c",
+          "standardsVersion": "2024.3-official/community_based",
+          "overallPercent": 0,
+          "overallRank": "red",
+          "expected": {
+            "earnedScore": 0,
+            "maxScore": 161,
+            "percent": 0,
+            "rank": "red"
+          }
+        },
+        "history": {
+          "status": 200,
+          "found": true,
+          "sampleVersions": [
+            {
+              "id": "873976ac-838f-472f-95dd-bab2ffec5127",
+              "v": "2024.3-official/daycare",
+              "status": "submitted"
+            },
+            {
+              "id": "b36efbbf-5b09-4a4c-a508-f80d67b1e7f2",
+              "v": "2024.3-official/home_based",
+              "status": "submitted"
+            },
+            {
+              "id": "6355689d-200f-4faa-aa3b-226173e9036c",
+              "v": "2024.3-official/community_based",
+              "status": "submitted"
+            },
+            {
+              "id": "087e3bd1-ac0c-4c11-b980-b37ea69c5aa7",
+              "v": "2024.1/ecd_3_5",
+              "status": "submitted"
+            }
+          ]
+        },
+        "detail": {
+          "status": 200,
+          "standardsVersion": "2024.3-official/community_based",
+          "overallPercent": 0,
+          "overallRank": "red",
+          "itemCount": 2,
+          "snapshotCount": 1,
+          "sampleSnapshot": {
+            "questionCodeSnapshot": "OFFICIAL-COMMUNITY_BASED-S01-Q001",
+            "questionTextSnapshot": "The facility has access to the road./ Urugo mbonezamikurire rugeraho umuhanda.",
+            "weightSnapshot": 2,
+            "sectionCodeSnapshot": "OFFICIAL-COMMUNITY_BASED-S01",
+            "sectionTitleSnapshot": "1. Information about Geographical Location/Aho urugo rukorera",
+            "questionOrderSnapshot": 1
+          }
+        },
+        "db": {
+          "id": "6355689d-200f-4faa-aa3b-226173e9036c",
+          "assessmentType": "self_assessment",
+          "standardsVersion": "2024.3-official/community_based",
+          "centerId": "9b754e5c-9058-4aa1-8946-94b9ec3903ee",
+          "status": "submitted",
+          "overallPercent": "0",
+          "overallRank": "red",
+          "submittedAt": "2026-09-24T12:19:00.792Z"
+        },
+        "scoring": {
+          "earnedScore": 0,
+          "maxScore": 161,
+          "percent": 0,
+          "rank": "red"
+        }
+      },
+      "at": "2026-09-24T12:19:04.351Z"
+    },
+    {
+      "step": "E2E ecd_3_5",
+      "data": {
+        "facility": "ecd_3_5",
+        "availability": {
+          "available": true,
+          "facilityTypeId": "ecd_3_5",
+          "standardsVersion": "2024.3-official"
+        },
+        "catalog": {
+          "version": "2024.3-official",
+          "max": 251,
+          "sections": 22,
+          "items": 172,
+          "sectionIds": [
+            "OFFICIAL-ECD_3_5-S01",
+            "OFFICIAL-ECD_3_5-S02",
+            "OFFICIAL-ECD_3_5-S03",
+            "OFFICIAL-ECD_3_5-S04",
+            "OFFICIAL-ECD_3_5-S05",
+            "OFFICIAL-ECD_3_5-S06",
+            "OFFICIAL-ECD_3_5-S07",
+            "OFFICIAL-ECD_3_5-S08",
+            "OFFICIAL-ECD_3_5-S09",
+            "OFFICIAL-ECD_3_5-S10",
+            "OFFICIAL-ECD_3_5-S11",
+            "OFFICIAL-ECD_3_5-S12",
+            "OFFICIAL-ECD_3_5-S13",
+            "OFFICIAL-ECD_3_5-S14",
+            "OFFICIAL-ECD_3_5-S15",
+            "OFFICIAL-ECD_3_5-S16",
+            "OFFICIAL-ECD_3_5-S17",
+            "OFFICIAL-ECD_3_5-S18",
+            "OFFICIAL-ECD_3_5-S19",
+            "OFFICIAL-ECD_3_5-S20",
+            "OFFICIAL-ECD_3_5-S21",
+            "OFFICIAL-ECD_3_5-S22"
+          ]
+        },
+        "draftSave": {
+          "status": 200,
+          "id": "709ffc39-422f-4b46-9553-dedcebf3a467",
+          "standardsVersion": "2024.3-official/ecd_3_5"
+        },
+        "resume": {
+          "status": 200,
+          "standardsVersion": "2024.3-official/ecd_3_5",
+          "facilityParsed": {
+            "version": "2024.3-official",
+            "facilityTypeId": "ecd_3_5"
+          },
+          "itemCount": 5
+        },
+        "submit": {
+          "status": 201,
+          "id": "709ffc39-422f-4b46-9553-dedcebf3a467",
+          "standardsVersion": "2024.3-official/ecd_3_5",
+          "overallPercent": 0,
+          "overallRank": "red",
+          "expected": {
+            "earnedScore": 0,
+            "maxScore": 251,
+            "percent": 0,
+            "rank": "red"
+          }
+        },
+        "history": {
+          "status": 200,
+          "found": true,
+          "sampleVersions": [
+            {
+              "id": "873976ac-838f-472f-95dd-bab2ffec5127",
+              "v": "2024.3-official/daycare",
+              "status": "submitted"
+            },
+            {
+              "id": "b36efbbf-5b09-4a4c-a508-f80d67b1e7f2",
+              "v": "2024.3-official/home_based",
+              "status": "submitted"
+            },
+            {
+              "id": "6355689d-200f-4faa-aa3b-226173e9036c",
+              "v": "2024.3-official/community_based",
+              "status": "submitted"
+            },
+            {
+              "id": "709ffc39-422f-4b46-9553-dedcebf3a467",
+              "v": "2024.3-official/ecd_3_5",
+              "status": "submitted"
+            },
+            {
+              "id": "087e3bd1-ac0c-4c11-b980-b37ea69c5aa7",
+              "v": "2024.1/ecd_3_5",
+              "status": "submitted"
+            }
+          ]
+        },
+        "detail": {
+          "status": 200,
+          "standardsVersion": "2024.3-official/ecd_3_5",
+          "overallPercent": 0,
+          "overallRank": "red",
+          "itemCount": 2,
+          "snapshotCount": 1,
+          "sampleSnapshot": {
+            "questionCodeSnapshot": "OFFICIAL-ECD_3_5-S01-Q001",
+            "questionTextSnapshot": "There is access to the road/Urugo rukora ku muhanda",
+            "weightSnapshot": 2,
+            "sectionCodeSnapshot": "OFFICIAL-ECD_3_5-S01",
+            "sectionTitleSnapshot": "2. Geographical location/Aho ruherereye",
+            "questionOrderSnapshot": 1
+          }
+        },
+        "db": {
+          "id": "709ffc39-422f-4b46-9553-dedcebf3a467",
+          "assessmentType": "self_assessment",
+          "standardsVersion": "2024.3-official/ecd_3_5",
+          "centerId": "9b754e5c-9058-4aa1-8946-94b9ec3903ee",
+          "status": "submitted",
+          "overallPercent": "0",
+          "overallRank": "red",
+          "submittedAt": "2026-09-24T12:19:09.185Z"
+        },
+        "scoring": {
+          "earnedScore": 0,
+          "maxScore": 251,
+          "percent": 0,
+          "rank": "red"
+        }
+      },
+      "at": "2026-09-24T12:19:13.379Z"
+    },
+    {
+      "step": "home_based allYesSubmit",
+      "data": {
+        "status": 201,
+        "id": "73a26051-042b-41c1-8578-72f118e023c1",
+        "percent": 100,
+        "rank": "green",
+        "expected": {
+          "earnedScore": 66,
+          "maxScore": 66,
+          "percent": 100,
+          "rank": "green"
+        }
+      },
+      "at": "2026-09-24T12:19:17.038Z"
+    },
+    {
+      "step": "crossFacility community_on_daycare",
+      "data": {
+        "status": 400,
+        "message": "facilityTypeId \"community_based\" does not match center facility type \"daycare\""
+      },
+      "at": "2026-09-24T12:19:18.672Z"
+    },
+    {
+      "step": "crossFacility daycare_code_on_community",
+      "data": {
+        "status": 400,
+        "message": "Unknown questionId for facility community_based: OFFICIAL-DAYCARE-S01-Q001"
+      },
+      "at": "2026-09-24T12:19:19.218Z"
+    },
+    {
+      "step": "crossFacility home_code_on_school",
+      "data": {
+        "status": 400,
+        "message": "Unknown questionId for facility ecd_3_5: OFFICIAL-HOME_BASED-S01-Q001"
+      },
+      "at": "2026-09-24T12:19:19.690Z"
+    },
+    {
+      "step": "nullFacilityReject",
+      "data": {
+        "status": 400,
+        "message": "ECD center facility type must be configured before starting self-evaluation"
+      },
+      "at": "2026-09-24T12:19:20.973Z"
+    },
+    {
+      "step": "invalidFacilityType other",
+      "data": {
+        "rejected": true,
+        "message": "Unknown center facility classification \"other\""
+      },
+      "at": "2026-09-24T12:19:20.975Z"
+    },
+    {
+      "step": "invalidFacilityType centerPatch",
+      "data": {
+        "status": 400,
+        "message": [
+          "version must not be less than 1",
+          "version must be an integer number",
+          "facilityType must be one of the following values: daycare, home_based, community_based, ecd_3_5"
+        ]
+      },
+      "at": "2026-09-24T12:19:21.576Z"
+    },
+    {
+      "step": "auth caregiver write denied",
+      "data": {
+        "status": 403,
+        "message": "Forbidden resource"
+      },
+      "at": "2026-09-24T12:19:22.259Z"
+    },
+    {
+      "step": "auth director write ok",
+      "data": {
+        "status": 200,
+        "id": "d0b2e3de-1fc8-4c3b-8527-9a3e19aa80ce"
+      },
+      "at": "2026-09-24T12:19:25.477Z"
+    },
+    {
+      "step": "historical2024.1",
+      "data": {
+        "id": "6dc3a4b1-40e1-4a46-8449-b39413753fc1",
+        "standardsVersion": "2024.1/daycare",
+        "percent": "73",
+        "rank": "blue",
+        "detailStatus": 403,
+        "itemCount": 0,
+        "officialQuestionLeak": false
+      },
+      "at": "2026-09-24T12:19:28.085Z"
+    },
+    {
+      "step": "historical2024.2 runtime",
+      "data": {
+        "selfAssessmentRows": 0
+      },
+      "at": "2026-09-24T12:19:28.314Z"
+    },
+    {
+      "step": "reclassificationSafety",
+      "data": {
+        "submitStatus": 201,
+        "id": "7da7a799-c186-45ee-b43f-4d276650ad28",
+        "afterCenterType": "community_based",
+        "detailVersion": "2024.3-official/daycare",
+        "stillDaycare": true
+      },
+      "at": "2026-09-24T12:19:34.564Z"
+    },
+    {
+      "step": "inspectionCreate",
+      "data": {
+        "status": 201,
+        "id": "f65eca1a-54c2-47ae-baa2-728ccc9da2d3",
+        "standardsVersion": "2024.2-weighted/daycare",
+        "assessmentType": "supportive_supervision"
+      },
+      "at": "2026-09-24T12:19:36.182Z"
+    },
+    {
+      "step": "inspectionOfficialAttempt",
+      "data": {
+        "status": 400,
+        "message": "Assessment is pinned to standardsVersion 2024.2-weighted; cannot change to 2024.3-official"
+      },
+      "at": "2026-09-24T12:19:36.509Z"
+    },
+    {
+      "step": "inspectionCatalogPin",
+      "data": {
+        "supportiveCurrent": "2024.2-weighted",
+        "selfCurrent": "2024.3-official",
+        "daycareMax": 230,
+        "ecdMax": 312
+      },
+      "at": "2026-09-24T12:19:36.510Z"
+    },
+    {
+      "step": "cleanup",
+      "data": {
+        "restoredFacilityType": "ecd_3_5",
+        "softDeletedCount": 8
+      },
+      "at": "2026-09-24T12:19:37.341Z"
+    }
+  ],
+  "originalEsriFacilityType": "ecd_3_5",
+  "esriCenterId": "9b754e5c-9058-4aa1-8946-94b9ec3903ee",
+  "disposableCandidates": [
+    {
+      "id": "873976ac-838f-472f-95dd-bab2ffec5127",
+      "status": "submitted",
+      "standardsVersion": "2024.3-official/daycare"
+    },
+    {
+      "id": "b36efbbf-5b09-4a4c-a508-f80d67b1e7f2",
+      "status": "submitted",
+      "standardsVersion": "2024.3-official/home_based"
+    },
+    {
+      "id": "6355689d-200f-4faa-aa3b-226173e9036c",
+      "status": "submitted",
+      "standardsVersion": "2024.3-official/community_based"
+    },
+    {
+      "id": "709ffc39-422f-4b46-9553-dedcebf3a467",
+      "status": "submitted",
+      "standardsVersion": "2024.3-official/ecd_3_5"
+    },
+    {
+      "id": "73a26051-042b-41c1-8578-72f118e023c1",
+      "status": "submitted",
+      "standardsVersion": "2024.3-official/home_based"
+    },
+    {
+      "id": "7da7a799-c186-45ee-b43f-4d276650ad28",
+      "status": "submitted",
+      "standardsVersion": "2024.3-official/daycare"
+    }
+  ],
+  "softDeleted": [
+    "873976ac-838f-472f-95dd-bab2ffec5127",
+    "b36efbbf-5b09-4a4c-a508-f80d67b1e7f2",
+    "6355689d-200f-4faa-aa3b-226173e9036c",
+    "709ffc39-422f-4b46-9553-dedcebf3a467",
+    "73a26051-042b-41c1-8578-72f118e023c1",
+    "d0b2e3de-1fc8-4c3b-8527-9a3e19aa80ce",
+    "7da7a799-c186-45ee-b43f-4d276650ad28",
+    "f65eca1a-54c2-47ae-baa2-728ccc9da2d3"
+  ]
+}

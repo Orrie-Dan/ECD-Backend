@@ -92,7 +92,8 @@ function payloadFromItems(
   overrides: Record<string, unknown> = {},
 ) {
   const answers = Object.fromEntries(items.map((i) => [i.questionId, i.response]));
-  const score = scoreSelfEvaluationFromAnswers('daycare', answers);
+  // These fixtures exercise the interim weighted catalog (pinned version below).
+  const score = scoreSelfEvaluationFromAnswers('daycare', answers, '2024.2-weighted');
   if (!score) {
     throw new Error('failed to score daycare answers');
   }
@@ -427,7 +428,10 @@ function createSelfEvalPrisma(options?: {
     },
     complianceAssessment: assessmentApi,
     complianceAssessmentItem: itemApi,
-    $transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+    $transaction: async (
+      fn: (tx: unknown) => Promise<unknown>,
+      _opts?: unknown,
+    ) => {
       const snapA = assessments.map((a) => ({ ...a }));
       const snapI = items.map((i) => ({ ...i }));
       const snapS = new Map(standards);
@@ -931,12 +935,12 @@ async function main() {
       { onComplianceAssessmentStatusChanged: async () => {} } as never,
     );
 
-    const daycareMax = getFacilityChecklist('daycare')!.computedMaxScore;
+    const daycareMax = getFacilityChecklist('daycare', '2024.2-weighted')!.computedMaxScore;
     // Target ~84% under the hybrid weighted denominator (was 168/199 before WEIGHT-01).
     const targetEarned = Math.round((84 / 100) * daycareMax);
     const answers: Array<{ questionId: string; response: boolean }> = [];
     let earned = 0;
-    for (const q of getAnswerableQuestions('daycare').values()) {
+    for (const q of getAnswerableQuestions('daycare', '2024.2-weighted').values()) {
       const met = earned < targetEarned;
       if (met) earned += q.maxScore;
       answers.push({ questionId: q.questionId, response: met });
@@ -945,6 +949,7 @@ async function main() {
     const expected = scoreSelfEvaluationFromAnswers(
       'daycare',
       Object.fromEntries(answers.map((a) => [a.questionId, a.response])),
+      '2024.2-weighted',
     )!;
 
     const result = await service.submitSelfEvaluation(
@@ -994,7 +999,7 @@ async function main() {
         payloadFromItems(threeAnswerItems(), {
           facilityTypeId: 'ecd_3_5',
           standardsVersion: '2024.2-weighted',
-          maxScore: getFacilityChecklist('ecd_3_5')!.computedMaxScore,
+          maxScore: getFacilityChecklist('ecd_3_5', '2024.2-weighted')!.computedMaxScore,
         }),
       );
     } catch (e) {
@@ -1348,7 +1353,7 @@ async function main() {
     );
 
     const weightedId = 'dc_s713r_accreditation_certificate';
-    const weightedDef = getAnswerableQuestions('daycare').get(weightedId);
+    const weightedDef = getAnswerableQuestions('daycare', '2024.2-weighted').get(weightedId);
     eq(weightedDef?.maxScore, 2);
 
     const result = await service.submitSelfEvaluation(
@@ -1356,7 +1361,11 @@ async function main() {
       payloadFromItems([{ questionId: weightedId, response: true }]),
     );
 
-    const expected = scoreSelfEvaluationFromAnswers('daycare', { [weightedId]: true })!;
+    const expected = scoreSelfEvaluationFromAnswers(
+      'daycare',
+      { [weightedId]: true },
+      '2024.2-weighted',
+    )!;
     eq(result.overallPercent, expected.percent);
     eq(result.standardsVersion?.includes('2024.2-weighted'), true);
 
@@ -1376,7 +1385,7 @@ async function main() {
     );
 
     const weightedId = 'dc_s716_required_rooms';
-    eq(getAnswerableQuestions('daycare').get(weightedId)?.maxScore, 7);
+    eq(getAnswerableQuestions('daycare', '2024.2-weighted').get(weightedId)?.maxScore, 7);
 
     await service.submitSelfEvaluation(
       user({ role: UserRole.ecd_director, centerId: 'center-1' }),
@@ -1446,14 +1455,21 @@ async function main() {
     eq(mem.assessments.length, 0);
   });
 
-  await assert('SELF-EVAL-WEIGHT-01: hybrid daycare max is not official 195 or old 199', async () => {
-    const daycare = getFacilityChecklist('daycare')!;
+  await assert('SELF-EVAL-WEIGHT-01: interim weighted daycare max remains 230', async () => {
+    const daycare = getFacilityChecklist('daycare', '2024.2-weighted')!;
     eq(daycare.itemCount, 199);
     eq(daycare.computedMaxScore, 230);
     eq(daycare.version, '2024.2-weighted');
-    const ecd = getFacilityChecklist('ecd_3_5')!;
+    const ecd = getFacilityChecklist('ecd_3_5', '2024.2-weighted')!;
     eq(ecd.itemCount, 271);
     eq(ecd.computedMaxScore, 312);
+  });
+
+  await assert('ALIGN-04: current self_assessment daycare max is official 195', async () => {
+    const daycare = getFacilityChecklist('daycare')!;
+    eq(daycare.version, '2024.3-official');
+    eq(daycare.computedMaxScore, 195);
+    eq(daycare.grandTotalMax, 195);
   });
 
   // --- INSPECTION-UI-02 ---

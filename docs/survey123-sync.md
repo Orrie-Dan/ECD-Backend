@@ -30,6 +30,17 @@ WASH indicators are **not** synced (capture later in the app).
 | `active_not_active` | `ecd_center.status` |
 | `phone_supervisor` | `ecd_center.phone` (cast from integer) |
 | `shape` | `latitude` / `longitude` via `sde.st_x` / `sde.st_y` |
+| `settings_types` | `ecd_center.facility_type` (deterministic map only; unknown → leave null) |
+
+**`settings_types` → `facility_type` (ALIGN-05A):**
+
+| Survey value | Canonical |
+|---|---|
+| `Home based ECD`, `Home Based ECD` | `home_based` |
+| `Community based ECD centre`, `Community Based ECD` | `community_based` |
+| `School based ECD Centre`, `School Based ECD`, `Model ECD centre`, `Model ECD` | `ecd_3_5` |
+
+Unmapped (left null): `Centre Based`, `Faith-based`, `Market based`, `Mobile crèches`, `ECD in emergency settings`, `Cross-border ECD`, `ECD in prison`, blank.
 
 Extended survey fields (accreditation, services, etc.) remain on `ecd_mapping_form` only until a future schema extension.
 

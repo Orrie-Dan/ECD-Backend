@@ -63,6 +63,48 @@ export class AssessmentItemResponseDto {
   gapResolvedAt: Date | null;
 
   @ApiProperty({
+    example: 'dc_s711_pregnant_anc_access',
+    nullable: true,
+    description: 'Immutable question code snapshot at answer persistence',
+  })
+  questionCodeSnapshot: string | null;
+
+  @ApiProperty({
+    example: 'Every pregnant woman has access to antenatal care',
+    nullable: true,
+    description: 'Immutable question text snapshot at answer persistence',
+  })
+  questionTextSnapshot: string | null;
+
+  @ApiProperty({
+    example: 1,
+    nullable: true,
+    description: 'Immutable question weight/maxScore snapshot at answer persistence',
+  })
+  weightSnapshot: number | null;
+
+  @ApiProperty({
+    example: 'grp_dc_s711',
+    nullable: true,
+    description: 'Immutable section code snapshot at answer persistence',
+  })
+  sectionCodeSnapshot: string | null;
+
+  @ApiProperty({
+    example: '7.1.1 Care and Support',
+    nullable: true,
+    description: 'Immutable section title snapshot at answer persistence',
+  })
+  sectionTitleSnapshot: string | null;
+
+  @ApiProperty({
+    example: 1,
+    nullable: true,
+    description: 'Immutable question order snapshot at answer persistence',
+  })
+  questionOrderSnapshot: number | null;
+
+  @ApiProperty({
     example: 1,
     description: 'Optimistic-lock version; required on updates',
   })

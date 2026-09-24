@@ -1,5 +1,6 @@
-import { UserRole } from '../../../common/domain';
+import { UserRole, EcdFacilityType } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
+
 export class AuthCenterSummaryDto {
   @ApiProperty({ format: 'uuid' })
   id: string;
@@ -9,6 +10,14 @@ export class AuthCenterSummaryDto {
 
   @ApiProperty({ example: 'Kigali ECD Center' })
   name: string;
+
+  @ApiProperty({
+    enum: EcdFacilityType,
+    enumName: 'EcdFacilityType',
+    nullable: true,
+    description: 'Canonical facility type; null until classified',
+  })
+  facilityType: EcdFacilityType | null;
 }
 
 export class AuthUserResponseDto {

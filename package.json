@@ -50,7 +50,7 @@
     "test:sted": "ts-node src/modules/sted/__tests__/sted.mapper.spec.ts && ts-node src/modules/sted/__tests__/sted.service.spec.ts && ts-node src/modules/sted/__tests__/sted.sync.spec.ts",
     "test:referrals": "ts-node src/modules/referrals/__tests__/referral.mapper.spec.ts && ts-node src/modules/referrals/__tests__/referral.service.spec.ts && ts-node src/modules/referrals/__tests__/referral.sync.spec.ts",
     "test:audit": "ts-node src/common/audit/__tests__/audit.service.spec.ts",
-    "test:centers": "ts-node src/modules/centers/__tests__/centers.service.spec.ts",
+    "test:centers": "ts-node src/modules/centers/__tests__/centers.service.spec.ts && ts-node src/modules/centers/__tests__/facility-type-align05a.spec.ts",
     "test:analytics": "ts-node src/modules/analytics/__tests__/analytics.service.spec.ts && ts-node src/modules/analytics/__tests__/district-risk.service.spec.ts",
     "test:alerts": "ts-node src/modules/alerts/__tests__/alerts.service.spec.ts",
     "test:notifications": "ts-node src/modules/notifications/__tests__/notification-cron.service.spec.ts && ts-node src/modules/notifications/__tests__/notification-events.service.spec.ts && ts-node src/modules/notifications/__tests__/notifications.service.spec.ts && ts-node src/modules/notifications/__tests__/notification-inbox.contract.spec.ts && ts-node src/modules/sync/__tests__/sync-apply-notifications.spec.ts",

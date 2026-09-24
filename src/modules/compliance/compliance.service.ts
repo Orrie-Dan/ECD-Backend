@@ -47,11 +47,16 @@ import { NotificationEventsService } from '../notifications/notification-events.
 import {
   SELF_EVAL_SCORE_CODE,
   encodeSelfEvalStandardsVersion,
-  getFacilityChecklist,
   parseSelfEvalStandardsVersion,
+  resolveAssessmentCatalog,
   resolveSelfEvalAnswerItems,
   scoreSelfEvaluationFromAnswers,
+  type AssessmentCatalogAssessmentType,
 } from './self-eval-catalog';
+import {
+  assertSelfEvaluationToolAvailable,
+  assertCenterFacilityMatchesSelfEval,
+} from './facility-routing';
 
 @Injectable()
 export class ComplianceService {
@@ -211,16 +216,45 @@ export class ComplianceService {
     dto: SaveSelfEvaluationDraftDto,
   ): Promise<AssessmentDetailResponseDto> {
     const center = await this.requireCenterStaffCenter(user);
-    this.assertKnownChecklist(dto.facilityTypeId, dto.standardsVersion);
-    const { resolvedQuestions } = resolveSelfEvalAnswerItems(dto.facilityTypeId, dto.items ?? [], {
-      allowEmpty: true,
+    const assessmentType = AssessmentType.self_assessment;
+    const existingDraft = await this.findSelfEvalDraftRow(this.prisma, center.id);
+    const legacyPinnedDraft = this.isLegacyPinnedSelfEvalDraft(
+      existingDraft?.standardsVersion ?? null,
+    );
+    const facilityTypeId = assertCenterFacilityMatchesSelfEval({
+      assessmentType,
+      standardsVersion: dto.standardsVersion,
+      centerFacilityType: center.facilityType,
+      requestFacilityTypeId: dto.facilityTypeId,
+      legacyPinnedDraft,
     });
+    const pinnedVersion = this.resolvePinnedStandardsVersion({
+      assessmentType,
+      facilityTypeId,
+      requestedVersion: dto.standardsVersion,
+      existingEncoded: existingDraft?.standardsVersion ?? null,
+    });
+    assertSelfEvaluationToolAvailable({
+      assessmentType,
+      standardsVersion: pinnedVersion,
+      facilityTypeId,
+    });
+
+    const { resolvedQuestions } = resolveSelfEvalAnswerItems(
+      facilityTypeId,
+      dto.items ?? [],
+      {
+        allowEmpty: true,
+        standardsVersion: pinnedVersion,
+        assessmentType,
+      },
+    );
 
     const now = new Date();
     const assessmentDate = new Date(dto.assessmentDate);
     const standardsVersion = encodeSelfEvalStandardsVersion(
-      dto.standardsVersion,
-      dto.facilityTypeId,
+      pinnedVersion,
+      facilityTypeId,
     );
 
     const savedId = await this.prisma.$transaction(async (tx) => {
@@ -231,6 +265,7 @@ export class ComplianceService {
         clientDraftId: dto.clientDraftId,
         userId: user.id,
         now,
+        pinExistingVersion: true,
       });
 
       await this.syncSelfEvalAnswerItems(tx, {
@@ -239,6 +274,7 @@ export class ComplianceService {
         now,
         keepScoreItem: false,
         scoreItem: null,
+        writeSnapshots: true,
       });
 
       await this.audit.log({
@@ -314,20 +350,47 @@ export class ComplianceService {
       throw new ForbiddenException('Cannot submit self-evaluation for another center');
     }
 
-    this.assertKnownChecklist(dto.facilityTypeId, dto.standardsVersion);
-    const { answers, resolvedQuestions } = resolveSelfEvalAnswerItems(
-      dto.facilityTypeId,
-      dto.items,
-      { allowEmpty: false },
+    const assessmentType = AssessmentType.self_assessment;
+    const existingDraft = await this.findSelfEvalDraftRow(this.prisma, center.id);
+    const legacyPinnedDraft = this.isLegacyPinnedSelfEvalDraft(
+      existingDraft?.standardsVersion ?? null,
     );
-    this.assertSelfEvalScores(dto, dto.facilityTypeId, answers);
+    const facilityTypeId = assertCenterFacilityMatchesSelfEval({
+      assessmentType,
+      standardsVersion: dto.standardsVersion,
+      centerFacilityType: center.facilityType,
+      requestFacilityTypeId: dto.facilityTypeId,
+      legacyPinnedDraft,
+    });
+    const pinnedVersion = this.resolvePinnedStandardsVersion({
+      assessmentType,
+      facilityTypeId,
+      requestedVersion: dto.standardsVersion,
+      existingEncoded: existingDraft?.standardsVersion ?? null,
+    });
+    assertSelfEvaluationToolAvailable({
+      assessmentType,
+      standardsVersion: pinnedVersion,
+      facilityTypeId,
+    });
+
+    const { answers, resolvedQuestions } = resolveSelfEvalAnswerItems(
+      facilityTypeId,
+      dto.items,
+      {
+        allowEmpty: false,
+        standardsVersion: pinnedVersion,
+        assessmentType,
+      },
+    );
+    this.assertSelfEvalScores(dto, facilityTypeId, answers, pinnedVersion, assessmentType);
 
     const classification = this.classificationFromRank(dto.rank);
     const now = new Date();
     const assessmentDate = new Date(dto.assessmentDate);
     const standardsVersion = encodeSelfEvalStandardsVersion(
-      dto.standardsVersion,
-      dto.facilityTypeId,
+      pinnedVersion,
+      facilityTypeId,
     );
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -339,7 +402,7 @@ export class ComplianceService {
       }
 
       const scoreItem = {
-        facilityTypeId: dto.facilityTypeId,
+        facilityTypeId,
         earnedScore: dto.earnedScore,
         maxScore: dto.maxScore,
         percent: dto.percent,
@@ -373,7 +436,8 @@ export class ComplianceService {
           now,
           keepScoreItem: true,
           scoreItem,
-          standardsVersion: dto.standardsVersion,
+          standardsVersion: pinnedVersion,
+          writeSnapshots: true,
         });
 
         await tx.ecdCenter.update({
@@ -431,7 +495,8 @@ export class ComplianceService {
         now,
         keepScoreItem: true,
         scoreItem,
-        standardsVersion: dto.standardsVersion,
+        standardsVersion: pinnedVersion,
+        writeSnapshots: true,
       });
 
       await tx.ecdCenter.update({
@@ -466,7 +531,13 @@ export class ComplianceService {
       });
 
       return { ...created, center };
-    });
+    },
+      {
+        // Official catalogs can insert 50–250+ answer rows + standards on first submit.
+        maxWait: 15_000,
+        timeout: 120_000,
+      },
+    );
 
     void this.notificationEvents.onComplianceAssessmentStatusChanged({
       assessmentId: result.id,
@@ -488,7 +559,13 @@ export class ComplianceService {
     dto: CreateInspectionDto,
   ): Promise<AssessmentDetailResponseDto> {
     this.assertPortalInspector(user);
-    this.assertKnownChecklist(dto.facilityTypeId, dto.standardsVersion);
+    const assessmentType = AssessmentType.supportive_supervision;
+    const pinnedVersion = this.resolvePinnedStandardsVersion({
+      assessmentType,
+      facilityTypeId: dto.facilityTypeId,
+      requestedVersion: dto.standardsVersion,
+      existingEncoded: null,
+    });
 
     const center = await this.prisma.ecdCenter.findFirst({
       where: { id: dto.centerId, deletedAt: null },
@@ -502,7 +579,7 @@ export class ComplianceService {
     const now = new Date();
     const assessmentDate = new Date(dto.assessmentDate);
     const standardsVersion = encodeSelfEvalStandardsVersion(
-      dto.standardsVersion,
+      pinnedVersion,
       dto.facilityTypeId,
     );
 
@@ -555,20 +632,33 @@ export class ComplianceService {
     dto: SaveInspectionDraftDto,
   ): Promise<AssessmentDetailResponseDto> {
     this.assertPortalInspector(user);
-    this.assertKnownChecklist(dto.facilityTypeId, dto.standardsVersion);
-    const { resolvedQuestions } = resolveSelfEvalAnswerItems(dto.facilityTypeId, dto.items ?? [], {
-      allowEmpty: true,
-    });
-
+    const assessmentType = AssessmentType.supportive_supervision;
     const existing = await this.loadInspectionForWrite(user, assessmentId);
     if (existing.status !== AssessmentStatus.draft) {
       throw new BadRequestException('Can only update draft inspections');
     }
 
+    const pinnedVersion = this.resolvePinnedStandardsVersion({
+      assessmentType,
+      facilityTypeId: dto.facilityTypeId,
+      requestedVersion: dto.standardsVersion,
+      existingEncoded: existing.standardsVersion,
+    });
+
+    const { resolvedQuestions } = resolveSelfEvalAnswerItems(
+      dto.facilityTypeId,
+      dto.items ?? [],
+      {
+        allowEmpty: true,
+        standardsVersion: pinnedVersion,
+        assessmentType,
+      },
+    );
+
     const now = new Date();
     const assessmentDate = new Date(dto.assessmentDate);
     const standardsVersion = encodeSelfEvalStandardsVersion(
-      dto.standardsVersion,
+      pinnedVersion,
       dto.facilityTypeId,
     );
 
@@ -591,6 +681,7 @@ export class ComplianceService {
         now,
         keepScoreItem: false,
         scoreItem: null,
+        writeSnapshots: true,
       });
 
       await this.audit.log({
@@ -621,25 +712,36 @@ export class ComplianceService {
     dto: SubmitInspectionDto,
   ): Promise<AssessmentResponseDto> {
     this.assertPortalInspector(user);
-    this.assertKnownChecklist(dto.facilityTypeId, dto.standardsVersion);
+    const assessmentType = AssessmentType.supportive_supervision;
 
     const existing = await this.loadInspectionForWrite(user, assessmentId);
     if (existing.status !== AssessmentStatus.draft) {
       throw new BadRequestException('Can only submit draft inspections');
     }
 
+    const pinnedVersion = this.resolvePinnedStandardsVersion({
+      assessmentType,
+      facilityTypeId: dto.facilityTypeId,
+      requestedVersion: dto.standardsVersion,
+      existingEncoded: existing.standardsVersion,
+    });
+
     const { answers, resolvedQuestions } = resolveSelfEvalAnswerItems(
       dto.facilityTypeId,
       dto.items,
-      { allowEmpty: false },
+      {
+        allowEmpty: false,
+        standardsVersion: pinnedVersion,
+        assessmentType,
+      },
     );
-    this.assertSelfEvalScores(dto, dto.facilityTypeId, answers);
+    this.assertSelfEvalScores(dto, dto.facilityTypeId, answers, pinnedVersion, assessmentType);
 
     const classification = this.classificationFromRank(dto.rank);
     const now = new Date();
     const assessmentDate = new Date(dto.assessmentDate);
     const standardsVersion = encodeSelfEvalStandardsVersion(
-      dto.standardsVersion,
+      pinnedVersion,
       dto.facilityTypeId,
     );
 
@@ -680,21 +782,21 @@ export class ComplianceService {
         now,
         keepScoreItem: true,
         scoreItem,
-        standardsVersion: dto.standardsVersion,
+        standardsVersion: pinnedVersion,
+        writeSnapshots: true,
       });
 
       await this.audit.log({
         tx,
         entityType: 'compliance_assessment',
         entityId: existing.id,
-        action: AuditAction.STATUS_CHANGE,
+        action: AuditAction.UPDATE,
         userId: user.id,
         oldValues: toAuditJson({ status: existing.status }),
         newValues: toAuditJson({
           status: AssessmentStatus.submitted,
           overallPercent: dto.percent,
           overallRank: dto.rank,
-          overallClassification: classification,
           itemCount: resolvedQuestions.length,
         }),
         metadata: { source: 'rest', kind: 'inspection_submit' },
@@ -746,6 +848,7 @@ export class ComplianceService {
     id: string;
     name: string;
     districtId: string;
+    facilityType: string | null;
   }> {
     if (!isCenterAdminRole(user.role)) {
       throw new ForbiddenException('Only ECD directors can manage self-evaluations');
@@ -756,7 +859,7 @@ export class ComplianceService {
 
     const center = await this.prisma.ecdCenter.findFirst({
       where: { id: user.centerId, deletedAt: null },
-      select: { id: true, name: true, districtId: true },
+      select: { id: true, name: true, districtId: true, facilityType: true },
     });
 
     if (!center) {
@@ -771,28 +874,68 @@ export class ComplianceService {
     id: string;
     name: string;
     districtId: string;
+    facilityType: string | null;
   }> {
     return this.requireDirectorCenter(user);
   }
 
-  private assertKnownChecklist(facilityTypeId: string, standardsVersion: string): void {
-    const checklist = getFacilityChecklist(facilityTypeId);
-    if (!checklist) {
-      throw new BadRequestException(`Unknown facility type: ${facilityTypeId}`);
+  /**
+   * 2024.2-weighted drafts keep pinned identity even when center.facilityType
+   * was later set (ALIGN-05A draft compatibility).
+   */
+  private isLegacyPinnedSelfEvalDraft(encoded: string | null): boolean {
+    if (!encoded) return false;
+    const { version } = parseSelfEvalStandardsVersion(encoded);
+    return Boolean(version && version !== '2024.3-official' && !version.startsWith('2024.3'));
+  }
+
+  /**
+   * Resolve the standards version for create/save/submit.
+   * Existing drafts keep their pinned version; unknown identities are rejected
+   * (no fallback to latest).
+   */
+  private resolvePinnedStandardsVersion(input: {
+    assessmentType: AssessmentCatalogAssessmentType;
+    facilityTypeId: string;
+    requestedVersion: string;
+    existingEncoded: string | null;
+  }): string {
+    if (input.existingEncoded) {
+      const pinned = parseSelfEvalStandardsVersion(input.existingEncoded);
+      if (pinned.version && pinned.version !== input.requestedVersion) {
+        throw new BadRequestException(
+          `Assessment is pinned to standardsVersion ${pinned.version}; cannot change to ${input.requestedVersion}`,
+        );
+      }
+      resolveAssessmentCatalog({
+        assessmentType: input.assessmentType,
+        standardsVersion: pinned.version || input.requestedVersion,
+        facilityTypeId: input.facilityTypeId,
+      });
+      return pinned.version || input.requestedVersion;
     }
-    if (checklist.version !== standardsVersion) {
-      throw new BadRequestException(
-        `standardsVersion ${standardsVersion} does not match checklist ${checklist.version}`,
-      );
-    }
+
+    resolveAssessmentCatalog({
+      assessmentType: input.assessmentType,
+      standardsVersion: input.requestedVersion,
+      facilityTypeId: input.facilityTypeId,
+    });
+    return input.requestedVersion;
   }
 
   private assertSelfEvalScores(
     dto: Pick<SubmitSelfEvaluationDto, 'earnedScore' | 'maxScore' | 'percent' | 'rank'>,
     facilityTypeId: string,
     answers: Record<string, boolean>,
+    standardsVersion: string,
+    assessmentType: AssessmentCatalogAssessmentType,
   ): void {
-    const computed = scoreSelfEvaluationFromAnswers(facilityTypeId, answers);
+    const computed = scoreSelfEvaluationFromAnswers(
+      facilityTypeId,
+      answers,
+      standardsVersion,
+      assessmentType,
+    );
     if (!computed) {
       throw new BadRequestException(`Unable to score facility type: ${facilityTypeId}`);
     }
@@ -857,14 +1000,27 @@ export class ComplianceService {
       clientDraftId?: string;
       userId: string;
       now: Date;
+      /** When true, keep the existing draft's encoded standardsVersion (version pin). */
+      pinExistingVersion?: boolean;
     },
   ): Promise<{ id: string; clientDraftId: string | null }> {
     const existing = await this.findSelfEvalDraftRow(tx, input.centerId);
     if (existing) {
+      const nextStandardsVersion = input.pinExistingVersion
+        ? (() => {
+            const pinned = parseSelfEvalStandardsVersion(existing.standardsVersion);
+            const nextFacility = parseSelfEvalStandardsVersion(input.standardsVersion);
+            return encodeSelfEvalStandardsVersion(
+              pinned.version || nextFacility.version,
+              nextFacility.facilityTypeId || pinned.facilityTypeId,
+            );
+          })()
+        : input.standardsVersion;
+
       const updated = await tx.complianceAssessment.update({
         where: { id: existing.id },
         data: {
-          standardsVersion: input.standardsVersion,
+          standardsVersion: nextStandardsVersion,
           assessmentDate: input.assessmentDate,
           clientDraftId: input.clientDraftId ?? existing.clientDraftId,
           updatedAt: input.now,
@@ -897,10 +1053,20 @@ export class ComplianceService {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         const raced = await this.findSelfEvalDraftRow(tx, input.centerId);
         if (raced) {
+          const nextStandardsVersion = input.pinExistingVersion
+            ? (() => {
+                const pinned = parseSelfEvalStandardsVersion(raced.standardsVersion);
+                const nextFacility = parseSelfEvalStandardsVersion(input.standardsVersion);
+                return encodeSelfEvalStandardsVersion(
+                  pinned.version || nextFacility.version,
+                  nextFacility.facilityTypeId || pinned.facilityTypeId,
+                );
+              })()
+            : input.standardsVersion;
           const updated = await tx.complianceAssessment.update({
             where: { id: raced.id },
             data: {
-              standardsVersion: input.standardsVersion,
+              standardsVersion: nextStandardsVersion,
               assessmentDate: input.assessmentDate,
               clientDraftId: input.clientDraftId ?? raced.clientDraftId,
               updatedAt: input.now,
@@ -932,6 +1098,8 @@ export class ComplianceService {
         clientDraftId: string | null;
       } | null;
       standardsVersion?: string;
+      /** Persist immutable catalog snapshots on answer items. */
+      writeSnapshots?: boolean;
     },
   ): Promise<void> {
     const questionStandards = await this.ensureQuestionStandards(
@@ -975,14 +1143,26 @@ export class ComplianceService {
       await tx.complianceAssessmentItem.deleteMany({ where: { id: { in: extraIds } } });
     }
 
+    const toCreate: Prisma.ComplianceAssessmentItemCreateManyInput[] = [];
     for (const { def, met } of input.resolvedQuestions) {
       const standardId = questionStandards.get(def.questionId)!;
       const found = existing.find(
         (row) => row.standardId === standardId && !extraIds.includes(row.id),
       );
+      const snapshotFields = input.writeSnapshots
+        ? {
+            questionCodeSnapshot: def.questionId,
+            questionTextSnapshot: def.title,
+            weightSnapshot: new Prisma.Decimal(def.maxScore),
+            sectionCodeSnapshot: def.sectionId,
+            sectionTitleSnapshot: def.sectionTitle,
+            questionOrderSnapshot: def.questionOrder,
+          }
+        : {};
       const data = {
         response: met ? ItemResponse.met : ItemResponse.not_met,
         score: new Prisma.Decimal(met ? def.maxScore : 0),
+        ...snapshotFields,
         updatedAt: input.now,
         lastModifiedAt: input.now,
         syncStatus: RecordSyncStatus.synced,
@@ -993,16 +1173,18 @@ export class ComplianceService {
           data: { ...data, version: { increment: 1 } },
         });
       } else {
-        await tx.complianceAssessmentItem.create({
-          data: {
-            assessmentId: input.assessmentId,
-            standardId,
-            ...data,
-            createdAt: input.now,
-            version: 1,
-          },
+        toCreate.push({
+          assessmentId: input.assessmentId,
+          standardId,
+          ...data,
+          createdAt: input.now,
+          version: 1,
         });
       }
+    }
+    // Batch inserts — sequential creates time out against remote EGDB for official catalogs.
+    if (toCreate.length > 0) {
+      await tx.complianceAssessmentItem.createMany({ data: toCreate });
     }
 
     if (input.keepScoreItem && input.scoreItem && scoreStandardId) {
@@ -1067,6 +1249,12 @@ export class ComplianceService {
       gapTargetDate: Date | null;
       gapStatus: string | null;
       gapResolvedAt: Date | null;
+      questionCodeSnapshot?: string | null;
+      questionTextSnapshot?: string | null;
+      weightSnapshot?: Prisma.Decimal | null;
+      sectionCodeSnapshot?: string | null;
+      sectionTitleSnapshot?: string | null;
+      questionOrderSnapshot?: number | null;
       version: number;
       createdAt: Date;
       updatedAt: Date;
@@ -1127,6 +1315,16 @@ export class ComplianceService {
   /**
    * Find-or-create EcdStandard rows keyed by checklist questionId (`code`).
    * Never inserts a second row for an existing code.
+   *
+   * REMAINING MUTATION (ALIGN-02): weight/version on EcdStandard may still be
+   * updated in place for the shared code namespace. Historical assessment
+   * interpretation must use ComplianceAssessmentItem snapshot fields
+   * (questionTextSnapshot, weightSnapshot, section*, questionOrderSnapshot)
+   * and must not depend on the latest EcdStandard.weight/title.
+   *
+   * ALIGN-04: interim codes (`dc_*` / `ecd_*`) and official codes (`OFFICIAL-*`)
+   * use disjoint namespaces, so activating 2024.3-official does not overwrite
+   * interim EcdStandard rows by code collision.
    */
   private async ensureQuestionStandards(
     tx: Prisma.TransactionClient,
@@ -1136,6 +1334,8 @@ export class ComplianceService {
       maxScore: number;
       facilityTypeId: string;
       sectionId: string;
+      sectionTitle?: string;
+      questionOrder?: number;
       version: string;
     }>,
   ): Promise<Map<string, string>> {
@@ -1681,6 +1881,12 @@ export class ComplianceService {
     gapTargetDate: Date | null;
     gapStatus: string | null;
     gapResolvedAt: Date | null;
+    questionCodeSnapshot?: string | null;
+    questionTextSnapshot?: string | null;
+    weightSnapshot?: Prisma.Decimal | null;
+    sectionCodeSnapshot?: string | null;
+    sectionTitleSnapshot?: string | null;
+    questionOrderSnapshot?: number | null;
     version: number;
     createdAt: Date;
     updatedAt: Date;
@@ -1690,8 +1896,8 @@ export class ComplianceService {
       id: row.id,
       assessmentId: row.assessmentId,
       standardId: row.standardId,
-      standardCode: row.standard?.code ?? '',
-      standardTitle: row.standard?.title ?? null,
+      standardCode: row.questionCodeSnapshot ?? row.standard?.code ?? '',
+      standardTitle: row.questionTextSnapshot ?? row.standard?.title ?? null,
       response: asDomainEnum<ItemResponse>(row.response),
       score: row.score != null ? row.score.toNumber() : null,
       evidenceNotes: row.evidenceNotes,
@@ -1700,6 +1906,12 @@ export class ComplianceService {
       gapTargetDate: row.gapTargetDate,
       gapStatus: asDomainEnumNullable<GapStatus>(row.gapStatus),
       gapResolvedAt: row.gapResolvedAt,
+      questionCodeSnapshot: row.questionCodeSnapshot ?? null,
+      questionTextSnapshot: row.questionTextSnapshot ?? null,
+      weightSnapshot: row.weightSnapshot != null ? row.weightSnapshot.toNumber() : null,
+      sectionCodeSnapshot: row.sectionCodeSnapshot ?? null,
+      sectionTitleSnapshot: row.sectionTitleSnapshot ?? null,
+      questionOrderSnapshot: row.questionOrderSnapshot ?? null,
       version: row.version,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

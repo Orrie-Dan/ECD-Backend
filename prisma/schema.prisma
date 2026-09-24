@@ -135,6 +135,8 @@ model EcdCenter {
   longitude                   Float?
   objectid                    Int?                      @unique @default(autoincrement()) @map("objectid")
   status                      String           @default("active")
+  /// Canonical facility type (daycare | home_based | community_based | ecd_3_5). Nullable until classified.
+  facilityType                String?                   @map("facility_type")
   currentComplianceLevel      String? @map("current_compliance_level")
   currentComplianceAssessedAt DateTime?                 @map("current_compliance_assessed_at") @db.Date
   createdAt                   DateTime                  @default(now()) @map("created_at")
@@ -892,6 +894,18 @@ model ComplianceAssessmentItem {
   gapTargetDate          DateTime?        @map("gap_target_date") @db.Date
   gapStatus              String?       @map("gap_status")
   gapResolvedAt          DateTime?        @map("gap_resolved_at") @db.Date
+  /// Immutable question identity at write time (survives EcdStandard mutation).
+  questionCodeSnapshot   String?          @map("question_code_snapshot")
+  /// Immutable question text at write time.
+  questionTextSnapshot   String?          @map("question_text_snapshot") @db.Text
+  /// Immutable max score / weight at write time.
+  weightSnapshot         Decimal?         @map("weight_snapshot") @db.Decimal(8, 2)
+  /// Immutable section identity at write time.
+  sectionCodeSnapshot    String?          @map("section_code_snapshot")
+  /// Immutable section title at write time.
+  sectionTitleSnapshot   String?          @map("section_title_snapshot") @db.Text
+  /// Immutable question order within the catalog at write time.
+  questionOrderSnapshot  Int?             @map("question_order_snapshot")
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @default(now()) @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")

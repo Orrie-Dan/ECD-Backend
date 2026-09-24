@@ -1,0 +1,439 @@
+{
+  "id": "home_based",
+  "title": "B. Self-Evaluation Tool for Home-Based ECD Facilities",
+  "version": "2024.3-official",
+  "grandTotalMax": 66,
+  "computedMaxScore": 66,
+  "sectionCount": 8,
+  "itemCount": 50,
+  "sections": [
+    {
+      "id": "OFFICIAL-HOME_BASED-S01",
+      "title": "1. Information about establishment/Imiterere y’urugo mbonezamikurire",
+      "subtotalMax": 4,
+      "items": [
+        {
+          "id": "OFFICIAL-HOME_BASED-S01-Q001",
+          "number": 1,
+          "text": "The household was selected by parents themselves. / Ababyeyi ubwabo bahitamo urugo ruzatangirwamo serivisi mbonezamikurire.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S01-Q002",
+          "number": 2,
+          "text": "The parent hosting the facility has signed a consent form. /Umubyeyi umwe cyangwa bombi igihe bahari umugabo n’umugore basinyira ko bemeye ko urugo rwabo ruzajya rutangirwamo serivisi mbonezamikurire ku buntu.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S01-Q003",
+          "number": 3,
+          "text": "The selected home has been approved by the local authorities. / Urugo rwatoranyijwe rwemejwe n’urwego rw’ibanze ku rwego rw’akagari.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S01-Q004",
+          "number": 4,
+          "text": "The household can accommodate children with disabilities. /Urugo mbonezamikurire ntiruheza abana bafite ubumuga n’abandi bana bafite ibibazo byihariye.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-HOME_BASED-S02",
+      "title": "2. Information about Leadership and Management/Imiyoborere y’urugo mbonezamikurire",
+      "subtotalMax": 14,
+      "items": [
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q001",
+          "number": 1,
+          "text": "The facility is led by a parent leader/the host/ Urugo mbonezamikurire ruyoborwa n’umubyeyi watoranyijwe mu bandi baturutse mu ngo zigize iryo tsinda cyangwa nyir’urugo.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q002",
+          "number": 2,
+          "text": "There is a work rotation setting out the times when each parent is responsible for childcare at the facility. /Hashyizweho gahunda y’uburyo ababyeyi bazajya basimburana mu guha abana serivisi z’imbonezamikurire.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q003",
+          "number": 3,
+          "text": "Two parents are on duty every day, offering ECD services to children./ Buri munsi haba hari ababyeyi 2 bashinzwe kwita ku bana kuri serivise zose z’imbonezamikurire.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q004",
+          "number": 4,
+          "text": "Any child aged 3–5 years may be enrolled./ Abana bafite imyaka 3-6 bakirwa mu rugo mbonezamikurire nta mpamvu ishingiweho.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q005",
+          "number": 5,
+          "text": "The facility provides services for approximately 15 children from neighbouring households. /Urugo mbonezamikurire ruha serivisi z’imbonezamikurire abana batarenze 15 baturutse mu ngo z’abaturanyi.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q006",
+          "number": 6,
+          "text": "Parents have been trained how to provide integrated ECD services. /Ababyeyi b’abana bahabwa amahugurwa y’uburyo baha abana babo serivisi mbonezamikurire zikomatanyije.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q007",
+          "number": 7,
+          "text": "A written daily routine is available and followed. /Hari gahunda y’umunsi y’ibikorwa ishushanyije.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q008",
+          "number": 8,
+          "text": "Minimum working hours are 4 hours per day for 5 days. /Amasaha make abana bagomba kumara mu rugo mbonezamikurire ni 4 mu gihe k’iminsi 5.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q009",
+          "number": 9,
+          "text": "Children’s daily attendance is recorded in a register. /Hari igitabo cyangwa ikayi yo guhamagariramo abana baje",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S02-Q010",
+          "number": 10,
+          "text": "Parents’ meetings are conducted once a term. /Inama z’ababyeyi ziterana nibura rimwe mu gihembwe.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-HOME_BASED-S03",
+      "title": "3. Information about Curriculum and Learning Approaches /Integanyanyigisho n’imyigire mu rugo mbonezamikurire.",
+      "subtotalMax": 12,
+      "items": [
+        {
+          "id": "OFFICIAL-HOME_BASED-S03-Q001",
+          "number": 1,
+          "text": "The national parenting curriculum and related guides are used. /Urugo mbonezamikurire rukoresha integanyanyigisho y’Uburere Buboneye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S03-Q002",
+          "number": 2,
+          "text": "The pre-primary CBC is followed. /Urugo mbonezamikurire rukoresha integanyanyigisho y’amashuri y’inshuke ishingiye ku bushobozi.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S03-Q003",
+          "number": 3,
+          "text": "Parents have been trained how to use the national parenting curriculum and preprimary CBC. /Ababyeyi bahugurwa ku mukoreshereze y’integanyanyigisho y’amashuri y’inshuke n’iy’Uburere Buboneye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S03-Q004",
+          "number": 4,
+          "text": "Parents have been trained how to make play materials using locally available resources. /Ababyeyi bahugurwa ku buryo bwo gukora ibikinisho n’imfashanyigisho bakoresheje ibikoresho biboneka aho urugo ruherereye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S03-Q005",
+          "number": 5,
+          "text": "Parents have been trained how to support learning through play using locally produced materials. /Ababyeyi bahugurwa ku bijyanye no kuyobora ibikorwa by’imyigire n’imyigishirize binyuze mu mikino.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S03-Q006",
+          "number": 6,
+          "text": "Parents have been trained how to set up learning corners /Ababyeyi bahugurwa ku bijyanye no gutegura inguni zo kwigiramo no kuzikoresha neza.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-HOME_BASED-S04",
+      "title": "4. Information about Health/Ubuzima",
+      "subtotalMax": 7,
+      "items": [
+        {
+          "id": "OFFICIAL-HOME_BASED-S04-Q001",
+          "number": 1,
+          "text": "Caregivers check the immunization status of children. (proof needed)/ Umurezi mu rugo mbonezamikurire asuzuma uko abana bafata inking.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S04-Q002",
+          "number": 2,
+          "text": "CHWs visit the facility. (Proof of signature by CHW)/ Umujyanama w’ubuzima asura urugo mbonezamikurire kugira ngo arebe ibibazo bijyanye n’ubuzima abana bafite.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S04-Q003",
+          "number": 3,
+          "text": "Records are kept of children and their health status. (proof of those records) Umurezi yandika abana n’ibibazo bagiye bagira iyo abakira.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S04-Q004",
+          "number": 4,
+          "text": "Children have medical insurance (proof needed)/ Umurezi agenzura ko abana bafite ubwishingizi bwo kwivuza.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S04-Q005",
+          "number": 5,
+          "text": "Children are regularly monitored for health and growth by a local CHW. (Proof of report) /Umujyanama w’ubuzima akurikirana mu buryo buhoraho ko abana bakura neza.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S04-Q006",
+          "number": 6,
+          "text": "The facility works with CHW, IZU and local authorities. (Proof of signature upon visits or scheduled visits)/ Urugo mbonezamikurire rukorana bya hafi n’umujyanama w’ubuzima, Inshuti z’Umuryango, n’ubuyobozi bw’ibanze.",
+          "maxScore": 2,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-HOME_BASED-S05",
+      "title": "5. Information about Nutrition/Imirire mu rugo mbonezamikurire",
+      "subtotalMax": 6,
+      "items": [
+        {
+          "id": "OFFICIAL-HOME_BASED-S05-Q001",
+          "number": 1,
+          "text": "There is a kitchen to prepare porridge for the children. /Urugo mbonezamikurire rwatoranyijwe rufite igikoni gitegurirwamo igikoma cy’abana /amafunguro.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S05-Q002",
+          "number": 2,
+          "text": "Children are always supervised by an adult when eating. /Igihe abana bafata igikoma baba bagenzurwa n’umuntu mukuru.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S05-Q003",
+          "number": 3,
+          "text": "The parent caregivers have been trained on food hygiene and safety. /Abarezi bahuguwe ku bijyanye n’umutekano n’isuku y’ibiribwa.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S05-Q004",
+          "number": 4,
+          "text": "The parent caregivers maintain proper personal hygiene: washing hands and covering their hair. /Abarezi bahorana isuku: gukaraba intoki no gupfuka imisatsi igihe bategura amafunguro.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S05-Q005",
+          "number": 5,
+          "text": "Parent caregivers report children with feeding difficulties to their parents for appropriate action. /Abarezi bamenya abana bafite ibibazo bijyanye n’amafunguro bakabibwira ababyeyi kugira ngo bagire icyo babikoraho.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-HOME_BASED-S06",
+      "title": "6. Information about Child Protection and Safety/Umutekano no kurinda umwana",
+      "subtotalMax": 10,
+      "items": [
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q001",
+          "number": 1,
+          "text": "Parent caregivers have been trained on relevant health and safety issues./ Abarezi bahawe amahugurwa ku bijyanye n’ubuzima, umutekano w’abana mu rugo mbonezamikurire",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q002",
+          "number": 2,
+          "text": "Health facility and parents’ phone numbers are available to call in case of emergency. /Urugo mbonezamikurire rwabitse inomero za terefone z’ivuriro n’iz’ababyeyi zahamagarwa hari ikibazo kibaye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q003",
+          "number": 3,
+          "text": "Children are supervised by adults while playing. /Abana bakurikiranwa n’umuntu mukuru igihe bakina.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q004",
+          "number": 4,
+          "text": "An enclosed compost pit is located at the farthest corner of the compound. /Ingarani/ikimoteri bamenamo imyanda icukuye kure y’aho abana bakinira kandi iratwikiriye.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q005",
+          "number": 5,
+          "text": "Hazardous materials and sharp objects are kept out of children’s reach. /Ibikoresho byose byateza abana impanuka/byabakomeretsa bibitse kure aho badashobora kugera",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q006",
+          "number": 6,
+          "text": "All pits in the home compound are covered for safety./ Ibyobo byose bicukuye mu rugo birapfundikiye ku bw’umutekano w’abana",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q007",
+          "number": 7,
+          "text": "Measures are taken to prevent children from accessing the kitchen alone. /Urugo mbonezamikurire rushyiraho ingamba zikumira abana kujya mu gikoni bari bonyine.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q008",
+          "number": 8,
+          "text": "The household is fenced, secure and clean to allow children to play and learn. /Urugo mbonezamikurire rurazitiye, rufite umutekano n’isuku ku buryo abana bakina kandi bakiga batekanye.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S06-Q009",
+          "number": 9,
+          "text": "Where there is electricity, measures are taken to protect children from electric shock/Aho urugo rufite amashanyarazi, hashyirwaho ingamba zo kurinda abana impanuka z’amashanyarazi.",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-HOME_BASED-S07",
+      "title": "7. Information about WASH/Amazi, Isuku n’Isukura",
+      "subtotalMax": 11,
+      "items": [
+        {
+          "id": "OFFICIAL-HOME_BASED-S07-Q001",
+          "number": 1,
+          "text": "Clean water is available for caregivers and children to wash hands. /Urugo mbonezamikurire rufite amazi meza ku buryo abarezi n’abana bakaraba intoki.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S07-Q002",
+          "number": 2,
+          "text": "There is running water on the premises or at a public water point no more than 500 m away. /Mu rugo mbonezamikurire hari amazi ya robine cyangwa ivomo rya rusange riri hafi nko muri metero 500",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S07-Q003",
+          "number": 3,
+          "text": "Potable water is used to prepare porridge. /Hari amazi meza yo gutekesha igikoma/amafunguro",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S07-Q004",
+          "number": 4,
+          "text": "Children have clean clothes./ Abana bambara imyenda ifite isuku",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S07-Q005",
+          "number": 5,
+          "text": "There is a clean, child-friendly toilet./ Urugo rufite umusarani ufite isuku kandi ujyanye n’ikigero cy’abana.",
+          "maxScore": 2,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S07-Q006",
+          "number": 6,
+          "text": "A container with safe drinking water is available and kept covered. /Hari igikoresho kigenewe kubika amazi yo kunywa gipfundikirwa.",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S07-Q007",
+          "number": 7,
+          "text": "Potholes and bushes in the household compound are cleared. /Ibihuru n’ibyobo bireka amazi mu rugo byakuweho",
+          "maxScore": 1,
+          "indicators": []
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S07-Q008",
+          "number": 8,
+          "text": "Waste bins are available to avoid rubbish being scattered around the compound. /Hari igikoresho cyo kumenamo imyanda kugira ngo imyanda itanyanyagira mu rugo hose",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    },
+    {
+      "id": "OFFICIAL-HOME_BASED-S08",
+      "title": "8. Information about Recruitment/Selection and qualification of caregivers /Uko abarezi bashyirwaho mu rugo mbonezamikurire n’impamyabushobozi zabo.",
+      "subtotalMax": 2,
+      "items": [
+        {
+          "id": "OFFICIAL-HOME_BASED-S08-Q001",
+          "number": 1,
+          "text": "A caregiver has one of the following qualifications: Umurezi mu rugo mbonezamikurire afite impamyabushobozi imwe muri izi zikurikira:",
+          "maxScore": 1,
+          "indicators": [
+            {
+              "id": "OFFICIAL-HOME_BASED-S08-Q001-IND01",
+              "label": "a) Ordinary secondary school level certificate with intensive training in ECD/Kuba yarize ikiciro cya mbere cy’amashuri yisumbuye (O’Level), akaba yaranahawe amahugurwa yimbitse ku mbonezamikurire y’abana bato",
+              "maxScore": 1,
+              "sourceRow": 63
+            },
+            {
+              "id": "OFFICIAL-HOME_BASED-S08-Q001-IND02",
+              "label": "b) Primary-level certificate with intensive training in ECD/Kuba yarize amashuri abanza (Primary Education) akaba yaranahawe amahugurwa yimbitse ku mbonezamikurire y’abana bato.",
+              "maxScore": 1,
+              "sourceRow": 64,
+              "sourceNumber": "2"
+            },
+            {
+              "id": "OFFICIAL-HOME_BASED-S08-Q001-IND03",
+              "label": "c) Experienced and trained on ECD by NCDA, Districts and partners. /Kuba afite uburambe mu kwita ku bana bato kandi yaranahuguwe na NCDA, REB, Akarere n’abafatanyabikorwa (DPs)",
+              "maxScore": 1,
+              "sourceRow": 65,
+              "sourceNumber": "3"
+            }
+          ],
+          "selectionMode": "any"
+        },
+        {
+          "id": "OFFICIAL-HOME_BASED-S08-Q002",
+          "number": 4,
+          "text": "A parent committee of ECD settings selects the caregivers. /Gutoranya umurezi mu rugo mbonezamikurire bikorwa n’ababyeyi",
+          "maxScore": 1,
+          "indicators": []
+        }
+      ]
+    }
+  ]
+}

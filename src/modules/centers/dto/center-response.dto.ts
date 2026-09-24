@@ -1,6 +1,7 @@
-import { EcdCenterStatus } from '../../../common/domain';
+import { EcdCenterStatus, EcdFacilityType } from '../../../common/domain';
 import { ApiProperty } from '@nestjs/swagger';
 import { ComplianceClassification } from '@prisma/client';
+
 export class CenterResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;
@@ -25,6 +26,14 @@ export class CenterResponseDto {
 
   @ApiProperty({ enum: EcdCenterStatus, enumName: 'EcdCenterStatus' })
   status: EcdCenterStatus;
+
+  @ApiProperty({
+    enum: EcdFacilityType,
+    enumName: 'EcdFacilityType',
+    nullable: true,
+    description: 'Canonical facility type; null until classified',
+  })
+  facilityType: EcdFacilityType | null;
 
   @ApiProperty({ format: 'uuid' })
   districtId: string;
