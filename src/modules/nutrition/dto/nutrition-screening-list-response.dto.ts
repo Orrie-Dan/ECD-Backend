@@ -49,8 +49,10 @@ export class NutritionScreeningListItemDto {
     enum: NutritionStatus,
     enumName: 'NutritionStatus',
     example: NutritionStatus.normal,
+    nullable: true,
+    description: 'Deprecated legacy absolute-MUAC status; null for new screenings.',
   })
-  nutritionStatus: NutritionStatus;
+  nutritionStatus: NutritionStatus | null;
 
   @ApiProperty({ example: false })
   requiresReferral: boolean;

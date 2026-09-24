@@ -6,6 +6,7 @@ export interface JwtPayload {
   username: string;
   role: UserRole;
   districtId: string | null;
+  sectorId: string | null;
   centerId: string | null;
   type: 'access' | 'refresh';
 }

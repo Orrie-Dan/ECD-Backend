@@ -1,4 +1,4 @@
-import { PersonSex, UserAccountStatus, UserRole } from '../../common/domain';
+import { AdministrativeLevel, PersonSex, UserAccountStatus, UserRole } from '../../common/domain';
 import {
   BadRequestException,
   ConflictException,
@@ -12,10 +12,14 @@ import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import {
-  assertCenterAccess,
   assertDistrictAccess,
   canAccessDistrict,
+  isDistrictPortalRole,
 } from '../../common/auth/scope.util';
+import {
+  assertCenterAccessible,
+  resolveDistrictQueryScope,
+} from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -82,10 +86,11 @@ export class UsersService {
 
     const mapped = userMapper.toCreateInput(dto);
     this.assertGenderForRole(mapped.role, mapped.gender);
-    const { districtId, centerId } = await this.resolveScopeForRole(
+    const { districtId, sectorId, centerId } = await this.resolveScopeForRole(
       actor,
       mapped.role,
       mapped.districtId,
+      mapped.sectorId,
       mapped.centerId,
     );
 
@@ -119,6 +124,7 @@ export class UsersService {
           educationLevel: mapped.educationLevel,
           role: mapped.role,
           districtId,
+          sectorId,
           centerId,
           passwordHash,
           status: UserAccountStatus.active,
@@ -204,7 +210,7 @@ export class UsersService {
     const pageSize = query.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
 
-    const where = this.buildListWhere(actor, query);
+    const where = await this.buildListWhere(actor, query);
 
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.userAccount.findMany({
@@ -319,8 +325,8 @@ export class UsersService {
 
   /**
    * Creation permission matrix.
-   * NCDA may create any role, including peer ncda_admin.
-   * District and center staff cannot escalate.
+   * NCDA may create any role, including peer ncda_admin and sector_focal_person.
+   * District and Sector portal operators create center staff only (not Sector/District admins).
    */
   canCreateRole(actor: AuthUser, targetRole: UserRole): boolean {
     if (actor.role === UserRole.caregiver) {
@@ -330,11 +336,12 @@ export class UsersService {
       return (
         targetRole === UserRole.ncda_admin ||
         targetRole === UserRole.district_focal_person ||
+        targetRole === UserRole.sector_focal_person ||
         targetRole === UserRole.ecd_director ||
         targetRole === UserRole.caregiver
       );
     }
-    if (actor.role === UserRole.district_focal_person) {
+    if (isDistrictPortalRole(actor.role)) {
       return targetRole === UserRole.ecd_director || targetRole === UserRole.caregiver;
     }
     if (actor.role === UserRole.ecd_director) {
@@ -349,7 +356,9 @@ export class UsersService {
    */
   canResetPassword(
     actor: AuthUser,
-    target: Pick<UserWithRelations, 'role' | 'districtId' | 'centerId'>,
+    target: Pick<UserWithRelations, 'role' | 'districtId' | 'centerId'> & {
+      sectorId?: string | null;
+    },
   ): boolean {
     if (actor.role === UserRole.caregiver) {
       return false;
@@ -360,6 +369,16 @@ export class UsersService {
     if (actor.role === UserRole.district_focal_person) {
       return (
         (target.role === UserRole.caregiver || target.role === UserRole.ecd_director) &&
+        target.districtId != null &&
+        actor.districtId != null &&
+        target.districtId === actor.districtId
+      );
+    }
+    if (actor.role === UserRole.sector_focal_person) {
+      return (
+        (target.role === UserRole.caregiver || target.role === UserRole.ecd_director) &&
+        target.centerId != null &&
+        actor.sectorId != null &&
         target.districtId != null &&
         actor.districtId != null &&
         target.districtId === actor.districtId
@@ -379,7 +398,7 @@ export class UsersService {
   private assertCanManageUsers(actor: AuthUser): void {
     if (
       actor.role !== UserRole.ncda_admin &&
-      actor.role !== UserRole.district_focal_person &&
+      !isDistrictPortalRole(actor.role) &&
       actor.role !== UserRole.ecd_director
     ) {
       throw new ForbiddenException('You do not have access to user management');
@@ -410,25 +429,59 @@ export class UsersService {
     actor: AuthUser,
     role: UserRole,
     districtId: string | null,
+    sectorId: string | null,
     centerId: string | null,
-  ): Promise<{ districtId: string | null; centerId: string | null }> {
+  ): Promise<{ districtId: string | null; sectorId: string | null; centerId: string | null }> {
     if (role === UserRole.ncda_admin) {
-      if (districtId || centerId) {
-        throw new BadRequestException('ncda_admin must not have districtId or centerId');
+      if (districtId || centerId || sectorId) {
+        throw new BadRequestException('ncda_admin must not have districtId, sectorId, or centerId');
       }
-      return { districtId: null, centerId: null };
+      return { districtId: null, sectorId: null, centerId: null };
     }
 
     if (role === UserRole.district_focal_person) {
       if (!districtId) {
         throw new BadRequestException('districtId is required for district_focal_person');
       }
-      if (centerId) {
-        throw new BadRequestException('centerId must be null for district_focal_person');
+      if (centerId || sectorId) {
+        throw new BadRequestException(
+          'centerId and sectorId must be null for district_focal_person',
+        );
       }
       assertDistrictAccess(actor, districtId);
       await this.requireDistrict(districtId);
-      return { districtId, centerId: null };
+      return { districtId, sectorId: null, centerId: null };
+    }
+
+    if (role === UserRole.sector_focal_person) {
+      if (!sectorId) {
+        throw new BadRequestException('sectorId is required for sector_focal_person');
+      }
+      if (centerId) {
+        throw new BadRequestException('centerId must be null for sector_focal_person');
+      }
+      if (actor.role !== UserRole.ncda_admin) {
+        throw new ForbiddenException('Only NCDA can create sector_focal_person users');
+      }
+
+      const sector = await this.prisma.administrativeUnit.findUnique({
+        where: { id: sectorId },
+        select: { id: true, level: true, districtId: true, name: true },
+      });
+      if (!sector) {
+        throw new NotFoundException(`Sector ${sectorId} not found`);
+      }
+      if (sector.level !== AdministrativeLevel.sector) {
+        throw new BadRequestException('sectorId must reference an AdministrativeUnit with level=sector');
+      }
+      if (!sector.districtId) {
+        throw new BadRequestException('Selected sector does not have a resolvable districtId');
+      }
+      if (districtId && districtId !== sector.districtId) {
+        throw new BadRequestException('districtId does not match the selected sector district');
+      }
+      await this.requireDistrict(sector.districtId);
+      return { districtId: sector.districtId, sectorId: sector.id, centerId: null };
     }
 
     if (role !== UserRole.caregiver && role !== UserRole.ecd_director) {
@@ -439,13 +492,10 @@ export class UsersService {
     if (!centerId) {
       throw new BadRequestException(`centerId is required for ${role}`);
     }
-    if (districtId) {
-      // Accept only when it matches the center's district (validated below).
-    }
 
     const center = await this.prisma.ecdCenter.findFirst({
       where: { id: centerId, deletedAt: null },
-      select: { id: true, districtId: true },
+      select: { id: true, districtId: true, villageId: true },
     });
     if (!center) {
       throw new NotFoundException(`Center ${centerId} not found`);
@@ -455,7 +505,7 @@ export class UsersService {
       throw new BadRequestException('districtId does not match the selected center district');
     }
 
-    assertCenterAccess(actor, center.id, center.districtId);
+    await assertCenterAccessible(this.prisma, actor, center);
 
     if (
       actor.role === UserRole.district_focal_person &&
@@ -464,14 +514,21 @@ export class UsersService {
       throw new ForbiddenException('Assigned center must belong to your district');
     }
 
+    if (actor.role === UserRole.sector_focal_person) {
+      // assertCenterAccessible already proved village ∈ sector
+    }
+
     if (actor.role === UserRole.ecd_director && (!actor.centerId || actor.centerId !== center.id)) {
       throw new ForbiddenException('Caregivers must be assigned to your center');
     }
 
-    return { districtId: center.districtId, centerId: center.id };
+    return { districtId: center.districtId, sectorId: null, centerId: center.id };
   }
 
-  private buildListWhere(actor: AuthUser, query: ListUsersQueryDto): Prisma.UserAccountWhereInput {
+  private async buildListWhere(
+    actor: AuthUser,
+    query: ListUsersQueryDto,
+  ): Promise<Prisma.UserAccountWhereInput> {
     const and: Prisma.UserAccountWhereInput[] = [];
 
     if (actor.role === UserRole.district_focal_person) {
@@ -479,6 +536,18 @@ export class UsersService {
         throw new ForbiddenException('District scope is required for this role');
       }
       and.push({ districtId: actor.districtId });
+    }
+
+    if (actor.role === UserRole.sector_focal_person) {
+      if (!actor.districtId || !actor.sectorId) {
+        throw new ForbiddenException('Sector scope is required for this role');
+      }
+      const scope = await resolveDistrictQueryScope(this.prisma, actor, {});
+      const centerIds = scope.centerIds === 'all' ? [] : scope.centerIds;
+      and.push({
+        centerId: { in: centerIds },
+        role: { in: [UserRole.caregiver, UserRole.ecd_director] },
+      });
     }
 
     if (actor.role === UserRole.ecd_director) {
@@ -501,15 +570,19 @@ export class UsersService {
       and.push({ status: userMapper.toDbStatus(query.status) });
     }
     if (query.districtId) {
-      if (
-        actor.role === UserRole.district_focal_person &&
-        !canAccessDistrict(actor, query.districtId)
-      ) {
+      if (isDistrictPortalRole(actor.role) && !canAccessDistrict(actor, query.districtId)) {
         throw new ForbiddenException(`You do not have access to district ${query.districtId}`);
       }
       and.push({ districtId: query.districtId });
     }
     if (query.centerId) {
+      if (actor.role === UserRole.sector_focal_person) {
+        await assertCenterAccessible(
+          this.prisma,
+          actor,
+          await this.requireCenterGeo(query.centerId),
+        );
+      }
       and.push({ centerId: query.centerId });
     }
     if (query.search?.trim()) {
@@ -543,6 +616,28 @@ export class UsersService {
       }
     }
 
+    if (actor.role === UserRole.sector_focal_person) {
+      if (!actor.districtId || !actor.sectorId) {
+        throw new ForbiddenException('Sector scope is required for this role');
+      }
+      if (user.role === UserRole.sector_focal_person) {
+        if (user.sectorId !== actor.sectorId) {
+          throw new ForbiddenException(`You do not have access to user ${id}`);
+        }
+      } else if (user.role === UserRole.caregiver || user.role === UserRole.ecd_director) {
+        if (!user.centerId) {
+          throw new ForbiddenException(`You do not have access to user ${id}`);
+        }
+        await assertCenterAccessible(
+          this.prisma,
+          actor,
+          await this.requireCenterGeo(user.centerId),
+        );
+      } else {
+        throw new ForbiddenException(`You do not have access to user ${id}`);
+      }
+    }
+
     if (actor.role === UserRole.ecd_director) {
       if (
         user.role !== UserRole.caregiver ||
@@ -555,6 +650,19 @@ export class UsersService {
     }
 
     return user as UserWithRelations;
+  }
+
+  private async requireCenterGeo(
+    centerId: string,
+  ): Promise<{ id: string; districtId: string; villageId: string }> {
+    const center = await this.prisma.ecdCenter.findFirst({
+      where: { id: centerId, deletedAt: null },
+      select: { id: true, districtId: true, villageId: true },
+    });
+    if (!center) {
+      throw new NotFoundException(`Center ${centerId} not found`);
+    }
+    return center;
   }
 
   private async requireDistrict(districtId: string): Promise<void> {

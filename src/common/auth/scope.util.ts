@@ -3,7 +3,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { UserContext } from '../interfaces/user-context.interface';
 
 /** Fields required for scope decisions (subset of UserContext). */
-export type ScopeUser = Pick<UserContext, 'role' | 'centerId' | 'districtId'>;
+export type ScopeUser = Pick<UserContext, 'role' | 'centerId' | 'districtId' | 'sectorId'>;
 
 /** Center-assigned operational staff (caregiver and ECD director / head of ECD). */
 export function isCenterStaffRole(role: UserRole): boolean {
@@ -16,8 +16,18 @@ export function isCenterAdminRole(role: UserRole): boolean {
 }
 
 /**
+ * District portal operators: district_focal_person and sector_focal_person.
+ * Same operational capabilities; geographic scope differs.
+ */
+export function isDistrictPortalRole(role: UserRole): boolean {
+  return role === UserRole.district_focal_person || role === UserRole.sector_focal_person;
+}
+
+/**
  * Caregiver / ECD director: own center only.
  * District focal: centers in their district (pass centerDistrictId).
+ * Sector focal: district match alone is NOT sufficient — callers must use
+ * `assertCenterAccessible` (async village/sector proof) for Sector users.
  * NCDA: unrestricted.
  */
 export function canAccessCenter(
@@ -40,11 +50,16 @@ export function canAccessCenter(
     return user.districtId === centerDistrictId;
   }
 
+  // Sector requires village-under-sector proof (async). Sync check is deny-closed.
+  if (user.role === UserRole.sector_focal_person) {
+    return false;
+  }
+
   return false;
 }
 
 /**
- * District focal: own district only.
+ * District / Sector portal: own district only.
  * NCDA: unrestricted.
  * Center staff: not district-scoped (denied).
  */
@@ -53,7 +68,7 @@ export function canAccessDistrict(user: ScopeUser, districtId: string): boolean 
     return true;
   }
 
-  if (user.role === UserRole.district_focal_person) {
+  if (isDistrictPortalRole(user.role)) {
     return user.districtId != null && user.districtId === districtId;
   }
 

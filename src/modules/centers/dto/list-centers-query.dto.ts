@@ -4,10 +4,44 @@ import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 
 export class ListCentersQueryDto {
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Filter by province — centers in districts under this province',
+  })
+  @IsOptional()
+  @IsUUID()
+  provinceId?: string;
+
   @ApiPropertyOptional({ format: 'uuid', description: 'Filter by district' })
   @IsOptional()
   @IsUUID()
   districtId?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description:
+      'Filter by sector — centers whose village lies under this administrative unit',
+  })
+  @IsOptional()
+  @IsUUID()
+  sectorId?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description:
+      'Filter by cell — centers whose village lies under this administrative unit (narrower than sector)',
+  })
+  @IsOptional()
+  @IsUUID()
+  cellId?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Filter by village — centers in this village',
+  })
+  @IsOptional()
+  @IsUUID()
+  villageId?: string;
 
   @ApiPropertyOptional({
     enum: EcdCenterStatus,

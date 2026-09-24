@@ -3,6 +3,14 @@ import { Type } from 'class-transformer';
 import { IsDate, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 
 export class MonitoringQueryDto {
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Optional province scope — all centers in districts under this province',
+  })
+  @IsOptional()
+  @IsUUID()
+  provinceId?: string;
+
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID()
@@ -17,6 +25,23 @@ export class MonitoringQueryDto {
   @IsOptional()
   @IsUUID()
   sectorId?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description:
+      'Optional cell scope — centers whose village lies under this administrative unit',
+  })
+  @IsOptional()
+  @IsUUID()
+  cellId?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Optional village scope — centers in this village',
+  })
+  @IsOptional()
+  @IsUUID()
+  villageId?: string;
 
   @ApiPropertyOptional({
     type: String,

@@ -35,16 +35,31 @@ export class DashboardNutritionMetricsDto {
   @ApiProperty({ example: 50 })
   screenings: number;
 
-  @ApiProperty({ example: 2 })
+  @ApiProperty({
+    example: 2,
+    description:
+      'Compat: screenings with any WHO indicator below_minus_3. NOT a combined clinical score.',
+  })
   severe: number;
 
-  @ApiProperty({ example: 5 })
+  @ApiProperty({
+    example: 5,
+    description:
+      'Compat: screenings with any WHO minus_3_to_minus_2 and no below_minus_3. NOT a combined clinical score.',
+  })
   moderate: number;
 
-  @ApiProperty({ example: 8 })
+  @ApiProperty({
+    example: 0,
+    description: 'Deprecated legacy at_risk — always 0 under WHO truth.',
+  })
   atRisk: number;
 
-  @ApiProperty({ example: 35 })
+  @ApiProperty({
+    example: 35,
+    description:
+      'Compat: remaining screenings with ≥1 available WHO zone. NOT a combined clinical score.',
+  })
   normal: number;
 
   @ApiProperty({ example: 4 })
@@ -91,6 +106,9 @@ export class DashboardResponseDto {
 
   @ApiProperty({ format: 'uuid', nullable: true })
   districtId: string | null;
+
+  @ApiProperty({ format: 'uuid', nullable: true })
+  sectorId: string | null;
 
   @ApiProperty({ format: 'uuid', nullable: true })
   centerId: string | null;

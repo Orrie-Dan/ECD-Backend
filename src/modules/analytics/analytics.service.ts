@@ -3,24 +3,26 @@ import {
   ChildGender,
   ChildStatus,
   EducationLevel,
-  NutritionStatus,
   UserAccountStatus,
   UserRole,
 } from '../../common/domain';
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { Prisma, ReferralStatus } from '@prisma/client';
 import {
-  assertCenterAccess,
-  assertDistrictAccess,
-  isCenterStaffRole,
-} from '../../common/auth/scope.util';
+  centerIdWhere as scopeCenterIdWhere,
+  childCenterWhere as scopeChildCenterWhere,
+  ecdCenterWhere,
+  resolveDistrictQueryScope,
+  type DistrictQueryScope,
+  type ScopeQuery,
+} from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
+import { decimalToNumber } from '../nutrition/mappers/nutrition.mapper';
+import { aggregateWhoScreenings } from '../nutrition/who/concern';
 import { ChildrenDemographicsQueryDto } from './dto/children-demographics-query.dto';
 import {
   ChildrenDemographicsResponseDto,
@@ -29,16 +31,7 @@ import {
 import { DashboardQueryDto } from './dto/dashboard-query.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 
-type AnalyticsScopeQuery = {
-  districtId?: string;
-  centerId?: string;
-};
-
-type ResolvedAnalyticsScope = {
-  centerIds: string[] | 'all';
-  districtId: string | null;
-  singleCenterId: string | null;
-};
+type ResolvedAnalyticsScope = DistrictQueryScope;
 
 @Injectable()
 export class AnalyticsService {
@@ -46,29 +39,19 @@ export class AnalyticsService {
 
   async getDashboard(user: AuthUser, query: DashboardQueryDto): Promise<DashboardResponseDto> {
     const { from, to } = resolveDateRange(query.from, query.to);
-    const scope = await this.resolveScope(user, query);
+    const scope = await resolveDistrictQueryScope(this.prisma, user, geoFromQuery(query));
 
     if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
       return emptyDashboard(scope, from, to);
     }
 
-    const centerFilter = scope.centerIds === 'all' ? undefined : { in: scope.centerIds };
-
     const centersInScope = await this.prisma.ecdCenter.count({
-      where: {
-        deletedAt: null,
-        ...(centerFilter ? { id: centerFilter } : {}),
-        ...(scope.districtId && scope.centerIds === 'all' ? { districtId: scope.districtId } : {}),
-      },
+      where: ecdCenterWhere(scope),
     });
 
-    // When scoped to explicit center ids (caregiver / district / center filter)
-    const centerIdWhere = centerFilter ? { centerId: centerFilter } : {};
-    const childCenterWhere = centerFilter
-      ? { centerId: centerFilter }
-      : scope.districtId
-        ? { center: { districtId: scope.districtId, deletedAt: null } }
-        : {};
+    // When scoped to explicit center ids (caregiver / district / sector / center filter)
+    const centerIdWhere = scopeCenterIdWhere(scope);
+    const childCenterWhere = scopeChildCenterWhere(scope);
 
     const [
       childTotal,
@@ -78,7 +61,7 @@ export class AnalyticsService {
       attendancePresent,
       attendanceAbsent,
       centersReportingAttendance,
-      nutritionGrouped,
+      nutritionRows,
       nutritionRequiresReferral,
       referralsCreated,
       referralsPending,
@@ -139,14 +122,20 @@ export class AnalyticsService {
         to,
         scope.centerIds,
       ),
-      this.prisma.childNutritionScreening.groupBy({
-        by: ['nutritionStatus'],
+      this.prisma.childNutritionScreening.findMany({
         where: {
           deletedAt: null,
           screeningDate: { gte: from, lte: to },
           child: { deletedAt: null, ...childCenterWhere },
         },
-        _count: { _all: true },
+        select: {
+          weightKg: true,
+          heightCm: true,
+          muacCm: true,
+          screeningDate: true,
+          child: { select: { dateOfBirth: true, gender: true } },
+        },
+        take: 10000,
       }),
       this.prisma.childNutritionScreening.count({
         where: {
@@ -227,17 +216,17 @@ export class AnalyticsService {
       }),
     ]);
 
-    const nutritionCounts: Record<string, number> = {
-      [NutritionStatus.normal]: 0,
-      [NutritionStatus.at_risk]: 0,
-      [NutritionStatus.moderate]: 0,
-      [NutritionStatus.severe]: 0,
-    };
-    let screenings = 0;
-    for (const row of nutritionGrouped) {
-      nutritionCounts[row.nutritionStatus] = row._count._all;
-      screenings += row._count._all;
-    }
+    const whoAgg = aggregateWhoScreenings(
+      nutritionRows.map((row) => ({
+        dateOfBirth: row.child.dateOfBirth,
+        gender: row.child.gender,
+        screeningDate: row.screeningDate,
+        weightKg: decimalToNumber(row.weightKg),
+        heightCm: decimalToNumber(row.heightCm),
+        muacCm: decimalToNumber(row.muacCm),
+      })),
+    );
+    const screenings = whoAgg.screenings;
 
     const totalAttendance = attendancePresent + attendanceAbsent;
     const rate =
@@ -247,6 +236,7 @@ export class AnalyticsService {
       from: from.toISOString(),
       to: to.toISOString(),
       districtId: scope.districtId,
+      sectorId: scope.sectorId,
       centerId: scope.singleCenterId,
       centersInScope,
       children: {
@@ -264,10 +254,11 @@ export class AnalyticsService {
       },
       nutrition: {
         screenings,
-        severe: nutritionCounts[NutritionStatus.severe],
-        moderate: nutritionCounts[NutritionStatus.moderate],
-        atRisk: nutritionCounts[NutritionStatus.at_risk],
-        normal: nutritionCounts[NutritionStatus.normal],
+        // Compat remap from WHO zones — NOT a combined clinical score.
+        severe: whoAgg.severe,
+        moderate: whoAgg.moderate,
+        atRisk: whoAgg.atRisk,
+        normal: whoAgg.normal,
         requiresReferral: nutritionRequiresReferral,
       },
       referrals: {
@@ -294,7 +285,7 @@ export class AnalyticsService {
     user: AuthUser,
     query: ChildrenDemographicsQueryDto,
   ): Promise<ChildrenDemographicsResponseDto> {
-    const scope = await this.resolveScope(user, query);
+    const scope = await this.resolveScope(user, geoFromQuery(query));
     const asOf = startOfUtcDay(new Date());
 
     if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
@@ -302,12 +293,12 @@ export class AnalyticsService {
     }
 
     const centersInScope = await this.prisma.ecdCenter.count({
-      where: {
-        deletedAt: null,
-        ...(scope.centerIds !== 'all' ? { id: { in: scope.centerIds } } : {}),
-        ...(scope.districtId && scope.centerIds === 'all' ? { districtId: scope.districtId } : {}),
-      },
+      where: ecdCenterWhere(scope),
     });
+
+    if (centersInScope === 0) {
+      return emptyChildrenDemographics(scope, asOf);
+    }
 
     const childScopeSql = this.buildChildCenterScopeSql(scope);
     const staffScopeSql = this.buildStaffCenterScopeSql(scope);
@@ -398,7 +389,17 @@ export class AnalyticsService {
         LEFT JOIN ecd_center c
           ON c.district_id = d.id
          AND c.deleted_at IS NULL
-         AND ${scope.singleCenterId ? Prisma.sql`c.id = ${scope.singleCenterId}` : Prisma.sql`TRUE`}
+         AND ${
+           scope.singleCenterId
+             ? Prisma.sql`c.id = ${scope.singleCenterId}`
+             : scope.centerIds !== 'all'
+               ? scope.centerIds.length === 0
+                 ? Prisma.sql`FALSE`
+                 : Prisma.sql`c.id IN (${Prisma.join(scope.centerIds)})`
+               : scope.villageId
+                 ? Prisma.sql`c.village_id = ${scope.villageId}`
+                 : Prisma.sql`TRUE`
+         }
         LEFT JOIN child ch
           ON ch.center_id = c.id
          AND ch.deleted_at IS NULL
@@ -532,8 +533,20 @@ export class AnalyticsService {
     if (scope.singleCenterId) {
       return Prisma.sql`ch.center_id = ${scope.singleCenterId}`;
     }
+    if (scope.centerIds !== 'all') {
+      if (scope.centerIds.length === 0) return Prisma.sql`FALSE`;
+      return Prisma.sql`ch.center_id IN (${Prisma.join(scope.centerIds)})`;
+    }
+    if (scope.villageId) {
+      return Prisma.sql`c.village_id = ${scope.villageId}`;
+    }
     if (scope.districtId) {
       return Prisma.sql`c.district_id = ${scope.districtId}`;
+    }
+    if (scope.provinceId) {
+      return Prisma.sql`c.district_id IN (
+        SELECT id FROM district WHERE province_id = ${scope.provinceId}
+      )`;
     }
     return Prisma.sql`TRUE`;
   }
@@ -542,9 +555,25 @@ export class AnalyticsService {
     if (scope.singleCenterId) {
       return Prisma.sql`u.center_id = ${scope.singleCenterId}`;
     }
+    if (scope.centerIds !== 'all') {
+      if (scope.centerIds.length === 0) return Prisma.sql`FALSE`;
+      return Prisma.sql`u.center_id IN (${Prisma.join(scope.centerIds)})`;
+    }
+    if (scope.villageId) {
+      return Prisma.sql`u.center_id IN (
+        SELECT id FROM ecd_center WHERE deleted_at IS NULL AND village_id = ${scope.villageId}
+      )`;
+    }
     if (scope.districtId) {
       return Prisma.sql`u.center_id IN (
         SELECT id FROM ecd_center WHERE deleted_at IS NULL AND district_id = ${scope.districtId}
+      )`;
+    }
+    if (scope.provinceId) {
+      return Prisma.sql`u.center_id IN (
+        SELECT c.id FROM ecd_center c
+        INNER JOIN district d ON d.id = c.district_id
+        WHERE c.deleted_at IS NULL AND d.province_id = ${scope.provinceId}
       )`;
     }
     return Prisma.sql`u.center_id IS NOT NULL`;
@@ -554,102 +583,17 @@ export class AnalyticsService {
     if (scope.districtId) {
       return Prisma.sql`d.id = ${scope.districtId}`;
     }
+    if (scope.provinceId) {
+      return Prisma.sql`d.province_id = ${scope.provinceId}`;
+    }
     return Prisma.sql`TRUE`;
   }
 
   private async resolveScope(
     user: AuthUser,
-    query: AnalyticsScopeQuery,
+    query: ScopeQuery,
   ): Promise<ResolvedAnalyticsScope> {
-    if (query.centerId && query.districtId) {
-      // Both allowed if center belongs to district — validated below
-    }
-
-    if (isCenterStaffRole(user.role)) {
-      if (!user.centerId) {
-        throw new ForbiddenException('Center scope is required for this role');
-      }
-      if (query.centerId && query.centerId !== user.centerId) {
-        throw new ForbiddenException('Cannot query another center');
-      }
-      if (query.districtId) {
-        throw new ForbiddenException('Center-scoped roles cannot filter by district');
-      }
-      return {
-        centerIds: [user.centerId],
-        districtId: user.districtId,
-        singleCenterId: user.centerId,
-      };
-    }
-
-    if (user.role === UserRole.district_focal_person) {
-      if (!user.districtId) {
-        throw new ForbiddenException('District scope is required');
-      }
-      if (query.districtId && query.districtId !== user.districtId) {
-        assertDistrictAccess(user, query.districtId);
-      }
-
-      if (query.centerId) {
-        const center = await this.prisma.ecdCenter.findFirst({
-          where: { id: query.centerId, deletedAt: null },
-          select: { id: true, districtId: true },
-        });
-        if (!center) throw new NotFoundException('Center not found');
-        assertCenterAccess(user, center.id, center.districtId);
-        return {
-          centerIds: [center.id],
-          districtId: user.districtId,
-          singleCenterId: center.id,
-        };
-      }
-
-      const centers = await this.prisma.ecdCenter.findMany({
-        where: { districtId: user.districtId, deletedAt: null },
-        select: { id: true },
-      });
-      return {
-        centerIds: centers.map((c) => c.id),
-        districtId: user.districtId,
-        singleCenterId: null,
-      };
-    }
-
-    // ncda_admin
-    if (query.centerId) {
-      const center = await this.prisma.ecdCenter.findFirst({
-        where: { id: query.centerId, deletedAt: null },
-        select: { id: true, districtId: true },
-      });
-      if (!center) throw new NotFoundException('Center not found');
-      if (query.districtId && query.districtId !== center.districtId) {
-        throw new BadRequestException('centerId does not belong to the given districtId');
-      }
-      return {
-        centerIds: [center.id],
-        districtId: center.districtId,
-        singleCenterId: center.id,
-      };
-    }
-
-    if (query.districtId) {
-      assertDistrictAccess(user, query.districtId);
-      const centers = await this.prisma.ecdCenter.findMany({
-        where: { districtId: query.districtId, deletedAt: null },
-        select: { id: true },
-      });
-      return {
-        centerIds: centers.map((c) => c.id),
-        districtId: query.districtId,
-        singleCenterId: null,
-      };
-    }
-
-    return {
-      centerIds: 'all',
-      districtId: null,
-      singleCenterId: null,
-    };
+    return resolveDistrictQueryScope(this.prisma, user, query);
   }
 }
 
@@ -686,6 +630,24 @@ async function countDistinctCenterIds(
   return rows[0]?.cnt ?? 0;
 }
 
+function geoFromQuery(query: {
+  provinceId?: string;
+  districtId?: string;
+  sectorId?: string;
+  cellId?: string;
+  villageId?: string;
+  centerId?: string;
+}): ScopeQuery {
+  return {
+    provinceId: query.provinceId,
+    districtId: query.districtId,
+    sectorId: query.sectorId,
+    cellId: query.cellId,
+    villageId: query.villageId,
+    centerId: query.centerId,
+  };
+}
+
 function resolveDateRange(from?: Date, to?: Date): { from: Date; to: Date } {
   const end = to ? startOfUtcDay(to) : startOfUtcDay(new Date());
   const start = from
@@ -707,6 +669,7 @@ function startOfUtcDay(d: Date): Date {
 function emptyDashboard(
   scope: {
     districtId: string | null;
+    sectorId: string | null;
     singleCenterId: string | null;
   },
   from: Date,
@@ -716,6 +679,7 @@ function emptyDashboard(
     from: from.toISOString(),
     to: to.toISOString(),
     districtId: scope.districtId,
+    sectorId: scope.sectorId,
     centerId: scope.singleCenterId,
     centersInScope: 0,
     children: { total: 0, active: 0, archived: 0, transferred: 0 },

@@ -295,6 +295,7 @@ export class SyncProcessor extends WorkerHost {
     role: string;
     centerId: string | null;
     districtId: string | null;
+    sectorId: string | null;
     status: string;
   }): AuthUser {
     return {
@@ -305,6 +306,7 @@ export class SyncProcessor extends WorkerHost {
       role: asDomainEnum<UserRole>(user.role),
       centerId: user.centerId,
       districtId: user.districtId,
+      sectorId: user.sectorId,
       status: user.status,
     };
   }

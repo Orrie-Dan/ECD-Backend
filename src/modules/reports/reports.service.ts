@@ -1,7 +1,6 @@
 import {
   AttendanceStatus,
   ChildStatus,
-  NutritionStatus,
   TransferStatus,
 } from '../../common/domain';
 import { Injectable } from '@nestjs/common';
@@ -16,6 +15,8 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { MonitoringQueryDto } from '../monitoring/dto/monitoring-query.dto';
+import { decimalToNumber } from '../nutrition/mappers/nutrition.mapper';
+import { screeningCompatBand } from '../nutrition/who/concern';
 
 /**
  * Dropout interpretation (no dedicated dropout status in schema):
@@ -394,8 +395,7 @@ export class ReportsService {
       activeChildren,
       present,
       absent,
-      screenings,
-      severe,
+      nutritionRows,
       pendingRefs,
       feedingDays,
       stedCount,
@@ -425,20 +425,20 @@ export class ReportsService {
           ...cWhere,
         },
       }),
-      this.prisma.childNutritionScreening.count({
+      this.prisma.childNutritionScreening.findMany({
         where: {
           deletedAt: null,
           screeningDate: { gte: from, lte: to },
           child: { deletedAt: null, ...childWhere },
         },
-      }),
-      this.prisma.childNutritionScreening.count({
-        where: {
-          deletedAt: null,
-          nutritionStatus: NutritionStatus.severe,
-          screeningDate: { gte: from, lte: to },
-          child: { deletedAt: null, ...childWhere },
+        select: {
+          weightKg: true,
+          heightCm: true,
+          muacCm: true,
+          screeningDate: true,
+          child: { select: { dateOfBirth: true, gender: true } },
         },
+        take: 10000,
       }),
       this.prisma.referral.count({
         where: {
@@ -479,6 +479,19 @@ export class ReportsService {
     ]);
 
     const attTotal = present + absent;
+    const screenings = nutritionRows.length;
+    // Compat: WHO below_minus_3 on any indicator (counted once). NOT legacy MUAC status.
+    const severe = nutritionRows.filter(
+      (row) =>
+        screeningCompatBand({
+          dateOfBirth: row.child.dateOfBirth,
+          gender: row.child.gender,
+          screeningDate: row.screeningDate,
+          weightKg: decimalToNumber(row.weightKg),
+          heightCm: decimalToNumber(row.heightCm),
+          muacCm: decimalToNumber(row.muacCm),
+        }) === 'severe',
+    ).length;
 
     return {
       from: from.toISOString(),
@@ -499,41 +512,63 @@ export class ReportsService {
     };
   }
 
+  /**
+   * Per-center count of screenings with any WHO indicator below_minus_3.
+   * Compat bridge for legacy severeNutrition columns — NOT absolute-MUAC status.
+   */
   private async nutritionSevereByCenter(
     scope: { centerIds: string[] | 'all'; districtId: string | null },
     from: Date,
     to: Date,
     pageCenterIds?: string[],
   ): Promise<Array<{ centerId: string; cnt: number }>> {
-    const conditions: Prisma.Sql[] = [
-      Prisma.sql`s.deleted_at IS NULL`,
-      Prisma.sql`ch.deleted_at IS NULL`,
-      Prisma.sql`s.nutrition_status = CAST(${'severe'} AS nutrition_status)`,
-      Prisma.sql`s.screening_date >= ${from}`,
-      Prisma.sql`s.screening_date <= ${to}`,
-    ];
-
+    const childWhere: Prisma.ChildWhereInput = {};
     if (pageCenterIds && pageCenterIds.length > 0) {
-      conditions.push(Prisma.sql`ch.center_id IN (${Prisma.join(pageCenterIds)})`);
+      childWhere.centerId = { in: pageCenterIds };
     } else if (scope.centerIds !== 'all') {
       if (scope.centerIds.length === 0) return [];
-      conditions.push(Prisma.sql`ch.center_id IN (${Prisma.join(scope.centerIds)})`);
+      childWhere.centerId = { in: scope.centerIds };
     } else if (scope.districtId) {
-      conditions.push(
-        Prisma.sql`ch.center_id IN (
-          SELECT id FROM ecd_center
-          WHERE district_id = ${scope.districtId} AND deleted_at IS NULL
-        )`,
-      );
+      childWhere.center = { districtId: scope.districtId, deletedAt: null };
     }
 
-    return this.prisma.$queryRaw`
-      SELECT ch.center_id AS "centerId", COUNT(*)::int AS cnt
-      FROM child_nutrition_screening s
-      INNER JOIN child ch ON ch.id = s.child_id
-      WHERE ${Prisma.join(conditions, ' AND ')}
-      GROUP BY ch.center_id
-    `;
+    const rows = await this.prisma.childNutritionScreening.findMany({
+      where: {
+        deletedAt: null,
+        screeningDate: { gte: from, lte: to },
+        child: { deletedAt: null, ...childWhere },
+      },
+      select: {
+        weightKg: true,
+        heightCm: true,
+        muacCm: true,
+        screeningDate: true,
+        child: {
+          select: {
+            centerId: true,
+            dateOfBirth: true,
+            gender: true,
+          },
+        },
+      },
+      take: 10000,
+    });
+
+    const byCenter = new Map<string, number>();
+    for (const row of rows) {
+      const band = screeningCompatBand({
+        dateOfBirth: row.child.dateOfBirth,
+        gender: row.child.gender,
+        screeningDate: row.screeningDate,
+        weightKg: decimalToNumber(row.weightKg),
+        heightCm: decimalToNumber(row.heightCm),
+        muacCm: decimalToNumber(row.muacCm),
+      });
+      if (band !== 'severe') continue;
+      byCenter.set(row.child.centerId, (byCenter.get(row.child.centerId) ?? 0) + 1);
+    }
+
+    return [...byCenter.entries()].map(([centerId, cnt]) => ({ centerId, cnt }));
   }
 }
 

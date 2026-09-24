@@ -1,7 +1,8 @@
 import { UserRole } from '../../common/domain';
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { AuditAction } from '@prisma/client';
-import { isCenterStaffRole } from '../../common/auth/scope.util';
+import { isCenterStaffRole, isDistrictPortalRole } from '../../common/auth/scope.util';
+import { resolveDistrictQueryScope } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncableEntityType } from './sync.constants';
@@ -46,6 +47,18 @@ export class SyncAccessService {
 
       return {
         centerIds: centers.map((c) => c.id),
+        districtId: user.districtId,
+      };
+    }
+
+    if (user.role === UserRole.sector_focal_person) {
+      if (!user.districtId || !user.sectorId) {
+        throw new ForbiddenException('Sector scope is required for this role');
+      }
+
+      const scoped = await resolveDistrictQueryScope(this.prisma, user, {});
+      return {
+        centerIds: scoped.centerIds === 'all' ? [] : scoped.centerIds,
         districtId: user.districtId,
       };
     }
@@ -95,8 +108,8 @@ export class SyncAccessService {
       return !(CAREGIVER_FORBIDDEN_SYNC_ENTITY_TYPES as readonly string[]).includes(entityType);
     }
 
-    // district_focal_person may write all syncable types including ecd_center
-    return true;
+    // district / sector portal may write all syncable types including ecd_center
+    return isDistrictPortalRole(role);
   }
 
   /**

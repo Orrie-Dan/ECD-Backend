@@ -1,6 +1,10 @@
-import { AssessmentStatus, NutritionStatus, UserRole } from '../../common/domain';
+import { AssessmentStatus, UserRole } from '../../common/domain';
 import { Injectable, Logger } from '@nestjs/common';
 import { ReferralSourceType } from '@prisma/client';
+import {
+  worstWhoConcernZone,
+  type WhoConcernHit,
+} from '../nutrition/who/concern';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationCopy } from './notification-copy';
 import { NotificationDedupeKeys } from './notification-dedupe';
@@ -17,23 +21,20 @@ export class NotificationEventsService {
 
   async onNutritionScreeningCreated(input: {
     screeningId: string;
-    nutritionStatus: NutritionStatus;
+    whoConcerns: WhoConcernHit[];
     requiresReferral: boolean;
     centerId: string;
     districtId: string | null;
   }): Promise<void> {
-    const status = input.nutritionStatus;
-    const isActionable =
-      status === NutritionStatus.severe ||
-      status === NutritionStatus.moderate ||
-      status === NutritionStatus.at_risk ||
-      input.requiresReferral;
+    const whoConcerns = input.whoConcerns ?? [];
+    const isActionable = whoConcerns.length > 0 || input.requiresReferral;
 
     if (!isActionable) {
       return;
     }
 
-    const copy = NotificationCopy.nutritionAlert(status, input.requiresReferral);
+    const worstZone = worstWhoConcernZone(whoConcerns);
+    const copy = NotificationCopy.nutritionAlert(whoConcerns, input.requiresReferral);
     const notifData = {
       type: 'nutrition_alert' as const,
       title: copy.title,
@@ -42,7 +43,12 @@ export class NotificationEventsService {
       entityId: input.screeningId,
       dedupeKey: NotificationDedupeKeys.nutritionScreeningCreated(input.screeningId),
       metadata: {
-        nutritionStatus: status,
+        whoConcerns: whoConcerns.map((h) => ({
+          indicator: h.indicator,
+          zone: h.zone,
+          zScore: h.zScore,
+        })),
+        whoZone: worstZone,
         requiresReferral: input.requiresReferral,
       },
     };
@@ -51,9 +57,10 @@ export class NotificationEventsService {
       const [centerIds, districtIds] = await Promise.all([
         this.notifications.findUserIdsByRoleAndCenter(input.centerId, [UserRole.ecd_director]),
         input.districtId
-          ? this.notifications.findUserIdsByRoleAndDistrict(input.districtId, [
-              UserRole.district_focal_person,
-            ])
+          ? this.notifications.findDistrictPortalUserIds({
+              districtId: input.districtId,
+              centerId: input.centerId,
+            })
           : Promise.resolve([]),
       ]);
       const allIds = [...new Set([...centerIds, ...districtIds])];
@@ -167,9 +174,10 @@ export class NotificationEventsService {
     try {
       const [adminIds, districtIds] = await Promise.all([
         this.notifications.findUserIdsByRole([UserRole.ncda_admin]),
-        this.notifications.findUserIdsByRoleAndDistrict(input.districtId, [
-          UserRole.district_focal_person,
-        ]),
+        this.notifications.findDistrictPortalUserIds({
+          districtId: input.districtId,
+          centerId: input.centerId,
+        }),
       ]);
       const allIds = [...new Set([...adminIds, ...districtIds])];
       this.notifications.notifyAsync(allIds, notifData, 'center_created');
@@ -292,9 +300,10 @@ export class NotificationEventsService {
 
     if (input.newStatus === AssessmentStatus.submitted) {
       try {
-        const userIds = await this.notifications.findUserIdsByRoleAndDistrict(input.districtId, [
-          UserRole.district_focal_person,
-        ]);
+        const userIds = await this.notifications.findDistrictPortalUserIds({
+          districtId: input.districtId,
+          centerId: input.centerId,
+        });
         const copy = NotificationCopy.complianceSubmitted(input.centerName);
         this.notifications.notifyAsync(
           userIds,

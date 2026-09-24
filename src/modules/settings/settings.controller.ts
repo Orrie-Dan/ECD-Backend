@@ -17,7 +17,7 @@ export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Get()
-  @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'List district settings',
     description: 'Returns app settings for a district. NCDA admins must supply districtId.',
@@ -32,7 +32,8 @@ export class SettingsController {
   @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'Upsert district setting',
-    description: 'Creates or updates a key/value setting for a district.',
+    description:
+      'Creates or updates a key/value setting for a district. Sector users may read settings but cannot mutate district-wide AppSetting values.',
   })
   @ApiOkResponse({ type: SettingResponseDto })
   @ApiStandardClientErrors()

@@ -31,6 +31,7 @@ export class CentersController {
     UserRole.caregiver,
     UserRole.ecd_director,
     UserRole.district_focal_person,
+    UserRole.sector_focal_person,
     UserRole.ncda_admin,
   )
   @ApiOperation({
@@ -49,6 +50,7 @@ export class CentersController {
     UserRole.caregiver,
     UserRole.ecd_director,
     UserRole.district_focal_person,
+    UserRole.sector_focal_person,
     UserRole.ncda_admin,
   )
   @ApiOperation({
@@ -65,7 +67,7 @@ export class CentersController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'Update center',
     description:

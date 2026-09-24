@@ -27,7 +27,7 @@ import { UsersService } from './users.service';
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
-@Roles(UserRole.ecd_director, UserRole.district_focal_person, UserRole.ncda_admin)
+@Roles(UserRole.ecd_director, UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

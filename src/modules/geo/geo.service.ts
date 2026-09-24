@@ -1,7 +1,12 @@
 import { AdministrativeLevel, EcdCenterStatus, UserRole, asDomainEnum } from '../../common/domain';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { assertDistrictAccess, isCenterStaffRole } from '../../common/auth/scope.util';
+import {
+  assertDistrictAccess,
+  isCenterStaffRole,
+  isDistrictPortalRole,
+} from '../../common/auth/scope.util';
+import { resolveDistrictQueryScope } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import {
@@ -24,7 +29,7 @@ export class GeoService {
     query: ListAdminUnitsQueryDto,
   ): Promise<AdminUnitResponseDto[]> {
     if (query.districtId) {
-      if (user.role === UserRole.district_focal_person) {
+      if (isDistrictPortalRole(user.role)) {
         assertDistrictAccess(user, query.districtId);
       }
     }
@@ -45,6 +50,17 @@ export class GeoService {
     }
 
     if (query.districtId && query.level) {
+      if (
+        user.role === UserRole.sector_focal_person &&
+        user.sectorId &&
+        query.level === AdministrativeLevel.sector
+      ) {
+        assertDistrictAccess(user, query.districtId);
+        const row = await this.prisma.administrativeUnit.findFirst({
+          where: { id: user.sectorId, districtId: query.districtId, level: AdministrativeLevel.sector },
+        });
+        return row ? [this.toAdminUnitDto(row)] : [];
+      }
       const rows = await this.findAdminUnitsInDistrict(query.districtId, query.level);
       return rows.map((row) => this.toAdminUnitDto(row));
     }
@@ -129,7 +145,7 @@ export class GeoService {
 
     const where: Prisma.DistrictWhereInput = {};
 
-    if (user.role === UserRole.district_focal_person) {
+    if (isDistrictPortalRole(user.role)) {
       if (!user.districtId) {
         throw new ForbiddenException('District scope is required');
       }
@@ -173,11 +189,11 @@ export class GeoService {
   }
 
   async getDistrict(user: AuthUser, districtId: string): Promise<DistrictResponseDto> {
-    if (user.role === UserRole.district_focal_person || isCenterStaffRole(user.role)) {
+    if (isDistrictPortalRole(user.role) || isCenterStaffRole(user.role)) {
       if (!user.districtId) {
         throw new ForbiddenException('District scope is required');
       }
-      if (user.role === UserRole.district_focal_person) {
+      if (isDistrictPortalRole(user.role)) {
         assertDistrictAccess(user, districtId);
       } else if (user.districtId !== districtId) {
         throw new ForbiddenException(
@@ -202,7 +218,7 @@ export class GeoService {
     districtId: string,
     query: ListCentersByDistrictQueryDto,
   ): Promise<PaginatedCentersInDistrictResponseDto> {
-    if (user.role === UserRole.district_focal_person) {
+    if (isDistrictPortalRole(user.role)) {
       assertDistrictAccess(user, districtId);
     } else if (isCenterStaffRole(user.role)) {
       throw new ForbiddenException('Center staff cannot list centers by district');
@@ -221,9 +237,18 @@ export class GeoService {
     const pageSize = query.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
 
+    const scope = isDistrictPortalRole(user.role)
+      ? await resolveDistrictQueryScope(this.prisma, user, { districtId })
+      : null;
+
     const where: Prisma.EcdCenterWhereInput = {
       districtId,
       deletedAt: null,
+      ...(scope && scope.centerIds !== 'all'
+        ? scope.centerIds.length > 0
+          ? { id: { in: scope.centerIds } }
+          : { id: { in: [] } }
+        : {}),
     };
 
     const [rows, total] = await this.prisma.$transaction([

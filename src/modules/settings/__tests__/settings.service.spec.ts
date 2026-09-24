@@ -36,6 +36,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }
@@ -151,6 +152,50 @@ async function main() {
     });
 
     eq(auditLogs.length >= 1, true);
+  });
+
+  await assert('list: sector focal can read district settings', async () => {
+    const captured: { where?: unknown } = {};
+    const prisma = {
+      appSetting: {
+        findMany: async (args: { where: { districtId: string } }) => {
+          captured.where = args.where;
+          return [settingRow()];
+        },
+      },
+    };
+    const service = new SettingsService(prisma as never, { log: async () => undefined } as never);
+    const result = await service.findAll(
+      user({
+        role: UserRole.sector_focal_person,
+        districtId: 'district-1',
+        sectorId: 'sector-1',
+      }),
+      {},
+    );
+    eq(result.length, 1);
+    eq((captured.where as { districtId: string }).districtId, 'district-1');
+  });
+
+  await assert('upsert: sector focal denied district-wide mutation', async () => {
+    const service = new SettingsService(
+      { appSetting: {} } as never,
+      { log: async () => undefined } as never,
+    );
+    let threw = false;
+    try {
+      await service.upsert(
+        user({
+          role: UserRole.sector_focal_person,
+          districtId: 'district-1',
+          sectorId: 'sector-1',
+        }),
+        { districtId: 'district-1', key: 'alert_threshold', value: '99' },
+      );
+    } catch (e) {
+      threw = e instanceof ForbiddenException;
+    }
+    eq(threw, true);
   });
 
   console.log('\nAll settings tests passed.');

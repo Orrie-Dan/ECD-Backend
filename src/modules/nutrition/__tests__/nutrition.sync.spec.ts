@@ -13,7 +13,7 @@ type SyncNutritionPayload = {
   muacCm: number;
   heightCm?: number;
   headCircumferenceCm?: number;
-  nutritionStatus: NutritionStatus;
+  nutritionStatus?: NutritionStatus;
   requiresReferral?: boolean;
   deviceId?: string;
   mealQuality?: string;
@@ -23,10 +23,8 @@ type SyncNutritionPayload = {
 };
 
 function buildSyncCreateData(payload: SyncNutritionPayload, contextDeviceId: string) {
-  const requiresReferral = deriveRequiresReferral(
-    payload.nutritionStatus,
-    payload.requiresReferral,
-  );
+  // Manual referral only — legacy nutritionStatus ignored for referral and not stored.
+  const requiresReferral = deriveRequiresReferral(payload.requiresReferral);
 
   return {
     childId: payload.childId,
@@ -35,7 +33,7 @@ function buildSyncCreateData(payload: SyncNutritionPayload, contextDeviceId: str
     muacCm: payload.muacCm,
     heightCm: payload.heightCm ?? null,
     headCircumferenceCm: payload.headCircumferenceCm ?? null,
-    nutritionStatus: payload.nutritionStatus,
+    nutritionStatus: null as string | null,
     requiresReferral,
     mealQuality: payload.mealQuality ?? null,
     feedingConcern: Boolean(payload.feedingConcern ?? false),
@@ -67,7 +65,7 @@ async function run() {
     }
   };
 
-  await assert('sync payload contains new nutrition fields', () => {
+  await assert('sync payload stores null status; no auto-referral from legacy status', () => {
     const data = buildSyncCreateData(
       {
         childId: 'c1',
@@ -86,8 +84,8 @@ async function run() {
 
     eq(data.heightCm, 74.1);
     eq(data.headCircumferenceCm, 46.2);
-    eq(data.requiresReferral, true);
-    eq(data.nutritionStatus, NutritionStatus.moderate);
+    eq(data.requiresReferral, false);
+    eq(data.nutritionStatus, null);
     eq(data.lastModifiedByDeviceId, 'device-9');
   });
 
@@ -106,6 +104,39 @@ async function run() {
     eq(data.lastModifiedByDeviceId, 'device-context');
     eq(data.heightCm, null);
     eq(data.requiresReferral, false);
+  });
+
+  await assert('sync respects explicit requiresReferral', () => {
+    const data = buildSyncCreateData(
+      {
+        childId: 'c1',
+        screeningDate: '2026-08-01',
+        weightKg: 10,
+        muacCm: 13,
+        requiresReferral: true,
+        recordedById: 'user-1',
+      },
+      'device-context',
+    );
+    eq(data.requiresReferral, true);
+    eq(data.nutritionStatus, null);
+  });
+
+  await assert('sync payload omits height when absent (SF-04)', () => {
+    const data = buildSyncCreateData(
+      {
+        childId: 'c1',
+        screeningDate: '2026-08-01',
+        weightKg: 10,
+        muacCm: 13.2,
+        nutritionStatus: NutritionStatus.normal,
+        recordedById: 'user-1',
+      },
+      'device-context',
+    );
+    eq(data.heightCm, null);
+    eq(data.weightKg, 10);
+    eq(data.muacCm, 13.2);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

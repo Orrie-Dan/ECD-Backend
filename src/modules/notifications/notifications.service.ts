@@ -1,6 +1,7 @@
 import { UserAccountStatus, UserRole } from '../../common/domain';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { NotificationType, Prisma, Notification } from '@prisma/client';
+import { resolveSectorIdForCenter } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateNotificationDto } from './dto/create-notification.dto';
@@ -215,6 +216,50 @@ export class NotificationsService {
       select: { id: true },
     });
     return users.map((u) => u.id);
+  }
+
+  async findUserIdsByRoleAndSector(sectorId: string, roles: UserRole[]): Promise<string[]> {
+    const users = await this.prisma.userAccount.findMany({
+      where: {
+        sectorId,
+        role: { in: roles },
+        status: UserAccountStatus.active,
+      },
+      select: { id: true },
+    });
+    return users.map((u) => u.id);
+  }
+
+  /** District focal (whole district) + sector focal when centerId resolves to a sector. */
+  async findDistrictPortalUserIds(params: {
+    districtId: string;
+    centerId?: string;
+  }): Promise<string[]> {
+    const districtFocals = await this.findUserIdsByRoleAndDistrict(params.districtId, [
+      UserRole.district_focal_person,
+    ]);
+
+    if (!params.centerId) {
+      return districtFocals;
+    }
+
+    const center = await this.prisma.ecdCenter.findFirst({
+      where: { id: params.centerId, deletedAt: null },
+      select: { districtId: true, villageId: true },
+    });
+    if (!center) {
+      return districtFocals;
+    }
+
+    const sectorId = await resolveSectorIdForCenter(this.prisma, center);
+    if (!sectorId) {
+      return districtFocals;
+    }
+
+    const sectorFocals = await this.findUserIdsByRoleAndSector(sectorId, [
+      UserRole.sector_focal_person,
+    ]);
+    return [...new Set([...districtFocals, ...sectorFocals])];
   }
 
   /**

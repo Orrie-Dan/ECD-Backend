@@ -1,7 +1,7 @@
 import { UserRole } from '../../common/domain';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { assertDistrictAccess } from '../../common/auth/scope.util';
+import { assertDistrictAccess, isDistrictPortalRole } from '../../common/auth/scope.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SettingResponseDto } from './dto/setting-response.dto';
@@ -27,6 +27,11 @@ export class SettingsService {
   }
 
   async upsert(user: AuthUser, dto: UpsertSettingDto): Promise<SettingResponseDto> {
+    if (user.role === UserRole.sector_focal_person) {
+      throw new ForbiddenException(
+        'Sector users cannot mutate district-wide settings',
+      );
+    }
     assertDistrictAccess(user, dto.districtId);
 
     const existing = await this.prisma.appSetting.findUnique({
@@ -98,7 +103,7 @@ export class SettingsService {
       throw new ForbiddenException('districtId is required for ncda_admin');
     }
 
-    if (user.role === UserRole.district_focal_person) {
+    if (isDistrictPortalRole(user.role)) {
       if (!user.districtId) {
         throw new ForbiddenException('District scope is required');
       }

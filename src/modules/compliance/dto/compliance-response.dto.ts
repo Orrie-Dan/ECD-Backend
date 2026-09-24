@@ -18,6 +18,18 @@ export class AssessmentItemResponseDto {
   @ApiProperty({ format: 'uuid' })
   standardId: string;
 
+  @ApiProperty({
+    example: 'dc_s711_pregnant_anc_access',
+    description: 'Stable EcdStandard.code (checklist question id for self-evaluations)',
+  })
+  standardCode: string;
+
+  @ApiProperty({
+    example: 'Every pregnant woman has access to antenatal care',
+    nullable: true,
+  })
+  standardTitle: string | null;
+
   @ApiProperty({ enum: ItemResponse, enumName: 'ItemResponse' })
   response: ItemResponse;
 
@@ -132,11 +144,30 @@ export class AssessmentResponseDto {
 
   @ApiProperty({ type: String, format: 'date-time' })
   updatedAt: Date;
+
+  @ApiProperty({
+    example: 'daycare',
+    nullable: true,
+    description: 'Facility checklist id parsed from standardsVersion (self-evaluations)',
+  })
+  facilityTypeId: string | null;
+
+  @ApiProperty({
+    example: '9f3e2c1a-1111-2222-3333-444444444444',
+    nullable: true,
+    description: 'Client-generated draft id matching localStorage',
+  })
+  clientDraftId: string | null;
 }
 
 export class AssessmentDetailResponseDto extends AssessmentResponseDto {
   @ApiProperty({ type: [AssessmentItemResponseDto] })
   items: AssessmentItemResponseDto[];
+}
+
+export class SelfEvalDraftEnvelopeDto {
+  @ApiProperty({ type: AssessmentDetailResponseDto, nullable: true })
+  draft: AssessmentDetailResponseDto | null;
 }
 
 export class PaginatedAssessmentsResponseDto {

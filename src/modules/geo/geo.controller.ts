@@ -27,6 +27,7 @@ export class GeoController {
     UserRole.caregiver,
     UserRole.ecd_director,
     UserRole.district_focal_person,
+    UserRole.sector_focal_person,
     UserRole.ncda_admin,
   )
   @ApiOperation({
@@ -44,6 +45,7 @@ export class GeoController {
     UserRole.caregiver,
     UserRole.ecd_director,
     UserRole.district_focal_person,
+    UserRole.sector_focal_person,
     UserRole.ncda_admin,
   )
   @ApiOperation({
@@ -62,6 +64,7 @@ export class GeoController {
     UserRole.caregiver,
     UserRole.ecd_director,
     UserRole.district_focal_person,
+    UserRole.sector_focal_person,
     UserRole.ncda_admin,
   )
   @ApiOperation({
@@ -78,7 +81,7 @@ export class GeoController {
   }
 
   @Get('districts/:id/centers')
-  @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'List centers in a district',
     description: 'Paginated ECD centers belonging to the given district.',

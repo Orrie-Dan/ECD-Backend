@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CenterSupportCategory, asDomainEnum } from '../../common/domain';
 import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -38,8 +37,7 @@ export class CenterSupportService {
     query: ListCenterRegisterQueryDto,
   ): Promise<PaginatedCenterSupportResponseDto> {
     const { page, pageSize, skip } = paginationOf(query);
-    const where = buildCenterScopedWhere(
-      user,
+    const where = await buildCenterScopedWhere(this.prisma, user,
       query,
       'receivedDate',
     ) as Prisma.CenterSupportWhereInput;
@@ -68,7 +66,7 @@ export class CenterSupportService {
 
   async get(user: AuthUser, id: string): Promise<CenterSupportResponseDto> {
     const row = await this.requireRow(id);
-    assertCenterAccess(user, row.centerId, row.center.districtId);
+    await this.access.assertReadableCenter(user, row.centerId);
     return this.toDto(row);
   }
 

@@ -107,6 +107,14 @@ export class GisService {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
+    }).catch((err: unknown) => {
+      const detail = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `ArcGIS generateToken network failure (${this.portalUrl}): ${detail}`,
+      );
+      throw new ServiceUnavailableException(
+        `Cannot reach ArcGIS portal at ${this.portalUrl}. Check network/VPN and ARCGIS_PORTAL_URL.`,
+      );
     });
 
     const data = (await response.json()) as {

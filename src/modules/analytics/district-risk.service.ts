@@ -1,10 +1,12 @@
 import { UserRole } from '../../common/domain';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { assertDistrictAccess } from '../../common/auth/scope.util';
+import { assertDistrictAccess, isDistrictPortalRole } from '../../common/auth/scope.util';
 import { resolveInclusiveDateRange } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
+import { decimalToNumber } from '../nutrition/mappers/nutrition.mapper';
+import { screeningCompatBand } from '../nutrition/who/concern';
 import {
   compareSeverity,
   computeStedCoveragePct,
@@ -27,7 +29,10 @@ export class DistrictRiskService {
     const { from, to } = resolveInclusiveDateRange(query.from, query.to);
 
     const districts = await this.prisma.district.findMany({
-      where: districtFilter ? { id: districtFilter } : {},
+      where: {
+        ...(districtFilter ? { id: districtFilter } : {}),
+        ...(query.provinceId ? { provinceId: query.provinceId } : {}),
+      },
       orderBy: { name: 'asc' },
       select: { id: true, name: true, code: true, isActive: true },
     });
@@ -136,7 +141,7 @@ export class DistrictRiskService {
    * National situational awareness: NCDA admin (optional district filter) or district focal (own district).
    */
   private resolveDistrictFilter(user: AuthUser, query: DistrictRiskQueryDto): string | null {
-    if (user.role === UserRole.district_focal_person) {
+    if (isDistrictPortalRole(user.role)) {
       if (!user.districtId) {
         throw new ForbiddenException('District scope is required');
       }
@@ -154,7 +159,7 @@ export class DistrictRiskService {
     }
 
     throw new ForbiddenException(
-      'District risk is available to NCDA and district focal roles only',
+      'District risk is available to NCDA and district portal roles only',
     );
   }
 
@@ -225,29 +230,66 @@ export class DistrictRiskService {
     return new Map(rows.map((r) => [r.districtId, { present: r.present, absent: r.absent }]));
   }
 
+  /**
+   * Per-district screening counts and WHO below_minus_3 concern counts.
+   * severeNutritionCount = screenings where any WHO indicator is below_minus_3
+   * (compat bridge; NOT legacy absolute-MUAC nutritionStatus).
+   */
   private async aggregateNutritionByDistrict(
     districtIds: string[],
     from: Date,
     to: Date,
   ): Promise<Map<string, { screenings: number; severe: number }>> {
-    const rows = await this.prisma.$queryRaw<
-      Array<{ districtId: string; screenings: number; severe: number }>
-    >`
-      SELECT
-        c.district_id AS "districtId",
-        COUNT(s.id)::int AS screenings,
-        SUM(CASE WHEN s.nutrition_status = CAST(${'severe'} AS nutrition_status) THEN 1 ELSE 0 END)::int AS severe
-      FROM child_nutrition_screening s
-      INNER JOIN child ch ON ch.id = s.child_id AND ch.deleted_at IS NULL
-      INNER JOIN ecd_center c ON c.id = ch.center_id AND c.deleted_at IS NULL
-      INNER JOIN district d ON d.id = c.district_id
-      WHERE s.deleted_at IS NULL
-        AND s.screening_date >= ${from}
-        AND s.screening_date <= ${to}
-        AND ${this.districtIdFilter(districtIds)}
-      GROUP BY c.district_id
-    `;
-    return new Map(rows.map((r) => [r.districtId, { screenings: r.screenings, severe: r.severe }]));
+    const rows = await this.prisma.childNutritionScreening.findMany({
+      where: {
+        deletedAt: null,
+        screeningDate: { gte: from, lte: to },
+        child: {
+          deletedAt: null,
+          center: {
+            deletedAt: null,
+            districtId: { in: districtIds },
+          },
+        },
+      },
+      select: {
+        weightKg: true,
+        heightCm: true,
+        muacCm: true,
+        screeningDate: true,
+        child: {
+          select: {
+            dateOfBirth: true,
+            gender: true,
+            center: { select: { districtId: true } },
+          },
+        },
+      },
+      take: 20000,
+    });
+
+    const map = new Map<string, { screenings: number; severe: number }>();
+    for (const id of districtIds) {
+      map.set(id, { screenings: 0, severe: 0 });
+    }
+
+    for (const row of rows) {
+      const districtId = row.child.center.districtId;
+      const cur = map.get(districtId) ?? { screenings: 0, severe: 0 };
+      cur.screenings += 1;
+      const band = screeningCompatBand({
+        dateOfBirth: row.child.dateOfBirth,
+        gender: row.child.gender,
+        screeningDate: row.screeningDate,
+        weightKg: decimalToNumber(row.weightKg),
+        heightCm: decimalToNumber(row.heightCm),
+        muacCm: decimalToNumber(row.muacCm),
+      });
+      if (band === 'severe') cur.severe += 1;
+      map.set(districtId, cur);
+    }
+
+    return map;
   }
 
   /** Open pipeline — not limited by the selected reporting period (matches dashboard/reports). */

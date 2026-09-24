@@ -8,5 +8,6 @@ export interface UserContext {
   username: string;
   role: UserRole;
   districtId: string | null;
+  sectorId: string | null;
   centerId: string | null;
 }

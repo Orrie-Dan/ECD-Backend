@@ -1,4 +1,4 @@
-import { AssessmentStatus } from '../../../common/domain';
+import { AssessmentStatus, AssessmentType } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDateString, IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
@@ -13,6 +13,15 @@ export class ListAssessmentsQueryDto {
   @IsOptional()
   @IsUUID()
   districtId?: string;
+
+  @ApiPropertyOptional({
+    enum: AssessmentType,
+    enumName: 'AssessmentType',
+    description: 'Filter by assessment type (e.g. supportive_supervision for inspections)',
+  })
+  @IsOptional()
+  @IsEnum(AssessmentType)
+  assessmentType?: AssessmentType;
 
   @ApiPropertyOptional({
     enum: AssessmentStatus,

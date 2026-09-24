@@ -1,5 +1,6 @@
 import { NutritionStatus } from '../../../common/domain';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
 export class NutritionScreeningResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;
@@ -22,12 +23,14 @@ export class NutritionScreeningResponseDto {
   @ApiProperty({ type: Number, nullable: true, example: 48.0 })
   headCircumferenceCm: number | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     enum: NutritionStatus,
     enumName: 'NutritionStatus',
-    example: NutritionStatus.normal,
+    nullable: true,
+    description:
+      'Deprecated legacy absolute-MUAC status. Null for new screenings; preserved on historical rows.',
   })
-  nutritionStatus: NutritionStatus;
+  nutritionStatus: NutritionStatus | null;
 
   @ApiProperty({ example: false })
   requiresReferral: boolean;

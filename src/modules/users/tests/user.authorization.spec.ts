@@ -16,6 +16,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }
@@ -82,6 +83,32 @@ async function run() {
     id: 'dir-1',
     centerId: 'c1',
     districtId: 'd1',
+  });
+
+  await assert('NCDA can create sector_focal_person', () => {
+    eq(svc.canCreateRole(ncda, UserRole.sector_focal_person), true);
+  });
+
+  await assert('District officer cannot create sector_focal_person', () => {
+    eq(svc.canCreateRole(focal, UserRole.sector_focal_person), false);
+  });
+
+  const sectorFocal = user({
+    role: UserRole.sector_focal_person,
+    id: 'sec-1',
+    districtId: 'd1',
+    sectorId: 's1',
+  });
+
+  await assert('Sector focal can create caregiver and director', () => {
+    eq(svc.canCreateRole(sectorFocal, UserRole.caregiver), true);
+    eq(svc.canCreateRole(sectorFocal, UserRole.ecd_director), true);
+  });
+
+  await assert('Sector focal cannot create sector or district admins', () => {
+    eq(svc.canCreateRole(sectorFocal, UserRole.sector_focal_person), false);
+    eq(svc.canCreateRole(sectorFocal, UserRole.district_focal_person), false);
+    eq(svc.canCreateRole(sectorFocal, UserRole.ncda_admin), false);
   });
 
   await assert('NCDA can create district officer', () => {

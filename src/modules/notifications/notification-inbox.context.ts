@@ -219,7 +219,7 @@ export async function loadNotificationInboxExtras(
 function extrasForRow(
   row: Notification,
   maps: {
-    screeningById: Map<string, { id: string; childId: string; nutritionStatus: string }>;
+    screeningById: Map<string, { id: string; childId: string; nutritionStatus: string | null }>;
     stedById: Map<string, { id: string; childId: string; centerId: string }>;
     referralById: Map<string, { id: string; childId: string; centerId: string }>;
     transferById: Map<

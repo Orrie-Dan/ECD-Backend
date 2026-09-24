@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -37,8 +36,7 @@ export class CommitteeMembersService {
     query: ListCenterRegisterQueryDto,
   ): Promise<PaginatedCommitteeMembersResponseDto> {
     const { page, pageSize, skip } = paginationOf(query);
-    const where = buildCenterScopedWhere(
-      user,
+    const where = await buildCenterScopedWhere(this.prisma, user,
       query,
       'startDate',
     ) as Prisma.EcdCommitteeMemberWhereInput;
@@ -71,7 +69,7 @@ export class CommitteeMembersService {
 
   async get(user: AuthUser, id: string): Promise<CommitteeMemberResponseDto> {
     const row = await this.requireRow(id);
-    assertCenterAccess(user, row.centerId, row.center.districtId);
+    await this.access.assertReadableCenter(user, row.centerId);
     return this.toDto(row);
   }
 

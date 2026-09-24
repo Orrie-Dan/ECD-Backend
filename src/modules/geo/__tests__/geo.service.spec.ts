@@ -36,6 +36,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }

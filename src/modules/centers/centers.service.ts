@@ -8,11 +8,12 @@ import {
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RecordSyncStatus, ReferralStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
+import { isCenterStaffRole } from '../../common/auth/scope.util';
 import {
-  assertCenterAccess,
-  assertDistrictAccess,
-  isCenterStaffRole,
-} from '../../common/auth/scope.util';
+  assertCenterAccessible,
+  ecdCenterWhere,
+  resolveDistrictQueryScope,
+} from '../../common/scope/district-query.scope';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -36,7 +37,7 @@ export class CentersService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
-    const where = this.buildListWhere(user, query);
+    const where = await this.buildListWhere(user, query);
 
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.ecdCenter.findMany({
@@ -100,7 +101,11 @@ export class CentersService {
       throw new NotFoundException('Center not found');
     }
 
-    assertCenterAccess(user, center.id, center.districtId);
+    await assertCenterAccessible(this.prisma, user, {
+      id: center.id,
+      districtId: center.districtId,
+      villageId: center.villageId,
+    });
 
     const today = startOfUtcDay(new Date());
     const tomorrow = new Date(today);
@@ -147,7 +152,11 @@ export class CentersService {
       throw new NotFoundException('Center not found');
     }
 
-    assertCenterAccess(user, existing.id, existing.districtId);
+    await assertCenterAccessible(this.prisma, user, {
+      id: existing.id,
+      districtId: existing.districtId,
+      villageId: existing.villageId,
+    });
     if (isCenterStaffRole(user.role)) {
       throw new ForbiddenException('Center staff cannot update centers');
     }
@@ -245,7 +254,10 @@ export class CentersService {
     return this.findOne(user, id);
   }
 
-  private buildListWhere(user: AuthUser, query: ListCentersQueryDto): Prisma.EcdCenterWhereInput {
+  private async buildListWhere(
+    user: AuthUser,
+    query: ListCentersQueryDto,
+  ): Promise<Prisma.EcdCenterWhereInput> {
     const where: Prisma.EcdCenterWhereInput = {
       deletedAt: null,
     };
@@ -260,18 +272,19 @@ export class CentersService {
         throw new ForbiddenException('District scope is required for ECD directors');
       }
       where.districtId = user.districtId;
-    } else if (user.role === UserRole.district_focal_person) {
-      if (!user.districtId) {
-        throw new ForbiddenException('District scope is required for district focal persons');
-      }
-      if (query.districtId && query.districtId !== user.districtId) {
-        assertDistrictAccess(user, query.districtId);
-      }
-      where.districtId = user.districtId;
-    } else if (user.role === UserRole.ncda_admin) {
-      if (query.districtId) {
-        where.districtId = query.districtId;
-      }
+    } else if (
+      user.role === UserRole.district_focal_person ||
+      user.role === UserRole.sector_focal_person ||
+      user.role === UserRole.ncda_admin
+    ) {
+      const scope = await resolveDistrictQueryScope(this.prisma, user, {
+        provinceId: query.provinceId,
+        districtId: query.districtId,
+        sectorId: query.sectorId,
+        cellId: query.cellId,
+        villageId: query.villageId,
+      });
+      Object.assign(where, ecdCenterWhere(scope));
     }
 
     if (query.status) {

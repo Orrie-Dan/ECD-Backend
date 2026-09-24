@@ -100,12 +100,35 @@ async function run() {
     eq(dto.headCircumferenceCm, 45);
   });
 
-  await assert('referral flag: moderate/severe force true', () => {
-    eq(deriveRequiresReferral(NutritionStatus.moderate, false), true);
-    eq(deriveRequiresReferral(NutritionStatus.severe, false), true);
-    eq(deriveRequiresReferral(NutritionStatus.normal, false), false);
-    eq(deriveRequiresReferral(NutritionStatus.at_risk, true), true);
-    eq(deriveRequiresReferral(NutritionStatus.normal, true), true);
+  await assert('referral flag is manual only (no auto from status)', () => {
+    eq(deriveRequiresReferral(false), false);
+    eq(deriveRequiresReferral(undefined), false);
+    eq(deriveRequiresReferral(true), true);
+  });
+
+  await assert('null nutritionStatus maps to null', () => {
+    const dto = nutritionMapper.toDto({
+      id: 's1',
+      childId: 'c1',
+      screeningDate: new Date('2026-08-01'),
+      weightKg: new Prisma.Decimal('10.5'),
+      muacCm: new Prisma.Decimal('13.2'),
+      heightCm: null,
+      headCircumferenceCm: null,
+      nutritionStatus: null,
+      requiresReferral: false,
+      mealQuality: null,
+      feedingConcern: false,
+      dietNotes: null,
+      recordedById: 'u1',
+      createdAt: new Date('2026-08-01'),
+      deletedAt: null,
+      version: 1,
+      syncStatus: 'synced' as never,
+      lastModifiedByDeviceId: null,
+      lastModifiedAt: new Date('2026-08-01'),
+    });
+    eq(dto.nutritionStatus, null);
   });
 
   await assert('growth chart chronological order', () => {

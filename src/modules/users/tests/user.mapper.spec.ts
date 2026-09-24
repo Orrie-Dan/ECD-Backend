@@ -20,6 +20,7 @@ function sampleUser(overrides: Partial<UserWithRelations> = {}): UserWithRelatio
     educationLevel: null,
     role: UserRole.caregiver,
     districtId: 'd1',
+    sectorId: null,
     centerId: 'c1',
     status: UserAccountStatus.active,
     lastLoginAt: null,

@@ -12,6 +12,7 @@ import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
+import { assertCenterAccessibleById } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { FeedingDayResponseDto, FeedingMonthSummaryResponseDto } from './dto/feeding-response.dto';
@@ -340,7 +341,7 @@ export class FeedingService {
       throw new NotFoundException('Center not found');
     }
 
-    assertCenterAccess(user, center.id, center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, center.id);
   }
 
   private async resolveDeviceId(user: AuthUser, deviceId?: string): Promise<string | null> {

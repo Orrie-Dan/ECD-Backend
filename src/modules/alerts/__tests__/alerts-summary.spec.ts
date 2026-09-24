@@ -35,6 +35,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }
@@ -82,13 +83,17 @@ async function main() {
             id: 'child-1',
             firstName: 'Ada',
             lastName: 'L',
+            dateOfBirth: new Date('2022-01-01'),
+            gender: 'male',
             centerId: 'c1',
             center: { name: 'Center 1' },
             nutritionScreenings: [
               {
                 id: 'scr-1',
-                screeningDate: new Date('2026-08-01'),
-                nutritionStatus: 'severe',
+                screeningDate: new Date('2024-01-01'),
+                weightKg: 5,
+                heightCm: 70,
+                muacCm: 10,
                 requiresReferral: true,
               },
             ],
@@ -151,13 +156,17 @@ async function main() {
             id: 'child-1',
             firstName: 'Ada',
             lastName: 'L',
+            dateOfBirth: new Date('2022-01-01'),
+            gender: 'male',
             centerId: 'c1',
             center: { name: 'Center 1' },
             nutritionScreenings: [
               {
                 id: 'scr-1',
-                screeningDate: new Date('2026-08-01'),
-                nutritionStatus: 'severe',
+                screeningDate: new Date('2024-01-01'),
+                weightKg: 5,
+                heightCm: 70,
+                muacCm: 10,
                 requiresReferral: false,
               },
             ],

@@ -37,6 +37,7 @@ export class WashController {
     UserRole.caregiver,
     UserRole.ecd_director,
     UserRole.district_focal_person,
+    UserRole.sector_focal_person,
     UserRole.ncda_admin,
   )
   @ApiOperation({
@@ -54,6 +55,7 @@ export class WashController {
     UserRole.caregiver,
     UserRole.ecd_director,
     UserRole.district_focal_person,
+    UserRole.sector_focal_person,
     UserRole.ncda_admin,
   )
   @ApiOperation({
@@ -69,7 +71,7 @@ export class WashController {
   }
 
   @Post()
-  @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'Create WASH indicator',
     description: 'Records a new WASH indicator snapshot for a center.',
@@ -82,7 +84,7 @@ export class WashController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'Update WASH indicator',
     description: 'Updates a WASH indicator. Requires optimistic-lock `version`.',

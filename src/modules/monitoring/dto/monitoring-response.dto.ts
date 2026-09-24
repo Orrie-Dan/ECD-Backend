@@ -97,17 +97,50 @@ export class MonitoringNutritionSummaryDto {
   @ApiProperty({ example: 50 })
   screenings: number;
 
-  @ApiProperty({ example: 2 })
+  @ApiProperty({
+    example: 2,
+    description:
+      'Compat: screenings with any WHO indicator below_minus_3 (counted once). NOT a combined clinical score.',
+  })
   severe: number;
 
-  @ApiProperty({ example: 5 })
+  @ApiProperty({
+    example: 5,
+    description:
+      'Compat: screenings with any WHO minus_3_to_minus_2 and no below_minus_3. NOT a combined clinical score.',
+  })
   moderate: number;
 
-  @ApiProperty({ example: 8 })
+  @ApiProperty({
+    example: 0,
+    description: 'Deprecated legacy at_risk band — always 0 under WHO truth.',
+  })
   atRisk: number;
 
-  @ApiProperty({ example: 35 })
+  @ApiProperty({
+    example: 35,
+    description:
+      'Compat: remaining screenings with ≥1 available WHO zone (not severe/moderate). NOT a combined clinical score.',
+  })
   normal: number;
+
+  @ApiProperty({
+    description: 'WHO weight-for-age zone distribution (including unavailable).',
+    additionalProperties: { type: 'number' },
+  })
+  weightForAgeZones: Record<string, number>;
+
+  @ApiProperty({
+    description: 'WHO height/length-for-age zone distribution (including unavailable).',
+    additionalProperties: { type: 'number' },
+  })
+  heightForAgeZones: Record<string, number>;
+
+  @ApiProperty({
+    description: 'WHO MUAC-for-age zone distribution (including unavailable).',
+    additionalProperties: { type: 'number' },
+  })
+  muacForAgeZones: Record<string, number>;
 
   @ApiProperty({ example: 4 })
   requiresReferral: number;

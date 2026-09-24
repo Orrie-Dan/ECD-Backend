@@ -77,6 +77,7 @@ export class AuthService {
       username: user.username,
       role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
+      sectorId: user.sectorId,
       centerId: user.centerId,
       center: user.center,
     });
@@ -119,6 +120,7 @@ export class AuthService {
       username: user.username,
       role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
+      sectorId: user.sectorId,
       centerId: user.centerId,
       center: user.center,
     });
@@ -134,6 +136,7 @@ export class AuthService {
         fullName: true,
         role: true,
         districtId: true,
+        sectorId: true,
         centerId: true,
         center: {
           select: { id: true, code: true, name: true },
@@ -152,6 +155,7 @@ export class AuthService {
       fullName: user.fullName,
       role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
+      sectorId: user.sectorId,
       centerId: user.centerId,
       center: user.center,
     };
@@ -286,6 +290,7 @@ export class AuthService {
     username: string;
     role: UserRole;
     districtId: string | null;
+    sectorId: string | null;
     centerId: string | null;
     center: AuthUserResponseDto['center'];
   }): Promise<AuthTokensResponseDto> {
@@ -297,6 +302,7 @@ export class AuthService {
       username: user.username,
       role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
+      sectorId: user.sectorId,
       centerId: user.centerId,
       type: 'access',
     };
@@ -306,6 +312,7 @@ export class AuthService {
       username: user.username,
       role: asDomainEnum<UserRole>(user.role),
       districtId: user.districtId,
+      sectorId: user.sectorId,
       centerId: user.centerId,
       type: 'refresh',
     };
@@ -329,6 +336,7 @@ export class AuthService {
         username: user.username,
         role: asDomainEnum<UserRole>(user.role),
         districtId: user.districtId,
+        sectorId: user.sectorId,
         centerId: user.centerId,
         center: user.center,
       },

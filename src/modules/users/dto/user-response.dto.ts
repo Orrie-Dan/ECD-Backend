@@ -71,6 +71,13 @@ export class UserResponseDto {
   @ApiProperty({ type: () => UserDistrictSummaryDto, nullable: true })
   district: UserDistrictSummaryDto | null;
 
+  @ApiProperty({
+    format: 'uuid',
+    nullable: true,
+    description: 'Assigned sector for sector_focal_person',
+  })
+  sectorId: string | null;
+
   @ApiProperty({ type: () => UserCenterSummaryDto, nullable: true })
   center: UserCenterSummaryDto | null;
 

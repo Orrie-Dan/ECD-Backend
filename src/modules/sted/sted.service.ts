@@ -9,6 +9,7 @@ import { RecordSyncStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
+import { assertCenterAccessibleById } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateStedAssessmentDto } from './dto/create-sted-assessment.dto';
@@ -40,7 +41,7 @@ export class StedService {
       throw new BadRequestException('centerId does not match the child current center');
     }
 
-    assertCenterAccess(user, dto.centerId, child.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, dto.centerId);
 
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
     const mapped = stedMapper.toCreateData(dto);
@@ -143,7 +144,7 @@ export class StedService {
       throw new NotFoundException('STED assessment not found');
     }
 
-    assertCenterAccess(user, row.centerId, row.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, row.centerId);
     return stedMapper.toDto(row);
   }
 
@@ -162,7 +163,7 @@ export class StedService {
       throw new NotFoundException('Child not found');
     }
 
-    assertCenterAccess(user, child.centerId, child.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, child.centerId);
     return child;
   }
 

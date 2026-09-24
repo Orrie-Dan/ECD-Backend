@@ -2,7 +2,8 @@
  * Shared notification event producer tests.
  * Run: npx ts-node src/modules/notifications/__tests__/notification-events.service.spec.ts
  */
-import { AssessmentStatus, NutritionStatus, UserRole } from '../../../common/domain';
+import { AssessmentStatus, UserRole } from '../../../common/domain';
+import type { WhoConcernHit } from '../../nutrition/who/concern';
 import { NotificationEventsService } from '../notification-events.service';
 import { NotificationDedupeKeys } from '../notification-dedupe';
 
@@ -26,6 +27,20 @@ function eq(actual: unknown, expected: unknown, label?: string) {
   }
 }
 
+const belowMinus3: WhoConcernHit = {
+  indicator: 'weight_for_age',
+  zone: 'below_minus_3',
+  zScore: -3.2,
+  label: 'Weight-for-age Below -3 SD',
+};
+
+const minus3ToMinus2: WhoConcernHit = {
+  indicator: 'muac_for_age',
+  zone: 'minus_3_to_minus_2',
+  zScore: -2.4,
+  label: 'MUAC-for-age -3 to -2 SD',
+};
+
 type NotifyCall = {
   userIds: string[];
   data: {
@@ -40,7 +55,7 @@ type NotifyCall = {
 };
 
 async function main() {
-  await assert('severe nutrition notifies center director and district officer', async () => {
+  await assert('WHO below_minus_3 notifies center director and district officer', async () => {
     const calls: NotifyCall[] = [];
     const notifications = {
       findUserIdsByRoleAndCenter: async (centerId: string, roles: UserRole[]) => {
@@ -63,7 +78,7 @@ async function main() {
       {} as never,
     ).onNutritionScreeningCreated({
       screeningId: 'screen-1',
-      nutritionStatus: NutritionStatus.severe,
+      whoConcerns: [belowMinus3],
       requiresReferral: true,
       centerId: 'center-a',
       districtId: 'district-a',
@@ -74,12 +89,13 @@ async function main() {
     eq(calls[0]?.data.entityId, 'screen-1');
     eq(calls[0]?.data.dedupeKey, NotificationDedupeKeys.nutritionScreeningCreated('screen-1'));
     eq(calls[0]?.userIds.sort(), ['director-a', 'district-a'].sort());
-    eq(calls[0]?.data.metadata?.nutritionStatus, 'severe');
+    eq(calls[0]?.data.metadata?.whoZone, 'below_minus_3');
     eq(calls[0]?.data.metadata?.requiresReferral, true);
     eq(calls[0]?.data.message?.includes('akeneye koherezwa kwa muganga'), true, 'message includes referral');
+    eq(calls[0]?.data.title?.includes('ibiro ku myaka'), true, 'title identifies indicator');
   });
 
-  await assert('normal nutrition screening emits no notification', async () => {
+  await assert('no WHO concerns and no referral emits nothing', async () => {
     const calls: NotifyCall[] = [];
     const notifications = {
       findUserIdsByRoleAndCenter: async () => {
@@ -96,7 +112,7 @@ async function main() {
       {} as never,
     ).onNutritionScreeningCreated({
       screeningId: 'screen-2',
-      nutritionStatus: NutritionStatus.normal,
+      whoConcerns: [],
       requiresReferral: false,
       centerId: 'center-a',
       districtId: 'district-a',
@@ -105,7 +121,7 @@ async function main() {
     eq(calls.length, 0);
   });
 
-  await assert('moderate nutrition emits notification with referral metadata', async () => {
+  await assert('WHO minus_3_to_minus_2 emits with referral metadata', async () => {
     const calls: NotifyCall[] = [];
     const notifications = {
       findUserIdsByRoleAndCenter: async () => ['director-a'],
@@ -120,7 +136,7 @@ async function main() {
       {} as never,
     ).onNutritionScreeningCreated({
       screeningId: 'screen-mod',
-      nutritionStatus: NutritionStatus.moderate,
+      whoConcerns: [minus3ToMinus2],
       requiresReferral: true,
       centerId: 'center-a',
       districtId: 'district-a',
@@ -128,11 +144,11 @@ async function main() {
 
     eq(calls.length, 1);
     eq(calls[0]?.data.type, 'nutrition_alert');
-    eq(calls[0]?.data.metadata?.nutritionStatus, 'moderate');
+    eq(calls[0]?.data.metadata?.whoZone, 'minus_3_to_minus_2');
     eq(calls[0]?.data.metadata?.requiresReferral, true);
   });
 
-  await assert('at_risk nutrition emits notification', async () => {
+  await assert('WHO concern without referral fires', async () => {
     const calls: NotifyCall[] = [];
     const notifications = {
       findUserIdsByRoleAndCenter: async () => ['director-a'],
@@ -147,7 +163,7 @@ async function main() {
       {} as never,
     ).onNutritionScreeningCreated({
       screeningId: 'screen-risk',
-      nutritionStatus: NutritionStatus.at_risk,
+      whoConcerns: [minus3ToMinus2],
       requiresReferral: false,
       centerId: 'center-a',
       districtId: null,
@@ -155,38 +171,12 @@ async function main() {
 
     eq(calls.length, 1);
     eq(calls[0]?.data.type, 'nutrition_alert');
-    eq(calls[0]?.data.metadata?.nutritionStatus, 'at_risk');
+    eq(calls[0]?.data.metadata?.whoZone, 'minus_3_to_minus_2');
     eq(calls[0]?.data.metadata?.requiresReferral, false);
     eq(calls[0]?.data.message?.includes('akeneye koherezwa kwa muganga'), false, 'no referral suffix');
   });
 
-  await assert('at_risk with requiresReferral includes referral in message', async () => {
-    const calls: NotifyCall[] = [];
-    const notifications = {
-      findUserIdsByRoleAndCenter: async () => ['director-a'],
-      findUserIdsByRoleAndDistrict: async () => [],
-      notifyAsync: (userIds: string[], data: NotifyCall['data']) => {
-        calls.push({ userIds, data });
-      },
-    };
-
-    await new NotificationEventsService(
-      notifications as never,
-      {} as never,
-    ).onNutritionScreeningCreated({
-      screeningId: 'screen-risk-ref',
-      nutritionStatus: NutritionStatus.at_risk,
-      requiresReferral: true,
-      centerId: 'center-a',
-      districtId: null,
-    });
-
-    eq(calls.length, 1);
-    eq(calls[0]?.data.metadata?.requiresReferral, true);
-    eq(calls[0]?.data.message?.includes('akeneye koherezwa kwa muganga'), true);
-  });
-
-  await assert('normal with requiresReferral=true emits notification', async () => {
+  await assert('referral-only (no WHO concerns) emits notification', async () => {
     const calls: NotifyCall[] = [];
     const notifications = {
       findUserIdsByRoleAndCenter: async () => ['director-a'],
@@ -201,7 +191,7 @@ async function main() {
       {} as never,
     ).onNutritionScreeningCreated({
       screeningId: 'screen-normal-ref',
-      nutritionStatus: NutritionStatus.normal,
+      whoConcerns: [],
       requiresReferral: true,
       centerId: 'center-a',
       districtId: null,
@@ -209,7 +199,7 @@ async function main() {
 
     eq(calls.length, 1);
     eq(calls[0]?.data.type, 'nutrition_alert');
-    eq(calls[0]?.data.metadata?.nutritionStatus, 'normal');
+    eq(calls[0]?.data.metadata?.whoZone, null);
     eq(calls[0]?.data.metadata?.requiresReferral, true);
   });
 
@@ -274,8 +264,8 @@ async function main() {
     eq(calls.length, 1);
     eq(calls[0]?.data.type, 'center_created');
     eq(calls[0]?.data.entityId, 'center-new');
-    eq(calls[0]?.data.title, 'Ikigo gishya cya ECD cyanditswe');
-    eq(calls[0]?.data.message, 'Nyamirambo ECD cyanditswe muri Nyarugenge.');
+    eq(calls[0]?.data.title, 'Urugo mbonezamikurire rushya rwa ECD rwanditswe');
+    eq(calls[0]?.data.message, 'Nyamirambo ECD rwanditswe muri Nyarugenge.');
     eq(calls[0]?.data.dedupeKey, NotificationDedupeKeys.centerCreated('center-new'));
     eq(calls[0]?.context, 'center_created');
     eq(calls[0]?.userIds.sort(), ['admin-a', 'admin-b', 'district-a'].sort());
@@ -316,43 +306,36 @@ async function main() {
 
   // ── NOTIF-04 Priority Parity ───────────────────────────────────────
 
-  await assert('priority: severe → critical, moderate → high, at_risk → medium', () => {
+  await assert('priority: WHO below_minus_3 → critical, minus_3_to_minus_2 → high', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { resolveNotificationPriority } = require('../notification-priority');
+    eq(
+      resolveNotificationPriority({ type: 'nutrition_alert', whoZone: 'below_minus_3' }),
+      'critical',
+    );
+    eq(
+      resolveNotificationPriority({ type: 'nutrition_alert', whoZone: 'minus_3_to_minus_2' }),
+      'high',
+    );
+    eq(resolveNotificationPriority({ type: 'nutrition_alert', whoZone: null }), 'high');
+    // Legacy absolute-MUAC fallback
     eq(
       resolveNotificationPriority({ type: 'nutrition_alert', nutritionStatus: 'severe' }),
       'critical',
     );
-    eq(
-      resolveNotificationPriority({ type: 'nutrition_alert', nutritionStatus: 'moderate' }),
-      'high',
-    );
-    eq(
-      resolveNotificationPriority({ type: 'nutrition_alert', nutritionStatus: 'at_risk' }),
-      'medium',
-    );
-    eq(resolveNotificationPriority({ type: 'nutrition_alert', nutritionStatus: 'normal' }), 'high');
   });
-
-  // ── Contract Parity: alert conditions vs notification conditions ───
 
   await assert('all alert nutrition conditions have inbox parity', () => {
     // Alert conditions from alerts.service.ts:
-    // NUTRITION_SEVERE → severe → inbox: yes (event-driven, severe)
-    // NUTRITION_AT_RISK → moderate|at_risk → inbox: yes (event-driven, moderate/at_risk)
-    // NUTRITION_REQUIRES_REFERRAL → requiresReferral=true → inbox: yes (combined in metadata)
+    // NUTRITION_WHO_BELOW_MINUS_3 → inbox: yes (event-driven WHO concerns)
+    // NUTRITION_WHO_MINUS_3_TO_MINUS_2 → inbox: yes (event-driven WHO concerns)
+    // NUTRITION_REQUIRES_REFERRAL → requiresReferral=true → inbox: yes
     // NUTRITION_OVERDUE → overdue screening → inbox: yes (NOTIF-06 cron)
     // NUTRITION_NEVER_SCREENED → never screened → inbox: yes (NOTIF-06 cron)
-    //
-    // All actionable nutrition conditions now have inbox representation.
-    // requiresReferral is NOT a separate notification; it is metadata
-    // on the same screening notification, avoiding signal duplication.
-    //
-    // This is a documentation assertion, not a runtime check.
-    eq(true, true, 'parity documented');
+    eq(true, true);
   });
 
-  console.log('\nAll notification event tests passed.');
+  console.log('\nAll notification-events tests passed.');
 }
 
 main().catch((err) => {

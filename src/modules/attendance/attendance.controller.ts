@@ -45,6 +45,7 @@ import { ListAttendanceQueryDto } from './dto/list-attendance-query.dto';
   UserRole.caregiver,
   UserRole.ecd_director,
   UserRole.district_focal_person,
+  UserRole.sector_focal_person,
   UserRole.ncda_admin,
 )
 export class AttendanceController {

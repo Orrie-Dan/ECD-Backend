@@ -4,13 +4,12 @@ import { Mapper } from '../../../common/mappers/base.mapper';
 import { GrowthChartResponseDto } from '../dto/growth-chart-response.dto';
 import { NutritionScreeningResponseDto } from '../dto/nutrition-screening-response.dto';
 
-export function deriveRequiresReferral(
-  nutritionStatus: NutritionStatus,
-  clientFlag?: boolean,
-): boolean {
-  if (nutritionStatus === NutritionStatus.moderate || nutritionStatus === NutritionStatus.severe) {
-    return true;
-  }
+/**
+ * Referral is manual only.
+ * Legacy: moderate/severe absolute-MUAC forced referral — removed (NUTR-WHO-03).
+ * No WHO-zone automatic referral rule is approved; do not invent one.
+ */
+export function deriveRequiresReferral(clientFlag?: boolean): boolean {
   return Boolean(clientFlag);
 }
 
@@ -24,6 +23,19 @@ export function decimalToNumber(
     return value;
   }
   return Number(value.toString());
+}
+
+export function parseOptionalNutritionStatus(
+  value: string | null | undefined,
+): NutritionStatus | null {
+  if (value == null || value === '') {
+    return null;
+  }
+  try {
+    return asDomainEnum<NutritionStatus>(value);
+  } catch {
+    return null;
+  }
 }
 
 export class NutritionMapper implements Mapper<
@@ -46,7 +58,7 @@ export class NutritionMapper implements Mapper<
       muacCm,
       heightCm: decimalToNumber(entity.heightCm),
       headCircumferenceCm: decimalToNumber(entity.headCircumferenceCm),
-      nutritionStatus: asDomainEnum<NutritionStatus>(entity.nutritionStatus),
+      nutritionStatus: parseOptionalNutritionStatus(entity.nutritionStatus),
       requiresReferral: entity.requiresReferral,
       mealQuality: entity.mealQuality,
       feedingConcern: entity.feedingConcern,

@@ -1,13 +1,14 @@
 import { NutritionStatus } from '../../../common/domain';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsIn, IsOptional, IsUUID } from 'class-validator';
-import { NutritionAlertType } from './nutrition-alert.dto';
 
-const ALERT_TYPES: NutritionAlertType[] = [
+const ALERT_TYPES = [
   'overdue_screening',
   'requires_referral',
+  'who_growth_concern',
+  /** @deprecated alias for who_growth_concern */
   'severe_nutrition',
-];
+] as const;
 
 export class ListNutritionQueryDto {
   @ApiPropertyOptional({ format: 'uuid' })
@@ -31,8 +32,8 @@ export class ListNutritionQueryDto {
     description: 'Filter by nutrition alert type',
   })
   @IsOptional()
-  @IsIn(ALERT_TYPES)
-  status?: NutritionAlertType;
+  @IsIn([...ALERT_TYPES])
+  status?: (typeof ALERT_TYPES)[number];
 
   @ApiPropertyOptional({
     enum: NutritionStatus,

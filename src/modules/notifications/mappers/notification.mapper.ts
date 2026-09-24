@@ -12,6 +12,7 @@ export type NotificationMapperExtras = {
   role?: UserRole;
   context?: NotificationContextDto;
   nutritionStatus?: string | null;
+  whoZone?: string | null;
   childId?: string | null;
   centerId?: string | null;
   assessmentId?: string | null;
@@ -26,6 +27,11 @@ function metadataRecord(value: unknown): Record<string, unknown> | null {
 
 function metadataPriority(metadata: Record<string, unknown> | null): string | null {
   const value = metadata?.priority;
+  return typeof value === 'string' ? value : null;
+}
+
+function metadataWhoZone(metadata: Record<string, unknown> | null): string | null {
+  const value = metadata?.whoZone;
   return typeof value === 'string' ? value : null;
 }
 
@@ -54,6 +60,7 @@ export const notificationMapper = {
         type: entity.type,
         entityType: entity.entityType,
         nutritionStatus: extras.nutritionStatus ?? null,
+        whoZone: extras.whoZone ?? metadataWhoZone(metadata),
         metadataPriority: metadataPriority(metadata),
       }),
       isRead: entity.isRead,

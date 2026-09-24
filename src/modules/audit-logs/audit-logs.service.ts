@@ -1,6 +1,7 @@
 import { UserRole } from '../../common/domain';
 import { Injectable } from '@nestjs/common';
 import { AuditAction, Prisma } from '@prisma/client';
+import { resolveDistrictQueryScope } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { AuditLogResponseDto, PaginatedAuditLogsResponseDto } from './dto/audit-log-response.dto';
@@ -17,7 +18,7 @@ export class AuditLogsService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
-    const where = this.buildWhere(user, query);
+    const where = await this.buildWhere(user, query);
 
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.auditLog.findMany({
@@ -43,13 +44,30 @@ export class AuditLogsService {
     };
   }
 
-  private buildWhere(user: AuthUser, query: ListAuditLogsQueryDto): Prisma.AuditLogWhereInput {
+  private async buildWhere(
+    user: AuthUser,
+    query: ListAuditLogsQueryDto,
+  ): Promise<Prisma.AuditLogWhereInput> {
     const where: Prisma.AuditLogWhereInput = {};
 
     if (user.role === UserRole.district_focal_person && user.districtId) {
       where.changedBy = {
         districtId: user.districtId,
       };
+    }
+
+    if (user.role === UserRole.sector_focal_person && user.districtId && user.sectorId) {
+      const scope = await resolveDistrictQueryScope(this.prisma, user, {});
+      const centerIds = scope.centerIds === 'all' ? [] : scope.centerIds;
+      where.OR = [
+        { changedBy: { centerId: { in: centerIds } } },
+        {
+          changedBy: {
+            sectorId: user.sectorId,
+            role: UserRole.sector_focal_person,
+          },
+        },
+      ];
     }
 
     if (query.entityType) {

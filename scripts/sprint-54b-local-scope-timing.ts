@@ -18,6 +18,7 @@ function user(role: UserRole, districtId: string | null = null): AuthUser {
     role,
     centerId: null,
     districtId,
+    sectorId: null,
     status: 'active',
   };
 }

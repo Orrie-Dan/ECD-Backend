@@ -36,6 +36,7 @@ function authUser(overrides: Partial<AuthUser> = {}): AuthUser {
     username: 'director',
     role: UserRole.ecd_director,
     districtId: 'd1',
+    sectorId: null,
     centerId: 'c1',
     email: null,
     fullName: 'Director One',

@@ -53,6 +53,8 @@ type DistrictRow = { id: string; code: string; name: string; provinceId: string 
 const PROVINCE_NAMES: Record<string, string> = {
   Kigali: 'City of Kigali',
   East: 'Eastern Province',
+  /** Historical typo — never create a second province. */
+  Estern: 'Eastern Province',
   West: 'Western Province',
   North: 'Northern Province',
   South: 'Southern Province',

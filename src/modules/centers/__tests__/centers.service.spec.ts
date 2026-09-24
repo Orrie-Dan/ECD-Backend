@@ -39,6 +39,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }
@@ -263,6 +264,91 @@ async function main() {
       threw = e instanceof NotFoundException;
     }
     eq(threw, true);
+  });
+
+  await assert('list: sectorId scopes centers via village hierarchy', async () => {
+    const captured: { where?: Record<string, unknown> } = {};
+    const prisma = {
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+      ecdCenter: {
+        findMany: async (args: { where: Record<string, unknown> }) => {
+          // First call: resolveDistrictQueryScope center lookup
+          if (!captured.where && args.where?.villageId) {
+            return [{ id: 'center-sector-1' }, { id: 'center-sector-2' }];
+          }
+          captured.where = args.where;
+          return [centerRow({ id: 'center-sector-1' })];
+        },
+        count: async () => 2,
+      },
+      administrativeUnit: {
+        findUnique: async () => ({
+          id: 'sector-1',
+          districtId: 'district-1',
+          level: 'sector',
+        }),
+        findMany: async () => [{ id: 'village-1', level: 'village' }],
+      },
+    };
+    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
+
+    const result = await service.findAll(user({ role: UserRole.ncda_admin }), {
+      districtId: 'district-1',
+      sectorId: 'sector-1',
+      page: 1,
+      pageSize: 20,
+    });
+
+    eq(result.total, 2);
+    const idFilter = captured.where!.id as { in: string[] };
+    eq(idFilter.in.includes('center-sector-1'), true);
+    eq(idFilter.in.includes('center-sector-2'), true);
+    eq(captured.where!.districtId, 'district-1');
+  });
+
+  await assert('list: sector + district pagination uses server total', async () => {
+    let listCalls = 0;
+    const prisma = {
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+      ecdCenter: {
+        findMany: async (args: {
+          where: Record<string, unknown>;
+          skip?: number;
+          take?: number;
+        }) => {
+          listCalls += 1;
+          if (args.where?.villageId) {
+            return [{ id: 'c1' }, { id: 'c2' }, { id: 'c3' }];
+          }
+          eq(args.skip, 2);
+          eq(args.take, 2);
+          return [centerRow({ id: 'c3' })];
+        },
+        count: async () => 3,
+      },
+      administrativeUnit: {
+        findUnique: async () => ({
+          id: 'sector-1',
+          districtId: 'district-1',
+          level: 'sector',
+        }),
+        findMany: async () => [{ id: 'village-1', level: 'village' }],
+      },
+    };
+    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
+
+    const result = await service.findAll(user({ role: UserRole.ncda_admin }), {
+      districtId: 'district-1',
+      sectorId: 'sector-1',
+      page: 2,
+      pageSize: 2,
+    });
+
+    eq(result.total, 3);
+    eq(result.page, 2);
+    eq(result.pageSize, 2);
+    eq(result.totalPages, 2);
+    eq(listCalls >= 2, true);
   });
 
   await assert('cas util still distinguishes conflict', async () => {

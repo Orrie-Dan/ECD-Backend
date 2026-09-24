@@ -6,7 +6,10 @@ export type NotificationPriority = (typeof NOTIFICATION_PRIORITIES)[number];
 type PriorityInput = {
   type: string;
   entityType?: string | null;
+  /** @deprecated Legacy absolute-MUAC status — prefer whoZone. */
   nutritionStatus?: string | null;
+  /** Worst WHO concern zone from screening metadata. */
+  whoZone?: string | null;
   metadataPriority?: string | null;
 };
 
@@ -16,6 +19,13 @@ type PriorityInput = {
  */
 export function resolveNotificationPriority(input: PriorityInput): NotificationPriority {
   if (input.type === NotificationType.nutrition_alert) {
+    if (input.whoZone === 'below_minus_3') {
+      return 'critical';
+    }
+    if (input.whoZone === 'minus_3_to_minus_2') {
+      return 'high';
+    }
+    // Legacy absolute-MUAC fallback for historical notifications.
     if (input.nutritionStatus === NutritionStatus.severe) {
       return 'critical';
     }

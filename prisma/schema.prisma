@@ -90,6 +90,7 @@ model AdministrativeUnit {
   provincesAsDistrict District[]  @relation("DistrictProvince")
   villageCenters      EcdCenter[] @relation("EcdCenterVillage")
   homeVillageChildren Child[]     @relation("ChildHomeVillage")
+  sectorUserAccounts  UserAccount[] @relation("UserAccountSector")
 
   @@unique([level, code])
   @@index([parentId])
@@ -241,6 +242,7 @@ model UserAccount {
   educationLevel      String?   @map("education_level")
   role                String
   districtId          String?           @map("district_id")
+  sectorId            String?           @map("sector_id")
   centerId            String?           @map("center_id")
   status              String @default("active")
   lastLoginAt         DateTime?         @map("last_login_at")
@@ -252,8 +254,9 @@ model UserAccount {
   updatedAt           DateTime          @default(now()) @map("updated_at")
   updatedById         String?           @map("updated_by")
 
-  district District?  @relation(fields: [districtId], references: [id])
-  center   EcdCenter? @relation(fields: [centerId], references: [id])
+  district District?            @relation(fields: [districtId], references: [id])
+  sector   AdministrativeUnit?  @relation("UserAccountSector", fields: [sectorId], references: [id])
+  center   EcdCenter?           @relation(fields: [centerId], references: [id])
 
   createdBy    UserAccount?  @relation("UserAccountCreatedBy", fields: [createdById], references: [id])
   createdUsers UserAccount[] @relation("UserAccountCreatedBy")
@@ -300,6 +303,8 @@ model UserAccount {
   @@index([username])
   @@index([role])
   @@index([status])
+  @@index([districtId])
+  @@index([sectorId])
   @@map("user_account")
   @@schema("sde")
 }
@@ -571,7 +576,9 @@ model ChildNutritionScreening {
   muacCm                 Decimal          @map("muac_cm") @db.Decimal(5, 1)
   heightCm               Decimal?         @map("height_cm") @db.Decimal(5, 1)
   headCircumferenceCm    Decimal?         @map("head_circumference_cm") @db.Decimal(5, 1)
-  nutritionStatus        String  @map("nutrition_status")
+  // Legacy absolute-MUAC classification (nullable). New screenings leave null;
+  // WHO WFA/HFA/MUAC-for-age zones are calculated dynamically from measurements.
+  nutritionStatus        String?          @map("nutrition_status")
   requiresReferral       Boolean          @default(false) @map("requires_referral")
   mealQuality            String?          @map("meal_quality")
   feedingConcern         Boolean          @default(false) @map("feeding_concern")
@@ -835,6 +842,8 @@ model ComplianceAssessment {
   assessmentType         String            @map("assessment_type")
   assessmentDate         DateTime                  @map("assessment_date") @db.Date
   status                 String          @default("draft")
+  /// Client-side draft identity for matching localStorage ↔ server assessments.
+  clientDraftId          String?                   @map("client_draft_id")
   submittedById          String?                   @map("submitted_by")
   submittedAt            DateTime?                 @map("submitted_at")
   verifiedById           String?                   @map("verified_by")
@@ -857,6 +866,8 @@ model ComplianceAssessment {
   items                ComplianceAssessmentItem[]
 
   @@index([centerId, assessmentDate])
+  @@index([centerId, assessmentType, status])
+  @@index([clientDraftId])
   @@index([status])
   @@index([submittedById])
   @@index([verifiedById])

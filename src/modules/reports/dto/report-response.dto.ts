@@ -241,7 +241,11 @@ export class DistrictReportKpisDto {
   @ApiProperty({ example: 50 })
   nutritionScreenings: number;
 
-  @ApiProperty({ example: 2 })
+  @ApiProperty({
+    example: 2,
+    description:
+      'Screenings with any WHO indicator below_minus_3 (compat severe; not legacy absolute-MUAC).',
+  })
   severeNutrition: number;
 
   @ApiProperty({ example: 3 })

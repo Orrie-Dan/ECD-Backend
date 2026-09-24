@@ -42,7 +42,7 @@ export class DistrictRiskItemDto {
   @ApiProperty({
     example: 3,
     description:
-      'Nutrition screenings with nutritionStatus=severe in range (same as reports/district severeNutrition)',
+      'Nutrition screenings with any WHO indicator below_minus_3 in range (compat severe; same as reports severeNutrition). Signal flag nutrition_severe_present uses this count.',
   })
   severeNutritionCount: number;
 

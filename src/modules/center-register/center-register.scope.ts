@@ -2,17 +2,19 @@ import { UserRole } from '../../common/domain';
 import { ForbiddenException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
-  assertCenterAccess,
   assertCenterAdminAccess,
   isCenterAdminRole,
   isCenterStaffRole,
 } from '../../common/auth/scope.util';
+import { centerOwnedListFilter } from '../../common/scope/district-query.scope';
+import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 
 export type CenterSummary = {
   id: string;
   name: string;
   districtId: string;
+  villageId: string;
 };
 
 export type DateRangedListQuery = {
@@ -29,6 +31,7 @@ export const REGISTER_READ_ROLES = [
   UserRole.caregiver,
   UserRole.ecd_director,
   UserRole.district_focal_person,
+  UserRole.sector_focal_person,
   UserRole.ncda_admin,
 ] as const;
 
@@ -39,6 +42,7 @@ export const REGISTER_WRITE_ROLES = [UserRole.ecd_director] as const;
 export const REGISTER_SUMMARY_ROLES = [
   UserRole.ecd_director,
   UserRole.district_focal_person,
+  UserRole.sector_focal_person,
   UserRole.ncda_admin,
 ] as const;
 
@@ -54,12 +58,11 @@ export function assertCanReadRegisterSummary(user: AuthUser): void {
   }
 }
 
-export function assertWriteCenterAccess(user: AuthUser, center: CenterSummary): void {
+export function assertWriteCenterAccess(
+  user: AuthUser,
+  center: Pick<CenterSummary, 'id' | 'districtId'>,
+): void {
   assertCenterAdminAccess(user, center.id, center.districtId);
-}
-
-export function assertReadCenterAccess(user: AuthUser, center: CenterSummary): void {
-  assertCenterAccess(user, center.id, center.districtId);
 }
 
 export function paginationOf(query: { page?: number; pageSize?: number }): {
@@ -72,32 +75,26 @@ export function paginationOf(query: { page?: number; pageSize?: number }): {
   return { page, pageSize, skip: (page - 1) * pageSize };
 }
 
-export function buildCenterScopedWhere(
+export async function buildCenterScopedWhere(
+  prisma: PrismaService,
   user: AuthUser,
   query: DateRangedListQuery,
   dateField: string,
-): Prisma.ParentContributionWhereInput {
+): Promise<Prisma.ParentContributionWhereInput> {
   const where: Prisma.ParentContributionWhereInput = {
     deletedAt: null,
   };
 
-  if (isCenterStaffRole(user.role)) {
-    if (!user.centerId) {
-      throw new ForbiddenException('Center scope is required for this role');
-    }
-    where.centerId = user.centerId;
-  } else if (user.role === UserRole.district_focal_person) {
-    if (!user.districtId) {
-      throw new ForbiddenException('District scope is required for district focal persons');
-    }
-    if (query.districtId && query.districtId !== user.districtId) {
-      throw new ForbiddenException('Access to other districts is denied');
-    }
-    where.center = { districtId: user.districtId };
-  } else if (user.role === UserRole.ncda_admin) {
-    if (query.districtId) {
-      where.center = { districtId: query.districtId };
-    }
+  const scoped = await centerOwnedListFilter(prisma, user, {
+    districtId: query.districtId,
+    centerId: query.centerId,
+  });
+  if (typeof scoped.centerId === 'string') {
+    where.centerId = scoped.centerId;
+  } else if (scoped.centerId) {
+    where.centerId = scoped.centerId;
+  } else if (scoped.center) {
+    where.center = { districtId: scoped.center.districtId, deletedAt: null };
   }
 
   if (query.centerId) {

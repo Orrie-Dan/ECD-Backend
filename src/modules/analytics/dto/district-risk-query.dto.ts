@@ -29,6 +29,15 @@ export class DistrictRiskQueryDto {
 
   @ApiPropertyOptional({
     format: 'uuid',
+    description:
+      'Optional province filter — limits the district-risk comparison set to districts in this province (metric remains district-level)',
+  })
+  @IsOptional()
+  @IsUUID()
+  provinceId?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
     description: 'Optional single-district filter (NCDA admin only)',
   })
   @IsOptional()

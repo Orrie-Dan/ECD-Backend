@@ -54,6 +54,15 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({
     format: 'uuid',
+    description:
+      'Required when role is sector_focal_person. Must be an AdministrativeUnit with level=sector. districtId is derived from the sector.',
+  })
+  @ValidateIf((o: CreateUserDto) => o.role === UserRole.sector_focal_person)
+  @IsUUID()
+  sectorId?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
     description: 'Required when role is caregiver or ecd_director',
   })
   @ValidateIf(

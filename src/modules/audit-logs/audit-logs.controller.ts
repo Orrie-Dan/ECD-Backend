@@ -16,7 +16,7 @@ export class AuditLogsController {
   constructor(private readonly auditLogsService: AuditLogsService) {}
 
   @Get()
-  @Roles(UserRole.district_focal_person, UserRole.ncda_admin)
+  @Roles(UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
   @ApiOperation({
     summary: 'List audit logs',
     description: 'Paginated audit trail filtered by entity type/id, actor, action, and date range.',

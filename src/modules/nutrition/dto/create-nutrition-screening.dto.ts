@@ -1,6 +1,6 @@
 import { NutritionStatus } from '../../../common/domain';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
@@ -12,6 +12,21 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+
+/** Empty / blank optional numerics → undefined (never 0 from ""). */
+function optionalNumber({ value }: { value: unknown }): number | undefined {
+  if (value === '' || value === null || value === undefined) return undefined;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  if (typeof value === 'string' && value.trim() === '') return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/**
+ * Legacy absolute-MUAC nutritionStatus is optional.
+ * New clients omit it; WHO zones are calculated server-side from measurements + child DOB/sex.
+ * Older offline payloads may still send nutritionStatus — accepted for compatibility, not used as truth.
+ */
 export class CreateNutritionScreeningDto {
   @ApiProperty({
     type: String,
@@ -37,17 +52,20 @@ export class CreateNutritionScreeningDto {
   @Min(0.001)
   muacCm: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     enum: NutritionStatus,
     enumName: 'NutritionStatus',
     example: NutritionStatus.normal,
+    description:
+      'Deprecated legacy absolute-MUAC status. Optional for backward compatibility with older clients. Not used as nutrition source of truth.',
   })
+  @IsOptional()
   @IsEnum(NutritionStatus)
-  nutritionStatus: NutritionStatus;
+  nutritionStatus?: NutritionStatus;
 
   @ApiPropertyOptional({ example: 85.0, minimum: 0.001, description: 'Height in centimetres' })
   @IsOptional()
-  @Type(() => Number)
+  @Transform(optionalNumber)
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0.001)
   heightCm?: number;
@@ -58,7 +76,7 @@ export class CreateNutritionScreeningDto {
     description: 'Head circumference in centimetres',
   })
   @IsOptional()
-  @Type(() => Number)
+  @Transform(optionalNumber)
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0.001)
   headCircumferenceCm?: number;
@@ -80,7 +98,11 @@ export class CreateNutritionScreeningDto {
   @MaxLength(2000)
   dietNotes?: string;
 
-  @ApiPropertyOptional({ example: false })
+  @ApiPropertyOptional({
+    example: false,
+    description:
+      'Manual referral flag only. Automatic referral from legacy MUAC status or WHO zones is not applied (no approved WHO referral rule).',
+  })
   @IsOptional()
   @IsBoolean()
   requiresReferral?: boolean;

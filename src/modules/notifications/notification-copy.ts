@@ -1,4 +1,6 @@
 import { AssessmentStatus, NutritionStatus, UserRole } from '../../common/domain';
+import type { WhoConcernHit } from '../nutrition/who/concern';
+import type { WhoIndicator, WhoZone } from '../nutrition/who/types';
 
 /** Kinyarwanda UI copy for persisted notification title/message fields. */
 
@@ -9,6 +11,19 @@ const NUTRITION_STATUS_LABEL: Record<string, string> = {
   [NutritionStatus.normal]: 'imirire myiza',
   // English display form after replace('_',' ')
   'at risk': 'ibyago byo kugira imirire mibi',
+};
+
+/** Simple WHO indicator labels (not clinical diagnoses). */
+const WHO_INDICATOR_LABEL_RW: Record<WhoIndicator, string> = {
+  weight_for_age: 'ibiro ku myaka',
+  height_for_age: 'uburebure ku myaka',
+  muac_for_age: 'MUAC ku myaka',
+};
+
+/** Simple WHO SD-band labels (not clinical diagnoses). */
+const WHO_ZONE_LABEL_RW: Partial<Record<WhoZone, string>> = {
+  below_minus_3: 'hasi ya -3 SD',
+  minus_3_to_minus_2: 'hagati ya -3 na -2 SD',
 };
 
 const REFERRAL_SOURCE_LABEL: Record<string, string> = {
@@ -24,8 +39,9 @@ const REFERRAL_STATUS_LABEL: Record<string, string> = {
 
 const USER_ROLE_LABEL: Record<string, string> = {
   [UserRole.caregiver]: 'Umurezi',
-  [UserRole.ecd_director]: "Umuyobozi w'ikigo cya ECD",
+  [UserRole.ecd_director]: "Umuyobozi w'urugo mbonezamikurire rwa ECD",
   [UserRole.district_focal_person]: 'Ushinzwe ECD ku karere',
+  [UserRole.sector_focal_person]: 'Ushinzwe ECD ku murenge',
   [UserRole.ncda_admin]: 'Umuyobozi wa NCDA',
 };
 
@@ -43,6 +59,12 @@ export function nutritionStatusLabel(status: string): string {
   return NUTRITION_STATUS_LABEL[status] ?? status.replace('_', ' ');
 }
 
+export function whoConcernLabel(hit: WhoConcernHit): string {
+  const indicator = WHO_INDICATOR_LABEL_RW[hit.indicator] ?? hit.indicator;
+  const zone = WHO_ZONE_LABEL_RW[hit.zone] ?? hit.zone.replace(/_/g, ' ');
+  return `${indicator} (${zone})`;
+}
+
 export function referralSourceLabel(sourceType: string): string {
   return REFERRAL_SOURCE_LABEL[sourceType] ?? sourceType;
 }
@@ -56,12 +78,21 @@ export function userRoleLabel(role: string): string {
 }
 
 export const NotificationCopy = {
-  nutritionAlert(status: string, requiresReferral: boolean) {
-    const statusLabel = nutritionStatusLabel(status);
+  nutritionAlert(whoConcerns: WhoConcernHit[], requiresReferral: boolean) {
     const referralSuffix = requiresReferral ? REFERRAL_REQUIRED_SUFFIX : '';
+    if (whoConcerns.length === 0) {
+      return {
+        title: "Isuzuma ry'imirire: koherezwa kwa muganga",
+        message: `Umwana yasuzumwe imirire kandi akeneye koherezwa kwa muganga.`,
+      };
+    }
+    const primary = whoConcerns[0];
+    const concernLabel = whoConcernLabel(primary);
+    const extra =
+      whoConcerns.length > 1 ? ` n'ibindi bipimo ${whoConcerns.length - 1}` : '';
     return {
-      title: `Isuzuma ry'imirire: ${statusLabel}`,
-      message: `Umwana yasuzumwe imirire, asanga afite ${statusLabel}${referralSuffix}.`,
+      title: `Isuzuma ry'imirire: ${concernLabel}`,
+      message: `Umwana yasuzumwe imirire, asanga afite ${concernLabel}${extra}${referralSuffix}.`,
     };
   },
 
@@ -87,8 +118,8 @@ export const NotificationCopy = {
   centerCreated(centerName: string, districtName?: string | null) {
     const districtSuffix = districtName ? ` muri ${districtName}` : '';
     return {
-      title: 'Ikigo gishya cya ECD cyanditswe',
-      message: `${centerName} cyanditswe${districtSuffix}.`,
+      title: 'Urugo mbonezamikurire rushya rwa ECD rwanditswe',
+      message: `${centerName} rwanditswe${districtSuffix}.`,
     };
   },
 
@@ -96,7 +127,7 @@ export const NotificationCopy = {
     const name = formatChildDisplayName(firstName, lastName);
     return {
       title: 'Umwana mushya yanditswe',
-      message: `${name} yanditswe mu kigo.`,
+      message: `${name} yanditswe mu rugo mbonezamikurire.`,
     };
   },
 
@@ -112,18 +143,18 @@ export const NotificationCopy = {
     const name = childFirstName?.trim() || FALLBACK_CHILD_NAME;
     return {
       title: `Ubusabe bwo kwimura ${name}`,
-      message: 'Hasabwe ko umwana yimurirwa mu kigo cyawe.',
+      message: 'Hasabwe ko umwana yimurirwa mu rugo mbonezamikurire rwawe.',
     };
   },
 
   transferAccepted: {
     title: 'Kwimura umwana byemejwe',
-    message: "Ubusabe bwawe bwo kwimura umwana bwemejwe n'ikigo agiyemo.",
+    message: "Ubusabe bwawe bwo kwimura umwana bwemejwe n'urugo mbonezamikurire agiyemo.",
   },
 
   transferCancelled: {
     title: 'Kwimura umwana byahagaritswe',
-    message: 'Kwimurira umwana mu kigo cyawe byahagaritswe.',
+    message: 'Kwimurira umwana mu rugo mbonezamikurire rwawe byahagaritswe.',
   },
 
   complianceSubmitted(centerName: string) {
@@ -149,7 +180,7 @@ export const NotificationCopy = {
   userProvisioned(fullName: string, role: string) {
     return {
       title: 'Umukoresha mushya yongewemo',
-      message: `${fullName} (${userRoleLabel(role)}) yongewemo mu kigo cyawe.`,
+      message: `${fullName} (${userRoleLabel(role)}) yongewemo mu rugo mbonezamikurire rwawe.`,
     };
   },
 
@@ -199,8 +230,8 @@ export const NotificationCopy = {
 
   capacityWarning(centerName: string, count: number, capacity: number) {
     return {
-      title: 'Ikigo cyageze ku mubare ntarengwa',
-      message: `${centerName} gifite abana ${count} (ubushobozi: ${capacity}).`,
+      title: 'Urugo mbonezamikurire rwageze ku mubare ntarengwa',
+      message: `${centerName} rufite abana ${count} (ubushobozi: ${capacity}).`,
     };
   },
 

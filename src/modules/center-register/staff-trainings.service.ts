@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -42,8 +41,7 @@ export class StaffTrainingsService {
     query: ListCenterRegisterQueryDto,
   ): Promise<PaginatedStaffTrainingsResponseDto> {
     const { page, pageSize, skip } = paginationOf(query);
-    const where = buildCenterScopedWhere(
-      user,
+    const where = await buildCenterScopedWhere(this.prisma, user,
       query,
       'trainingDate',
     ) as Prisma.StaffTrainingWhereInput;
@@ -77,7 +75,7 @@ export class StaffTrainingsService {
 
   async get(user: AuthUser, id: string): Promise<StaffTrainingResponseDto> {
     const row = await this.requireRow(id);
-    assertCenterAccess(user, row.centerId, row.center.districtId);
+    await this.access.assertReadableCenter(user, row.centerId);
     if (user.role === UserRole.caregiver && row.traineeUserId !== user.id) {
       throw new ForbiddenException('You can only view your own training records');
     }

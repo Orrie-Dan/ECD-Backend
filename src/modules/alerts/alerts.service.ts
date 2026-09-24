@@ -3,25 +3,25 @@ import {
   AttendanceStatus,
   ChildStatus,
   GapStatus,
-  NutritionStatus,
   TransferStatus,
   UserRole,
 } from '../../common/domain';
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { ReferralStatus } from '@prisma/client';
 import {
-  assertCenterAccess,
-  assertDistrictAccess,
-  isCenterStaffRole,
-} from '../../common/auth/scope.util';
-import { resolveDistrictQueryScope } from '../../common/scope/district-query.scope';
+  assertCenterAccessibleById,
+  ecdCenterWhere,
+  resolveDistrictQueryScope,
+  type DistrictQueryScope,
+} from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
+import { decimalToNumber } from '../nutrition/mappers/nutrition.mapper';
+import { collectWhoConcerns, worstWhoConcernZone } from '../nutrition/who/concern';
 import {
   ATTENDANCE_ABSENT_THRESHOLD,
   ATTENDANCE_RISK_DAYS,
@@ -168,33 +168,35 @@ export class AlertsService {
     scope: Scope,
     category: string,
   ): Promise<FollowUpAlertDto[]> {
+    // Alert detectors use centerId IN lists; materialize relational province/district/village.
+    const effective = await this.materializeCenterScope(scope);
     const alerts: FollowUpAlertDto[] = [];
 
     if (category === 'all' || category === 'nutrition') {
-      alerts.push(...(await this.nutritionAlerts(scope)));
+      alerts.push(...(await this.nutritionAlerts(effective)));
     }
     if (category === 'all' || category === 'attendance') {
-      alerts.push(...(await this.attendanceAlerts(scope)));
+      alerts.push(...(await this.attendanceAlerts(effective)));
     }
     if (category === 'all' || category === 'referral') {
-      alerts.push(...(await this.referralAlerts(scope)));
+      alerts.push(...(await this.referralAlerts(effective)));
     }
     if (category === 'all' || category === 'data_quality') {
-      alerts.push(...(await this.dataQualityAlerts(scope)));
+      alerts.push(...(await this.dataQualityAlerts(effective)));
     }
     if (category === 'all' || category === 'sted') {
-      alerts.push(...(await this.stedFollowUpAlerts(scope)));
-      alerts.push(...(await this.stedUpcomingAlerts(scope)));
+      alerts.push(...(await this.stedFollowUpAlerts(effective)));
+      alerts.push(...(await this.stedUpcomingAlerts(effective)));
     }
     if (category === 'all' || category === 'transfer') {
-      alerts.push(...(await this.staleTransferAlerts(scope)));
+      alerts.push(...(await this.staleTransferAlerts(effective)));
     }
     if (category === 'all' || category === 'compliance') {
-      alerts.push(...(await this.complianceGapAlerts(scope)));
-      alerts.push(...(await this.complianceLapsedAlerts(scope)));
+      alerts.push(...(await this.complianceGapAlerts(effective)));
+      alerts.push(...(await this.complianceLapsedAlerts(effective)));
     }
     if (category === 'all' || category === 'capacity') {
-      alerts.push(...(await this.capacityAlerts(scope)));
+      alerts.push(...(await this.capacityAlerts(effective)));
     }
 
     return alerts;
@@ -204,83 +206,17 @@ export class AlertsService {
     user: AuthUser,
     query: FollowUpSummaryQueryDto,
   ): Promise<Scope & { provinceId: string | null; sectorId: string | null }> {
-    if (query.provinceId) {
-      if (user.role === UserRole.district_focal_person) {
-        if (!user.districtId) {
-          throw new ForbiddenException('District scope is required');
-        }
-        const own = await this.prisma.district.findFirst({
-          where: { id: user.districtId },
-          select: { provinceId: true },
-        });
-        if (!own || own.provinceId !== query.provinceId) {
-          throw new ForbiddenException('Cannot query another province');
-        }
-      }
-
-      const districts = await this.prisma.district.findMany({
-        where: {
-          provinceId: query.provinceId,
-          ...(query.districtId ? { id: query.districtId } : {}),
-        },
-        select: { id: true },
-      });
-      if (query.districtId && districts.length === 0) {
-        throw new BadRequestException('districtId does not belong to the given provinceId');
-      }
-
-      const districtIds = districts.map((d) => d.id);
-      const base = await resolveDistrictQueryScope(this.prisma, user, {
-        districtId: query.districtId ?? (districtIds.length === 1 ? districtIds[0] : undefined),
-        sectorId: query.sectorId,
-        centerId: query.centerId,
-      });
-
-      // When province-wide (no district), narrow centers to province districts.
-      if (!query.districtId && !query.centerId && districtIds.length > 0) {
-        let villageFilter: string[] | undefined;
-        if (query.sectorId) {
-          const scoped = await resolveDistrictQueryScope(this.prisma, user, {
-            sectorId: query.sectorId,
-          });
-          return {
-            ...scoped,
-            provinceId: query.provinceId,
-            sectorId: query.sectorId,
-          };
-        }
-        const centers = await this.prisma.ecdCenter.findMany({
-          where: {
-            deletedAt: null,
-            districtId: { in: districtIds },
-            ...(villageFilter ? { villageId: { in: villageFilter } } : {}),
-          },
-          select: { id: true },
-        });
-        return {
-          centerIds: centers.map((c) => c.id),
-          districtId: null,
-          singleCenterId: null,
-          provinceId: query.provinceId,
-          sectorId: query.sectorId ?? null,
-        };
-      }
-
-      return {
-        ...base,
-        provinceId: query.provinceId,
-        sectorId: base.sectorId,
-      };
-    }
-
     const base = await resolveDistrictQueryScope(this.prisma, user, {
+      provinceId: query.provinceId,
       districtId: query.districtId,
       sectorId: query.sectorId,
+      cellId: query.cellId,
+      villageId: query.villageId,
       centerId: query.centerId,
     });
     return {
       ...base,
-      provinceId: null,
+      provinceId: base.provinceId ?? query.provinceId ?? null,
       sectorId: base.sectorId,
     };
   }
@@ -392,6 +328,8 @@ export class AlertsService {
         id: true,
         firstName: true,
         lastName: true,
+        dateOfBirth: true,
+        gender: true,
         centerId: true,
         center: { select: { name: true } },
         nutritionScreenings: {
@@ -401,7 +339,9 @@ export class AlertsService {
           select: {
             id: true,
             screeningDate: true,
-            nutritionStatus: true,
+            weightKg: true,
+            heightCm: true,
+            muacCm: true,
             requiresReferral: true,
           },
         },
@@ -436,14 +376,25 @@ export class AlertsService {
         continue;
       }
 
-      if (latest.nutritionStatus === NutritionStatus.severe) {
+      const concerns = collectWhoConcerns({
+        dateOfBirth: child.dateOfBirth,
+        gender: child.gender,
+        screeningDate: latest.screeningDate,
+        weightKg: decimalToNumber(latest.weightKg),
+        heightCm: decimalToNumber(latest.heightCm),
+        muacCm: decimalToNumber(latest.muacCm),
+      });
+      const worstZone = worstWhoConcernZone(concerns);
+
+      if (worstZone === 'below_minus_3') {
+        const primary = concerns.find((h) => h.zone === 'below_minus_3') ?? concerns[0];
         alerts.push({
-          id: `nutrition-severe-${latest.id}`,
+          id: `nutrition-who-m3-${latest.id}`,
           category: 'nutrition',
           priority: 'high',
-          code: 'NUTRITION_SEVERE',
-          title: 'Severe nutrition status',
-          description: `${childName} latest screening is severe`,
+          code: 'NUTRITION_WHO_BELOW_MINUS_3',
+          title: 'WHO growth below −3 SD',
+          description: `${childName}: ${primary.label}`,
           centerId: child.centerId,
           centerName: child.center.name,
           childId: child.id,
@@ -451,19 +402,20 @@ export class AlertsService {
           entityType: 'child_nutrition_screening',
           entityId: latest.id,
           detectedAt: latest.screeningDate.toISOString(),
-          metrics: [{ label: 'Status', value: 'severe' }],
+          metrics: [
+            { label: 'WHO indicator', value: primary.indicator },
+            { label: 'WHO zone', value: primary.zone },
+          ],
         });
-      } else if (
-        latest.nutritionStatus === NutritionStatus.moderate ||
-        latest.nutritionStatus === NutritionStatus.at_risk
-      ) {
+      } else if (worstZone === 'minus_3_to_minus_2') {
+        const primary = concerns[0];
         alerts.push({
-          id: `nutrition-risk-${latest.id}`,
+          id: `nutrition-who-m2-${latest.id}`,
           category: 'nutrition',
           priority: 'medium',
-          code: 'NUTRITION_AT_RISK',
-          title: 'Nutrition risk',
-          description: `${childName} latest screening is ${latest.nutritionStatus}`,
+          code: 'NUTRITION_WHO_MINUS_3_TO_MINUS_2',
+          title: 'WHO growth −3 to −2 SD',
+          description: `${childName}: ${primary.label}`,
           centerId: child.centerId,
           centerName: child.center.name,
           childId: child.id,
@@ -471,7 +423,10 @@ export class AlertsService {
           entityType: 'child_nutrition_screening',
           entityId: latest.id,
           detectedAt: latest.screeningDate.toISOString(),
-          metrics: [{ label: 'Status', value: latest.nutritionStatus }],
+          metrics: [
+            { label: 'WHO indicator', value: primary.indicator },
+            { label: 'WHO zone', value: primary.zone },
+          ],
         });
       }
 
@@ -1099,93 +1054,39 @@ export class AlertsService {
     return { centerId: { in: scope.centerIds } };
   }
 
-  private async resolveScope(user: AuthUser, query: FollowUpAlertsQueryDto): Promise<Scope> {
-    if (isCenterStaffRole(user.role)) {
-      if (!user.centerId) {
-        throw new ForbiddenException('Center scope is required for this role');
-      }
-      if (query.centerId && query.centerId !== user.centerId) {
-        throw new ForbiddenException('Cannot query another center');
-      }
-      return {
-        centerIds: [user.centerId],
-        districtId: user.districtId,
-        singleCenterId: user.centerId,
-      };
+  /**
+   * Expand relational geography (province/district/village with centerIds:'all')
+   * into concrete center IDs for alert detectors that use IN filters.
+   * National remains 'all' (unfiltered).
+   */
+  private async materializeCenterScope(scope: Scope): Promise<Scope> {
+    if (scope.centerIds !== 'all') return scope;
+    if (!scope.provinceId && !scope.districtId && !scope.villageId) {
+      return scope;
     }
-
-    if (user.role === UserRole.district_focal_person) {
-      if (!user.districtId) {
-        throw new ForbiddenException('District scope is required');
-      }
-      if (query.districtId && query.districtId !== user.districtId) {
-        assertDistrictAccess(user, query.districtId);
-      }
-      if (query.centerId) {
-        const center = await this.prisma.ecdCenter.findFirst({
-          where: { id: query.centerId, deletedAt: null },
-          select: { id: true, districtId: true },
-        });
-        if (!center) throw new NotFoundException('Center not found');
-        assertCenterAccess(user, center.id, center.districtId);
-        return {
-          centerIds: [center.id],
-          districtId: user.districtId,
-          singleCenterId: center.id,
-        };
-      }
-      const centers = await this.prisma.ecdCenter.findMany({
-        where: { districtId: user.districtId, deletedAt: null },
-        select: { id: true },
-      });
-      return {
-        centerIds: centers.map((c) => c.id),
-        districtId: user.districtId,
-        singleCenterId: null,
-      };
-    }
-
-    if (query.centerId) {
-      const center = await this.prisma.ecdCenter.findFirst({
-        where: { id: query.centerId, deletedAt: null },
-        select: { id: true, districtId: true },
-      });
-      if (!center) throw new NotFoundException('Center not found');
-      if (query.districtId && query.districtId !== center.districtId) {
-        throw new BadRequestException('centerId does not belong to the given districtId');
-      }
-      return {
-        centerIds: [center.id],
-        districtId: center.districtId,
-        singleCenterId: center.id,
-      };
-    }
-
-    if (query.districtId) {
-      const centers = await this.prisma.ecdCenter.findMany({
-        where: { districtId: query.districtId, deletedAt: null },
-        select: { id: true },
-      });
-      return {
-        centerIds: centers.map((c) => c.id),
-        districtId: query.districtId,
-        singleCenterId: null,
-      };
-    }
-
+    const centers = await this.prisma.ecdCenter.findMany({
+      where: ecdCenterWhere(scope),
+      select: { id: true },
+    });
     return {
-      centerIds: 'all',
-      districtId: null,
-      singleCenterId: null,
+      ...scope,
+      centerIds: centers.map((c) => c.id),
     };
+  }
+
+  private async resolveScope(user: AuthUser, query: FollowUpAlertsQueryDto): Promise<Scope> {
+    return resolveDistrictQueryScope(this.prisma, user, {
+      provinceId: query.provinceId,
+      districtId: query.districtId,
+      sectorId: query.sectorId,
+      cellId: query.cellId,
+      villageId: query.villageId,
+      centerId: query.centerId,
+    });
   }
 }
 
-type Scope = {
-  centerIds: string[] | 'all';
-  districtId: string | null;
-  singleCenterId: string | null;
-};
+type Scope = DistrictQueryScope;
 
 type CenterAncestry = {
   centerId: string;

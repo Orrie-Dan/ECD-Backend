@@ -17,6 +17,7 @@ const CHILD_ROLES: UserRole[] = [
   UserRole.caregiver,
   UserRole.ecd_director,
   UserRole.district_focal_person,
+  UserRole.sector_focal_person,
   UserRole.ncda_admin,
 ];
 
@@ -25,6 +26,7 @@ const TRANSFER_DETAIL_ROLES: UserRole[] = [UserRole.ecd_director];
 const USER_ROLES: UserRole[] = [
   UserRole.ecd_director,
   UserRole.district_focal_person,
+  UserRole.sector_focal_person,
   UserRole.ncda_admin,
 ];
 

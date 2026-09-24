@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
+import { assertCenterAccessibleById } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from '../sync/sync-access.service';
@@ -57,7 +58,7 @@ export class ReferralsService {
       throw new BadRequestException('centerId does not match the child current center');
     }
 
-    assertCenterAccess(user, dto.centerId, child.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, dto.centerId);
     await this.assertValidSource(dto.sourceType, dto.sourceId, dto.childId);
 
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
@@ -141,7 +142,7 @@ export class ReferralsService {
       if (!center) {
         throw new NotFoundException('Center not found');
       }
-      assertCenterAccess(user, center.id, center.districtId);
+      await assertCenterAccessibleById(this.prisma, user, center.id);
     }
 
     const fromDate = query.from ? this.toDateOnly(query.from) : undefined;
@@ -202,7 +203,7 @@ export class ReferralsService {
       throw new NotFoundException('Referral not found');
     }
 
-    assertCenterAccess(user, referral.centerId, referral.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, referral.centerId);
 
     const nextStatus = toDbReferralStatus(dto.status);
     if (!canTransitionReferralStatus(referral.status, nextStatus)) {
@@ -401,7 +402,7 @@ export class ReferralsService {
       throw new NotFoundException('Child not found');
     }
 
-    assertCenterAccess(user, child.centerId, child.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, child.centerId);
     return child;
   }
 

@@ -41,6 +41,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }
@@ -66,6 +67,45 @@ function createPrisma(options: {
       findMany: async () => {
         stats.districtFindMany += 1;
         return options.districts;
+      },
+    },
+    childNutritionScreening: {
+      findMany: async () => {
+        const rows: Array<{
+          weightKg: number;
+          heightCm: number;
+          muacCm: number;
+          screeningDate: Date;
+          child: {
+            dateOfBirth: Date;
+            gender: string;
+            center: { districtId: string };
+          };
+        }> = [];
+        const date = new Date('2024-01-01');
+        const dob = new Date('2022-01-01');
+        for (const [districtId, n] of Object.entries(options.nutrition ?? {})) {
+          for (let i = 0; i < n.severe; i += 1) {
+            rows.push({
+              weightKg: 5,
+              heightCm: 70,
+              muacCm: 10,
+              screeningDate: date,
+              child: { dateOfBirth: dob, gender: 'male', center: { districtId } },
+            });
+          }
+          const remaining = Math.max(0, n.screenings - n.severe);
+          for (let i = 0; i < remaining; i += 1) {
+            rows.push({
+              weightKg: 12,
+              heightCm: 86,
+              muacCm: 15,
+              screeningDate: date,
+              child: { dateOfBirth: dob, gender: 'male', center: { districtId } },
+            });
+          }
+        }
+        return rows;
       },
     },
     $queryRaw: async (strings: TemplateStringsArray) => {
@@ -294,7 +334,8 @@ async function main() {
     const service = new DistrictRiskService(prisma as never);
     await service.getDistrictRisk(user({ role: UserRole.ncda_admin }), {});
     eq(prisma.stats.districtFindMany, 1);
-    eq(prisma.stats.queryRaw, 7);
+    // 6 SQL aggregates + 1 nutrition findMany (WHO) — no N+1 per district
+    eq(prisma.stats.queryRaw, 6);
   });
 
   await assert('riskScore is null in Phase 1', async () => {

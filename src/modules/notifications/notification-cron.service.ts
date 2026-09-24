@@ -228,9 +228,10 @@ export class NotificationCronService {
           UserRole.ecd_director,
           UserRole.caregiver,
         ]),
-        this.notifications.findUserIdsByRoleAndDistrict(r.center.districtId, [
-          UserRole.district_focal_person,
-        ]),
+        this.notifications.findDistrictPortalUserIds({
+          districtId: r.center.districtId,
+          centerId: r.centerId,
+        }),
       ]);
       const userIds = [...new Set([...centerUserIds, ...districtUserIds])];
 
@@ -301,9 +302,10 @@ export class NotificationCronService {
             UserRole.ecd_director,
             UserRole.caregiver,
           ]),
-          this.notifications.findUserIdsByRoleAndDistrict(child.center.districtId, [
-            UserRole.district_focal_person,
-          ]),
+          this.notifications.findDistrictPortalUserIds({
+            districtId: child.center.districtId,
+            centerId: child.centerId,
+          }),
         ]);
         const userIds = [...new Set([...centerUserIds, ...districtUserIds])];
 
@@ -334,9 +336,10 @@ export class NotificationCronService {
             UserRole.ecd_director,
             UserRole.caregiver,
           ]),
-          this.notifications.findUserIdsByRoleAndDistrict(child.center.districtId, [
-            UserRole.district_focal_person,
-          ]),
+          this.notifications.findDistrictPortalUserIds({
+            districtId: child.center.districtId,
+            centerId: child.centerId,
+          }),
         ]);
         const userIds = [...new Set([...centerUserIds, ...districtUserIds])];
 
@@ -525,9 +528,10 @@ export class NotificationCronService {
           UserRole.ecd_director,
           UserRole.caregiver,
         ]),
-        this.notifications.findUserIdsByRoleAndDistrict(c.districtId, [
-          UserRole.district_focal_person,
-        ]),
+        this.notifications.findDistrictPortalUserIds({
+          districtId: c.districtId,
+          centerId: c.id,
+        }),
       ]);
       const userIds = [...new Set([...centerUserIds, ...districtUserIds])];
       await this.notifications.createForMultipleUsers(userIds, {

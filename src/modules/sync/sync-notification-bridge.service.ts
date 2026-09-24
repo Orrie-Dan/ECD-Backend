@@ -1,12 +1,12 @@
 import {
   AssessmentStatus,
   ChildStatus,
-  NutritionStatus,
   TransferStatus,
   asDomainEnum,
 } from '../../common/domain';
 import { Injectable } from '@nestjs/common';
 import { ReferralStatus } from '@prisma/client';
+import { collectWhoConcerns } from '../nutrition/who/concern';
 import { NotificationEventsService } from '../notifications/notification-events.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SyncableEntityType } from './sync.constants';
@@ -149,11 +149,16 @@ export class SyncNotificationBridgeService {
       where: { id: screeningId },
       select: {
         id: true,
-        nutritionStatus: true,
         requiresReferral: true,
+        screeningDate: true,
+        weightKg: true,
+        heightCm: true,
+        muacCm: true,
         child: {
           select: {
             centerId: true,
+            dateOfBirth: true,
+            gender: true,
             center: { select: { districtId: true } },
           },
         },
@@ -161,9 +166,21 @@ export class SyncNotificationBridgeService {
     });
     if (!screening) return;
 
+    const weightKg = Number(screening.weightKg);
+    const muacCm = Number(screening.muacCm);
+    const heightCm = screening.heightCm != null ? Number(screening.heightCm) : null;
+    const whoConcerns = collectWhoConcerns({
+      dateOfBirth: screening.child.dateOfBirth,
+      gender: screening.child.gender,
+      screeningDate: screening.screeningDate,
+      weightKg: Number.isFinite(weightKg) ? weightKg : null,
+      heightCm: heightCm != null && Number.isFinite(heightCm) ? heightCm : null,
+      muacCm: Number.isFinite(muacCm) ? muacCm : null,
+    });
+
     await this.notificationEvents.onNutritionScreeningCreated({
       screeningId: screening.id,
-      nutritionStatus: asDomainEnum<NutritionStatus>(screening.nutritionStatus),
+      whoConcerns,
       requiresReferral: screening.requiresReferral,
       centerId: screening.child.centerId,
       districtId: screening.child.center.districtId,

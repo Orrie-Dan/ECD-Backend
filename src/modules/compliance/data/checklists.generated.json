@@ -1,0 +1,3614 @@
+{
+  "meta": {
+    "source": "ECD Standard Question Draft.xlsx",
+    "weightOverrides": "scripts/data/self-eval-weight-overrides.json",
+    "generatedAt": "2026-09-21",
+    "checklistVersion": "2024.2-weighted"
+  },
+  "ranks": [
+    {
+      "id": "green",
+      "minPercent": 90,
+      "maxPercent": 100,
+      "labelRw": "Icyatsi (90%-100%)"
+    },
+    {
+      "id": "blue",
+      "minPercent": 70,
+      "maxPercent": 89,
+      "labelRw": "Ubururu (70%-89%)"
+    },
+    {
+      "id": "yellow",
+      "minPercent": 50,
+      "maxPercent": 69,
+      "labelRw": "Umuhondo (50%-69%)"
+    },
+    {
+      "id": "red",
+      "minPercent": 0,
+      "maxPercent": 49,
+      "labelRw": "Utukura (munsi ya 50%)"
+    }
+  ],
+  "facilityTypes": [
+    {
+      "id": "daycare",
+      "title": "Day Care ECD Facility (0 to 3 Years)",
+      "version": "2024.2-weighted",
+      "grandTotalMax": null,
+      "computedMaxScore": 230,
+      "sectionCount": 16,
+      "itemCount": 199,
+      "sections": [
+        {
+          "id": "grp_dc_s711",
+          "title": "7.1.1 Care and Support for the Mother and Child During Pregnancy",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s711_pregnant_anc_access",
+              "number": 1,
+              "text": "Every pregnant woman has access to antenatal care immediately after missing her periods",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_eight_antenatal_contacts",
+              "number": 2,
+              "text": "There should be at least eight antenatal contacts during pregnancy",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_nutritional_assessment_mms",
+              "number": 3,
+              "text": "Pregnant mothers received regular nutritional assessment, Counselling and provision of Multiple Micronutrient Supplementations (MMS)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_father_full_support",
+              "number": 4,
+              "text": "Fathers provide full support to the pregnant woman: physically, socially, financially, emotionally and psychologically",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_chw_izu_home_visits",
+              "number": 5,
+              "text": "Community health workers (CHW) and Inshuti z'Umuryango (IZUs) conduct home visits to families with pregnant women at least once a month to monitor antenatal care",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_community_structures_support",
+              "number": 6,
+              "text": "Community-based structures (CNF, village committee, Umugoroba w'Imiryango) etc. ensure that the pregnant woman is healthy and secure",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_teen_single_mothers_attention",
+              "number": 7,
+              "text": "Attention is given to marginalized teen and single mothers for adequate antenatal and postnatal care",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_parents_brain_stimulation",
+              "number": 8,
+              "text": "Both parents stimulate the brain and play with babies during pregnancy, for example singing, playing, touching, etc.",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_pregnant_nutrition_healthcare",
+              "number": 9,
+              "text": "Pregnant women receive adequate nutrition and healthcare including nutrition counselling",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_parenting_education_sessions",
+              "number": 10,
+              "text": "Pregnant women and fathers of children attend parenting education sessions to learn about the wellbeing of mother and baby",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_service_priority_pregnant",
+              "number": 11,
+              "text": "Service providers give a special consideration and first priorities to pregnant women",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_deliver_at_health_facility",
+              "number": 12,
+              "text": "All pregnant women deliver at a health centre/hospital and are accompanied by the father of the child",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711_disability_antenatal_access",
+              "number": 13,
+              "text": "The Government at the central and local level supports pregnant women with disabilities to access antenatal services",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s712",
+          "title": "7.1.2 Care and Support for Children from Birth to 3 Years",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s712_postnatal_care_24h",
+              "number": 1,
+              "text": "The mother has access to postnatal care in the first 24 hours after giving birth",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_breastfeeding_within_1h",
+              "number": 2,
+              "text": "Breastfeeding initiated within the first one hour of birth and the newborn will be on exclusive breastfeeding for six months followed by appropriate complementary feeding and continuation of breastfeeding until two years",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_maternity_leave_bonding",
+              "number": 3,
+              "text": "Maternity leave regulations ensure that mothers have time to nurture and emotionally bond well with their babies",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_paternity_leave_granted",
+              "number": 4,
+              "text": "Employers grant paternity leave to fathers in accordance with the labour law to also support mothers and bond with the newborn",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_informal_sector_parents",
+              "number": 5,
+              "text": "Attention is given to parents in informal sector who do not benefit from paid parental leaves",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_teen_mothers_school_support",
+              "number": 6,
+              "text": "Support is provided for teen and single mothers who would want to go back to school or gain skills through trainings",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_delay_disability_guidance",
+              "number": 7,
+              "text": "Support and guidance are provided for parents and families with children having developmental delay or disability",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_balanced_diet_vitamin_vaccine",
+              "number": 8,
+              "text": "Children should be provided with balanced diet, vitamin A, vaccination, deworming and growth monitoring services at regular basis",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_parenting_sessions_ecd",
+              "number": 9,
+              "text": "Parents, caregivers and guardians attend parenting education sessions at their nearest ECD facilities to improve the quality of care and support for children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712_chw_izu_growth_monitoring",
+              "number": 10,
+              "text": "CHWs and IZU conduct home visits to families with young children to monitor children's growth and development",
+              "maxScore": 2,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s713",
+          "title": "7.1.3 Day-Care Facility Staffing",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s713_staff_minimum_qualification",
+              "number": 1,
+              "text": "The minimum qualification for the staff is secondary certificate (S6) from TTC in Early Childhood Education, ECLPE, and General Education with training on ECD services delivery",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713_caregiver_basic_training",
+              "number": 2,
+              "text": "The caregiver has a basic training in holistic child development, childcare methods and first aid",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713_staff_medical_certificate",
+              "number": 3,
+              "text": "Every staff member must submit a medical certificate issued by the competent health institution",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713_caregiver_child_ratio",
+              "number": 4,
+              "text": "The caregiver-to-child ratios are observed: 1:3 (3 months to 1 year), 1:5 (1-2 years), 1:10 (2-3 years)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713_new_staff_induction",
+              "number": 5,
+              "text": "All new staff have induction training in their first week of employment on comprehensive ECD services",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713_cpd_plan_available",
+              "number": 6,
+              "text": "There is a plan for continuous professional development of staff as required",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713_staff_working_contract",
+              "number": 7,
+              "text": "Every staff member in a day-care facility has a working contract",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s714",
+          "title": "7.1.4 Sanitary Facilities in a Day-Care Facility",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s714_clean_nappy_changing_space",
+              "number": 1,
+              "text": "A clean, washable, hygienic space to change nappies",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_nappy_room_equipped",
+              "number": 2,
+              "text": "The nappy changing room is well equipped with hygienic materials such as water and soap and a covered waste bin",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_safe_faeces_disposal",
+              "number": 3,
+              "text": "Safe disposal of child faeces",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_age_appropriate_toilets",
+              "number": 4,
+              "text": "Age-appropriate toilets for children in the facility, with separate rooms for girls and boys",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_labelled_potty_each_child",
+              "number": 5,
+              "text": "A labelled potty for each child",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_one_toilet_per_40_children",
+              "number": 6,
+              "text": "At least one clean child-sized toilet for 40 children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_toilet_special_needs",
+              "number": 7,
+              "text": "At least one toilet designed for children with special needs and one for staff with special needs",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_potty_cleaned_after_use",
+              "number": 8,
+              "text": "Potty-chairs are cleaned and sanitized after each use",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_sanitary_materials_safe",
+              "number": 9,
+              "text": "All sanitary materials are well maintained after use and kept out of reach of children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_sleeping_equipment_clean",
+              "number": 10,
+              "text": "Sleeping equipment and materials are cleaned, maintained or replaced before they are used for another child",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_bed_sheets_each_child",
+              "number": 11,
+              "text": "At least one pair of bed sheets for every child",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_waste_bins_clean",
+              "number": 12,
+              "text": "All waste bins are kept free of insects, rodents and offensive odours",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_children_guided_waste_bins",
+              "number": 13,
+              "text": "Children are guided how to use the waste bins",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_surfaces_cleaned_after_use",
+              "number": 14,
+              "text": "Table surfaces, furniture and other equipment are cleaned after use",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_toxic_materials_separate",
+              "number": 15,
+              "text": "Cleaning supplies and toxic materials are kept separate from food and inaccessible to children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_handwash_posters_displayed",
+              "number": 16,
+              "text": "Each ECD facility has health education posters teaching children hand-washing practices",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_handwash_basin_available",
+              "number": 17,
+              "text": "There is a handwash basin available for handwashing",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_handwash_soap_water",
+              "number": 18,
+              "text": "Handwashing station with soap and water is available",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714_handwash_40_60_seconds",
+              "number": 19,
+              "text": "Caregivers and children apply the recommended times for handwashing: 40 to 60 seconds",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s715",
+          "title": "7.1.5 Building Specifications",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s715_ground_floor",
+              "number": 1,
+              "text": "A day-care facility is housed on the ground floor of a building",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_grills_windows",
+              "number": 2,
+              "text": "A facility not located on the ground floor of the building has grills on the windows and balcony",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_away_hazards",
+              "number": 3,
+              "text": "The facility is located away from public toilets, rubbish dumps, main roads and other potential health or safety hazards",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_no_swing_doors",
+              "number": 4,
+              "text": "There are no swing doors",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_floor_nonslip",
+              "number": 5,
+              "text": "The floor is smooth, washable, damp-proof and has a non-slip surface",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_recreation_area",
+              "number": 6,
+              "text": "Every childcare facility has designated areas for recreational activities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_storage_areas",
+              "number": 7,
+              "text": "Every childcare facility has specific storage areas",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_drains_covered",
+              "number": 8,
+              "text": "Drains are covered",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_staircase_gates",
+              "number": 9,
+              "text": "Where there are staircases, safety gates are installed at both ends of the staircase",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_sockets_safe",
+              "number": 10,
+              "text": "Electric sockets are raised out of children's reach and are rendered harmless or ineffective to the children",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_inclusive",
+              "number": 11,
+              "text": "A childcare facility is accessible to all children including children with disabilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_building_safety",
+              "number": 12,
+              "text": "All buildings used as ECD spaces are assessed for safety and must comply with national building safety regulations",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715_learning_materials",
+              "number": 13,
+              "text": "Facilities are equipped with learning materials accessible to all children",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s716",
+          "title": "7.1.6 The Physical Environment",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s716_required_rooms",
+              "number": 1,
+              "text": "The day-care facility has a stimulation room, breastfeeding room, sleeping room, kitchen, store, child-friendly toilets and an outdoor playground",
+              "maxScore": 7,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_premises_clean_ventilated",
+              "number": 2,
+              "text": "The premises are clean, well lit, adequately ventilated and maintained in a suitable state of repair; decorations are child friendly",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_not_in_risk_zone",
+              "number": 3,
+              "text": "The location is not in a risk zone (landslides, erosion, flooding etc.)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_rooms_temperature",
+              "number": 4,
+              "text": "Rooms are maintained at an adequate temperature",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_good_lighting",
+              "number": 5,
+              "text": "There is good lighting",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_play_areas_free_movement",
+              "number": 6,
+              "text": "Play areas are large enough to allow free movement",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_sleeping_area_ventilated",
+              "number": 7,
+              "text": "The sleeping area is spacious, quiet and well ventilated",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_compound_maintained",
+              "number": 8,
+              "text": "The compound is regularly cleared and maintained",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_outdoor_free_sharp_objects",
+              "number": 9,
+              "text": "The surface of the outdoor play area is free of sharp objects, harmful plants, rocks and discarded materials and equipment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_toilet_disabilities",
+              "number": 10,
+              "text": "There is at least one toilet for people with disabilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_handwash_soap_towels",
+              "number": 11,
+              "text": "There are handwashing facilities, bassin, soap, clean hand towels or paper towels",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s716_nappy_room_hygienic",
+              "number": 12,
+              "text": "The nappy changing room is well equipped with hygienic materials such as water and soap and a covered waste bin",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s717",
+          "title": "7.1.7 Equipment",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s717_furniture_appropriate_size",
+              "number": 1,
+              "text": "Furniture is appropriate for children's size and age",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s717_equipment_stimulating",
+              "number": 2,
+              "text": "Equipment is arranged to create an accessible and stimulating environment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s717_equipment_safe_maintained",
+              "number": 3,
+              "text": "The equipment is of suitable design and condition, well maintained and conforms to safety standards",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s717_indoor_outdoor_toys",
+              "number": 4,
+              "text": "There are sufficient, suitable indoor and outdoor toys and play materials",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s717_play_materials_stimulating",
+              "number": 5,
+              "text": "Play materials provide stimulating activities and play opportunities for the children in all areas of play, learning and development",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s717_play_equipment_age_appropriate",
+              "number": 6,
+              "text": "Play equipment is appropriate to the age and individual developmental needs of the children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s717_chairs_tables_carpets_mats",
+              "number": 7,
+              "text": "There are sufficient safe, child age-appropriate chairs, tables, carpets and mats to allow children to play and eat together",
+              "maxScore": 3,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s718",
+          "title": "7.1.8 The Breastfeeding Room",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s718_room_easy_to_reach",
+              "number": 1,
+              "text": "It is easy to reach and is situated away from the bathroom and from garbage disposal areas",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_privacy_door_locked",
+              "number": 2,
+              "text": "It complies with privacy standards, with the door securely locked so that lactating mothers can breastfeed undisturbed",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_access_lactating_only",
+              "number": 3,
+              "text": "It is only accessed by lactating mothers and cleaners: auditors and administrators may enter, with permission, for a monitoring visit",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_room_light_airy",
+              "number": 4,
+              "text": "It is light and airy",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_fresh_air_ventilation",
+              "number": 5,
+              "text": "The room provides fresh air or a ventilation system for the mother's comfort",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_handwash_soap_towels",
+              "number": 6,
+              "text": "There are handwashing facilities, soap, clean hand towels or paper towels",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_safe_water_drinking",
+              "number": 7,
+              "text": "The room has safe water for drinking and washing hands",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_chair_table_adapted",
+              "number": 8,
+              "text": "The room has a chair and table adapted for the lactating mother, and other equipment needed by a breastfeeding mother",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_baby_cot_available",
+              "number": 9,
+              "text": "The room has a small baby bed (cot)",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_curtain_privacy",
+              "number": 10,
+              "text": "If the breastfeeding room is used by more than one mother, their seats are separated by a curtain to ensure privacy",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_sink_cleaning_cups",
+              "number": 11,
+              "text": "The breastfeeding room has a sink to clean the cups used by the mother when extracting milk",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_breast_pump_sterilizer",
+              "number": 12,
+              "text": "If possible, the room has an electric breast pump for milk extraction, a sterilizing machine and a refrigerator to store the extracted milk",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_hand_expression",
+              "number": 13,
+              "text": "Alternatively, the mother can express breastmilk by hand (she should wash her hands with soap and clean water) and store it in a cupboard",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_milk_storage_6_8_hours",
+              "number": 14,
+              "text": "Expressed breast milk stored in a safe container at room temperature will last between 6 and 8 hours",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s718_labelled_storage_mother",
+              "number": 15,
+              "text": "Every mother has her own storage facility labelled for the left milk/breast milk",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s719",
+          "title": "7.1.9 Care, Learning and Play",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s719_explore_look_touch_smell",
+              "number": 1,
+              "text": "Children have opportunities to explore their world and adequate stimulation by providing items to look at, touch, smell, hear and taste",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_creative_activities",
+              "number": 2,
+              "text": "Caregivers allow children to engage in creative activities and appreciate their work to boost their self-esteem",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_language_stimulation",
+              "number": 3,
+              "text": "Children are given appropriate language stimulation activities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_motor_language_thinking",
+              "number": 4,
+              "text": "Children have support in acquiring new motor, language and thinking skills",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_behaviour_control",
+              "number": 5,
+              "text": "Children are helped to learning how to control their own behaviour",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_daily_play_no_toxic",
+              "number": 6,
+              "text": "Children are given daily opportunities to play with a variety of objects. Toxic, very tiny or sharp objects are not used",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_consistent_adult_interaction",
+              "number": 7,
+              "text": "Children may interact with a consistent adult at frequent intervals",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_self_care_dressing_feeding",
+              "number": 8,
+              "text": "Children are given opportunities to learn to care for themselves: dressing, feeding, washing etc.",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_varied_sensory_experiences",
+              "number": 9,
+              "text": "Activities, toys and equipment provide varied sensory experiences",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_staff_support_activities",
+              "number": 10,
+              "text": "Staff offer support to children in the activities they choose",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_staff_listen_talk",
+              "number": 11,
+              "text": "Staff listen to children and talk with them about what they are doing",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_rest_opportunities",
+              "number": 12,
+              "text": "There are opportunities for children to rest as needed",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_sleeping_routines_respected",
+              "number": 13,
+              "text": "Children's individual sleeping routines are respected",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_washed_before_sleeping",
+              "number": 14,
+              "text": "Children are washed before sleeping for a healthy body",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_cosmetic_materials",
+              "number": 15,
+              "text": "There are cosmetic materials (lotion and others) for individual child",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_adequate_recreation_space",
+              "number": 16,
+              "text": "There is adequate recreational space for children to relax",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_play_items_nontoxic",
+              "number": 17,
+              "text": "Play items are made of wood or non-toxic materials",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_swings_climbing_frames",
+              "number": 18,
+              "text": "There are swings, climbing frames and other playground equipment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_capacity_not_exceeded",
+              "number": 19,
+              "text": "The number of children does not exceed the capacity of the playground equipment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_screening_0_2_every_6months",
+              "number": 20,
+              "text": "Children, up to two years, are screened for developmental delay/disability by CHWs, parents and health professionals every 6 months",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s719_sen_additional_support",
+              "number": 21,
+              "text": "Children identified as being at risk of developmental delay, or who have special needs or disabilities have additional support to meet their individual learning needs",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s710",
+          "title": "7.1.10 Health",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s710_children_immunized",
+              "number": 1,
+              "text": "Parents and caregivers ensure that their children have been immunized according to the vaccination schedule",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_remind_immunization",
+              "number": 2,
+              "text": "ECD caregivers remind parents of the importance of timely immunization",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_check_immunization_card",
+              "number": 3,
+              "text": "Caregivers check the child's immunization card to ensure that all vaccines have been provided",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_growth_monitored_chw",
+              "number": 4,
+              "text": "Children are regularly monitored for healthy growth by local CHWs or health professionals",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_staff_health_screening",
+              "number": 5,
+              "text": "Staff undergo health screening before employment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_vitamin_a_deworming",
+              "number": 6,
+              "text": "ECD caregivers ensure that their children receive vitamin A and deworming as per the Ministry of Health calendar and any other preventive and curative measure implemented by the MoH",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_hygiene_practices_reminded",
+              "number": 7,
+              "text": "Staff are regularly reminded of the importance of good hygiene practices to prevent the spread of infection",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_food_safety_compliance",
+              "number": 8,
+              "text": "Those responsible for the preparation and handling of food comply with the established food safety and hygiene regulations",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_disease_protocol",
+              "number": 9,
+              "text": "Guidelines or protocols on handling sick children with infectious diseases and the use of medicine are available",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_medicines_labelled_stored",
+              "number": 10,
+              "text": "Medicines are clearly labelled and stored in their original containers",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_medicines_out_of_reach",
+              "number": 11,
+              "text": "Medicines are kept out of children's reach",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_first_aid_kits_trained",
+              "number": 12,
+              "text": "There are first aid kits and staff are trained how to use them",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_medication_parent_consent",
+              "number": 13,
+              "text": "Parents give prior permission for any medication to be administered",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_hiv_inclusive_environment",
+              "number": 14,
+              "text": "Specific attention is given to children with HIV/AIDS, special needs or disabilities to promote an inclusive, stigma-free environment and support their nutrition and medication",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_disability_screening_early",
+              "number": 15,
+              "text": "Children are screened for disabilities and special needs to allow appropriate interventions as soon as possible",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_screening_0_2_six_monthly",
+              "number": 16,
+              "text": "Children aged 0-2 years are screened for developmental delay and disability every 6 months",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_rehab_services_access",
+              "number": 17,
+              "text": "Each child with disabilities and special needs has access to rehabilitation services (such as counselling, physiotherapy, sign language) within the ECD facility and outside",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_disability_services_support",
+              "number": 18,
+              "text": "Day-care owners provide support to services for children with developmental delays and disabilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_medical_insurance_ensured",
+              "number": 19,
+              "text": "Day-care facilities ensure children have medical insurance",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_family_planning_sessions",
+              "number": 20,
+              "text": "Day-care facilities conduct parent education sessions on family planning",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_health_worker_contacts",
+              "number": 21,
+              "text": "Health workers' contact details are kept at the facility for health-related issues",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_contagious_stay_home",
+              "number": 22,
+              "text": "A child or caregiver who contracts or is suspected to have contracted a contagious disease will stay at home until cleared by a healthcare provider",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_outbreak_closure",
+              "number": 23,
+              "text": "The facility is required to close temporarily when there is a threat of, or presence of, an infectious disease outbreak at the facility, as directed by health officials",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s710_izu_local_leaders_safety",
+              "number": 24,
+              "text": "The facility works closely with IZU and local leaders to promote children's safety at household and facility level",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s711n",
+          "title": "7.1.11 Food and Nutrition",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s711n_balanced_diet_miycn",
+              "number": 1,
+              "text": "Children are provided with healthy, balanced diets as per the National Maternal, Infant and Young Child Feeding Counselling package",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_food_handlers_trained",
+              "number": 2,
+              "text": "Food handlers, including cooks and food suppliers, are trained on food hygiene and safety",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_cook_hygiene_apron_hair",
+              "number": 3,
+              "text": "Cooks and food suppliers maintain proper personal hygiene: washing hands, wearing apron/uniform and covering their hair when preparing and serving food",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_cook_basic_training",
+              "number": 4,
+              "text": "Cooks and food suppliers have basic training in hygienic food preparation",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_meal_supervised_adult",
+              "number": 5,
+              "text": "During meals, children are always supervised by an adult to ensure that all children are eating, to prevent choking and teach good table manners",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_exclusive_breastfeeding_6m",
+              "number": 6,
+              "text": "Caregivers encourage parents/caregivers to practise exclusive breastfeeding during the first 6 months",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_complementary_food_after_6m",
+              "number": 7,
+              "text": "Caregivers encourage parents to provide adequate complementary food in addition to breast milk after 6 months",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_clean_drinking_water",
+              "number": 8,
+              "text": "Clean drinking water is always available to children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_meals_designated_intervals",
+              "number": 9,
+              "text": "Children spending all day at the day-care facility are offered meals at designated intervals as per age group feeding schedule",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_dietary_requirements_asked",
+              "number": 10,
+              "text": "The staff ask parents about any special dietary requirements, preferences or food allergies children may have",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_bottle_feeding_upright",
+              "number": 11,
+              "text": "Babies are held upright, close, supported and facing the carer whilst bottle feeding or breastfeeding, preferably by the same carer each time",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_food_preparation_facilities",
+              "number": 12,
+              "text": "Facilities for the hygienic preparation of babies' foods are available",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_feeding_equipment_sterilized",
+              "number": 13,
+              "text": "Babies' feeding equipment is sterilized in suitable equipment before every meal",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_feeding_adapted_difficulties",
+              "number": 14,
+              "text": "For children with eating and drinking difficulties, caregivers are trained to adapt feeding practices to minimize harm and maximize nutritional intake",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_feeding_difficulties_supported",
+              "number": 15,
+              "text": "Children with identified feeding difficulties are supported with adequate nutrition to avoid prolonged ill health",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_mnp_6_23_months",
+              "number": 16,
+              "text": "Caregivers ensure that children aged 6-23 months receive micronutrient powders (MNP, ongera intungamubiri) or any other food supplement recommended by the competent authorities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_monthly_cooking_demos",
+              "number": 17,
+              "text": "Parents/caregivers receive monthly cooking demonstrations and sessions on holistic child development at ECD facilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_kitchen_garden_available",
+              "number": 18,
+              "text": "There is a kitchen garden with fruit and vegetables to contribute to a balanced diet",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s711n_vitamin_vaccine_monitoring",
+              "number": 19,
+              "text": "Adequate nutrition and healthcare, including vitamin A supplements, appropriate vaccination, deworming, MNPs and child growth monitoring are regularly provided",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s712p",
+          "title": "7.1.12 Children's Safety and Protection",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s712p_safeguarding_policy_trained",
+              "number": 1,
+              "text": "Caregivers are trained on safeguarding children's rights and welfare; a safeguarding policy is available and approved by all staff",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_staff_aware_risk_signs",
+              "number": 2,
+              "text": "All staff are aware of the possible signs of children at risk and are aware of their responsibility to report or act on such issues",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_protect_child_harm_abuse",
+              "number": 3,
+              "text": "Parents and caregivers protect the child from any form of harm or abuse",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_drug_free_environment",
+              "number": 4,
+              "text": "The facility is a drug-free environment: people must not smoke, consume alcohol or any prohibited drugs and substances in the child-care facility, during transportation, or on field trips",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_photo_parental_consent",
+              "number": 5,
+              "text": "To protect children's privacy, taking pictures of children and social media sharing in a childcare facility must not be done without parental consent",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_drop_off_pick_up_mechanism",
+              "number": 6,
+              "text": "There are clear mechanisms for dropping off and picking children up from the facility",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_drop_pick_recorded",
+              "number": 7,
+              "text": "The names and child relationship of the person dropping and picking a child should be well communicated by parents or legal guardians and well recorded by the day-care management",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_activities_supervised",
+              "number": 8,
+              "text": "All activities are supervised by a caregiver",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_compound_fenced_guard_gate",
+              "number": 9,
+              "text": "The compound is fenced, has a guard and a lockable gate for children's security",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_sockets_childproof_covers",
+              "number": 10,
+              "text": "Electrical sockets accessible to a child have child-proof covers or safety outlets",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_no_poisonous_plants",
+              "number": 11,
+              "text": "The premises are free from poisonous or potentially harmful plants",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_water_fenced_supervised",
+              "number": 12,
+              "text": "Ponds, drains, pools or any natural water are fenced, and children are supervised in case they gain access to these facilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_outing_safety_procedures",
+              "number": 13,
+              "text": "Operational procedures for the safe conduct of any outings are in place",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_vehicle_records_kept",
+              "number": 14,
+              "text": "Records are kept of vehicles in which children are transported (including insurance details, service history and a list of named drivers)",
+              "maxScore": 3,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_sleeping_babies_supervised",
+              "number": 15,
+              "text": "Sleeping babies are frequently supervised",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_fire_extinguishers_trained",
+              "number": 16,
+              "text": "Every facility has fire extinguishers, sand or water and caregivers are trained on how to use them",
+              "maxScore": 3,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_toys_clean_safe",
+              "number": 17,
+              "text": "Toys, play materials and equipment are clean and safe for use by children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_safeguarding_signed_staff",
+              "number": 18,
+              "text": "All staff should sign a child safeguarding policy and work ethics document before starting work",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_toys_nontoxic_large",
+              "number": 19,
+              "text": "All toys intended for infants and toddlers are non-toxic, safe and large enough that they cannot be swallowed, are not a choking hazard and cannot be put into children's ears",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712p_kitchen_not_accessible",
+              "number": 20,
+              "text": "The kitchen area is not accessible by children unless it is being used solely for a supervised children's activity",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s712d",
+          "title": "7.1.12 Positive Discipline",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s712d_positive_behaviour_training",
+              "number": 1,
+              "text": "Caregivers for children in the facility are trained on positive behaviour management",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712d_behaviour_posters_displayed",
+              "number": 2,
+              "text": "Positive behaviour posters are displayed for reference by both children and caregivers",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712d_no_corporal_punishment",
+              "number": 3,
+              "text": "Corporal punishment must not be used",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s712d_discipline_parenting_sessions",
+              "number": 4,
+              "text": "Caregivers conduct regular parenting education sessions on positive discipline",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s713r",
+          "title": "7.1.13 Record Keeping and Management",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s713r_daily_attendance_system",
+              "number": 1,
+              "text": "There is a system for registering daily attendance by children and staff, showing hours of attendance",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713r_accreditation_certificate",
+              "number": 2,
+              "text": "An accreditation certificate for the facility must be available",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713r_child_info_confidential",
+              "number": 3,
+              "text": "Information forms on individual children must be completed, updated and kept confidential",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713r_health_data_documented",
+              "number": 4,
+              "text": "Health data are well documented and safely kept",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713r_parent_info_exchange",
+              "number": 5,
+              "text": "There is a system for the exchange of information between parents and staff members",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s713r_occurrence_logbook_kept",
+              "number": 6,
+              "text": "An occurrence and action logbook/record is kept",
+              "maxScore": 2,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s714c",
+          "title": "7.1.14 Curriculum, Pedagogy and Assessment Tools",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s714c_play_based_sensory_learning",
+              "number": 1,
+              "text": "Learning is holistic and creates opportunities for play-based enquiry and sensory stimulation (exploring environment, manipulating objects, making decisions etc.)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714c_daily_visual_timetable",
+              "number": 2,
+              "text": "A daily visual timetable is available",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714c_caregiver_trained_cbc",
+              "number": 3,
+              "text": "Caregivers are trained how to use the pre-primary CBC, the national parenting curriculum and early learning and development standards",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714c_curricula_guides_in_use",
+              "number": 4,
+              "text": "Curricula and related guides are available and in use",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s714c_stimulating_learning_env",
+              "number": 5,
+              "text": "There is a holistic stimulating learning environment",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_dc_s715e",
+          "title": "7.1.15 Enrolment of Children",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "dc_s715e_age_6m_to_35m",
+              "number": 1,
+              "text": "A day-care facility may be attended by children from 6 months to 35 months",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715e_exit_at_3_years",
+              "number": 2,
+              "text": "Children may quit day-care if they will reach 3 years of age in the first term of the school year",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715e_birth_cert_or_imm_card",
+              "number": 3,
+              "text": "The birth certificate or immunization card can be referred to when registering the child",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "dc_s715e_non_discrimination_sen",
+              "number": 4,
+              "text": "Non-discrimination considerations are observed when admitting children with disabilities and special needs",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ecd_3_5",
+      "title": "ECD Facility for Children Aged 3-5 Years",
+      "version": "2024.2-weighted",
+      "grandTotalMax": null,
+      "computedMaxScore": 312,
+      "sectionCount": 22,
+      "itemCount": 271,
+      "sections": [
+        {
+          "id": "grp_ecd_s7211g",
+          "title": "7.2.1.1 Geographical Location",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7211g_road_access",
+              "number": 1,
+              "text": "There is access to a road",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211g_max_walking_1km",
+              "number": 2,
+              "text": "The maximum walking distance from home to the facility does not exceed 1 km",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211g_free_from_noise",
+              "number": 3,
+              "text": "It is free from excessive noise (workshop, industrial parks and markets)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211g_recognized_local_authority",
+              "number": 4,
+              "text": "The location is recognized by local authorities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211g_primary_school_nearby",
+              "number": 5,
+              "text": "There is a primary school close by to ease the transition from ECD to primary education",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211g_health_facility_nearby",
+              "number": 6,
+              "text": "There is a health facility nearby",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7211p",
+          "title": "7.2.1.1 Physical Environment",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7211p_fenced_lockable_gate",
+              "number": 1,
+              "text": "The facility is fenced with durable materials, with a lockable gate that children cannot open",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_compound_clean_no_litter",
+              "number": 2,
+              "text": "The compound and surrounding areas are free from litter and have proper rubbish disposal",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_compound_safe_no_sharp",
+              "number": 3,
+              "text": "The compound is safe and secure, free from harmful items such as sharp objects or poisonous plants",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_no_footpaths_crossing",
+              "number": 4,
+              "text": "No footpaths cross the facility",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_smoking_alcohol_prohibited",
+              "number": 5,
+              "text": "A sign prohibits smoking and alcohol consumption within the premises by staff members and visitors",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_playground_dry",
+              "number": 6,
+              "text": "The playground is dry, not waterlogged",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_potholes_wells_covered",
+              "number": 7,
+              "text": "Potholes and wells are well covered",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_cooking_far_from_play",
+              "number": 8,
+              "text": "The cooking place is far from the play area",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_garden_fruit_trees",
+              "number": 9,
+              "text": "There is a garden for children to tend and agroforestry trees including fruit trees",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_electricity_available",
+              "number": 10,
+              "text": "There is an electricity supply to enable the use of technology",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_district_guidelines_consulted",
+              "number": 11,
+              "text": "The service provider consults the district for guidelines on physical accessibility and safety when designing the buildings",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_standards_complied",
+              "number": 12,
+              "text": "The service provider complies with the guidelines specified in these standards regarding measurements for buildings and furniture",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7211p_equipment_accessible_all",
+              "number": 13,
+              "text": "Equipment and play materials are accessible by all children",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7212c",
+          "title": "7.2.1.2 Classrooms / Indoor Space",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7212c_three_classrooms_g1_g2_g3",
+              "number": 1,
+              "text": "At least three classrooms for a complete cycle: Grades 1, 2 and 3",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_enrol_grade1_age_3",
+              "number": 2,
+              "text": "To enrol in Grade 1, children are 3 years old or will turn 3 in the first trimester after enrolment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_classrooms_child_friendly",
+              "number": 3,
+              "text": "The classrooms are child friendly: age appropriate, visually stimulating with meaningful decorations, engaging and culturally appropriate",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_2m2_per_child_indoor",
+              "number": 4,
+              "text": "There is at least 2 m2 space per child for indoor play and learning",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_max_30_children_per_room",
+              "number": 5,
+              "text": "Enrolment for each early learning room does not exceed 30 children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_floor_cement_cleaned_daily",
+              "number": 6,
+              "text": "The early learning room has a cement/tile/sealed earthen floor and is cleaned every day",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_walls_durable_painted",
+              "number": 7,
+              "text": "The walls are constructed of durable materials and are painted",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_roof_tiles_iron_sheets",
+              "number": 8,
+              "text": "The roof is made of tiles or iron sheets",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_two_doors_per_classroom",
+              "number": 9,
+              "text": "Each classroom has two doors",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_two_windows_1m_light",
+              "number": 10,
+              "text": "Each classroom has two windows of at least 1 m x 1 m to allow sufficient light and ventilation",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_sen_ramps_rails_handles",
+              "number": 11,
+              "text": "Classrooms are accessible for use by children with special needs and have ramps, rails and lower door handles",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_step_free_access",
+              "number": 12,
+              "text": "The early learning room is step-free to ease access",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_free_movement_mobility",
+              "number": 13,
+              "text": "Indoor space allows free movement between furniture for mobility-aid users and children with visual impairment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_staff_room_office",
+              "number": 14,
+              "text": "There is a staff room and an office for the ECD representative/coordinator",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_store_teaching_materials",
+              "number": 15,
+              "text": "There is a store for teaching, learning and other materials",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212c_displays_20cm_from_floor",
+              "number": 16,
+              "text": "Drawings and other materials displayed on the wall are hung at an appropriate height (20 cm from the floor) so that children can see them easily",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7212f",
+          "title": "7.2.1.2 Furniture",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7212f_tables_chairs_30cm",
+              "number": 1,
+              "text": "Tables and benches/chairs are child age-appropriate (30 cm high), durable and painted in child-friendly colours",
+              "maxScore": 3,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212f_caregiver_chair_table",
+              "number": 2,
+              "text": "The ECD classroom and office have a caregiver's chair, table and cupboard",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212f_mats_tables_reading_play",
+              "number": 3,
+              "text": "Mats and child-friendly tables are available in each classroom for activities such as reading, storytelling, play, corner play, theme display, group work and other uses",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212f_open_shelves_containers",
+              "number": 4,
+              "text": "Open shelves, cupboards, boxes or other containers are used to keep learning materials",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212f_bag_clothes_hooks",
+              "number": 5,
+              "text": "Each class has enough bag/clothes hooks for children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212f_chalkboard_available",
+              "number": 6,
+              "text": "There is a chalkboard or similar large writing surface (movable or fixed)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212f_board_20cm_above_floor",
+              "number": 7,
+              "text": "The chalkboard/white board is placed slightly above the floor (20cm) for children to use easily",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7212k",
+          "title": "7.2.1.2 Kitchen",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7212k_kitchen_enclosed",
+              "number": 1,
+              "text": "The kitchen is enclosed (with roof, walls and floor) to protect the cooks, food and utensils from heat, cold, rain and wind",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_cooking_2m_x_2m",
+              "number": 2,
+              "text": "The cooking place is at least 2 m x 2 m and uses an economical stove or gas cooker",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_cooking_area_clean",
+              "number": 3,
+              "text": "The cooking area is kept clean and tidy",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_sink_drying_area",
+              "number": 4,
+              "text": "There is a sink for washing up and a drying area for dishes",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_kitchen_clean_water",
+              "number": 5,
+              "text": "The kitchen is supplied with clean water",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_utensils_safe_covered",
+              "number": 6,
+              "text": "Utensils are safely kept in a well-covered container",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_no_plastic_hot_food",
+              "number": 7,
+              "text": "Plastic items (plates and cups) are not used for hot food or drinks",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_kitchen_separate",
+              "number": 8,
+              "text": "The kitchen is separate from classrooms and toilets",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_kitchen_ventilated_chimney",
+              "number": 9,
+              "text": "The kitchen is ventilated, well-lit and has a chimney",
+              "maxScore": 3,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_floor_sloping_cleaning",
+              "number": 10,
+              "text": "The floor is slightly sloping to ease cleaning",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212k_waste_disposal_in_place",
+              "number": 11,
+              "text": "Waste disposal facilities are in place",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7212ks",
+          "title": "7.2.1.2 Kitchen Store",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7212ks_separate_storage_room",
+              "number": 1,
+              "text": "The kitchen has a separate storage room",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212ks_store_spacious_far_bins",
+              "number": 2,
+              "text": "The store is spacious and far from bins and toilets",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212ks_lockable_prepacked_food",
+              "number": 3,
+              "text": "There is lockable storage for pre-packed food",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212ks_lockable_cupboards",
+              "number": 4,
+              "text": "There are lockable cupboards for crockery, cooking utensils, and stores of groceries and other consumables",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212ks_store_has_pallets",
+              "number": 5,
+              "text": "The store has pallets",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212ks_rodent_insect_proof",
+              "number": 6,
+              "text": "The storeroom is constructed to prevent the entry of rodents and insects",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212ks_windows_wire_mesh",
+              "number": 7,
+              "text": "Windows and other openings are covered with wire mesh",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212ks_weighing_scales",
+              "number": 8,
+              "text": "Weighing scales are available",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7212t",
+          "title": "7.2.1.2 Toilets",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7212t_one_latrine_per_40",
+              "number": 1,
+              "text": "There is at least one latrine per 40 children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_separate_boys_girls",
+              "number": 2,
+              "text": "There are separate child-friendly and accessible toilets/latrines for boys and for girls, clearly labelled with child-friendly signs",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_adult_separate_lockable",
+              "number": 3,
+              "text": "Female and male adults have their own separate lockable toilets",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_adequate_light_door_closed",
+              "number": 4,
+              "text": "Toilets have adequate light when the door is closed",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_cleaning_materials_separate",
+              "number": 5,
+              "text": "The toilet facility has a separate storage area to keep cleaning materials away from other cleaning materials",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_onsite_toilet",
+              "number": 6,
+              "text": "All ECD facilities have an on-site toilet/latrine",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_disability_toilet",
+              "number": 7,
+              "text": "There is at least one toilet for people with disabilities (step-free, ramp, handrails, wheelchair space, sight-impaired pathway, 100 cm wide door)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_latches_60_80cm",
+              "number": 8,
+              "text": "Door latches (locks), inside and outside, are fixed no higher than 60-80 cm from the ground for children's easy use",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_latches_safe",
+              "number": 9,
+              "text": "Latches open and close easily without causing injuries",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_doors_outward_10cm",
+              "number": 10,
+              "text": "Toilets doors open outwards with 10 cm free space between the floor and the door",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_door_height_100_120cm",
+              "number": 11,
+              "text": "The door height ranges from 100 to 120 cm to let a caregiver open it from the outside if a child is stuck inside",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_latrine_waste_storage",
+              "number": 12,
+              "text": "Latrines are constructed with adequate waste storage so that emptying is easy and is done frequently",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_hygienic_slab",
+              "number": 13,
+              "text": "The toilets are equipped with a hygienic, easy-to-clean, slab (solid with no gaps other than the drop hole)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_drop_hole_max_15cm",
+              "number": 14,
+              "text": "The diameter of a drop hole in a pit latrine does not exceed 15 cm",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_toilets_close_classrooms",
+              "number": 15,
+              "text": "Toilets should be close to classrooms for easy access by young children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_pit_6m_deep_15m_borehole",
+              "number": 16,
+              "text": "Pit latrines are not less than 6 m deep and are 15 m away from borehole",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_wash_sign_on_door",
+              "number": 17,
+              "text": "There is a pictorial and printed wash sign on each toilet/latrine door",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_urinals_boys_30cm",
+              "number": 18,
+              "text": "There are urinals for boys set at a child-appropriate height (30 cm) from the floor",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_space_caregiver_support",
+              "number": 19,
+              "text": "The space inside the toilet is large enough to enable caregivers to enter with the child and support the child",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_raised_footrests",
+              "number": 20,
+              "text": "Raised footrests are installed on both sides of the hole and should fit children's feet",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_handwash_near_toilet",
+              "number": 21,
+              "text": "Handwashing facilities are installed near the toilet for easy access and use",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_handwash_50cm",
+              "number": 22,
+              "text": "The handwashing facility is age appropriate and installed at a height of 50 cm measured from the floor",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_pathways_clean_accessible",
+              "number": 23,
+              "text": "The pathways are clean and accessible by children with disabilities",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212t_guiding_signs_toilets",
+              "number": 24,
+              "text": "Guiding signs are available to the toilets",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7212s",
+          "title": "7.2.1.2 Sleeping Area",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7212s_boys_girls_separate",
+              "number": 1,
+              "text": "The sleeping space allows boys and girls to sleep separately",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212s_sleeping_1_5m2_per_child",
+              "number": 2,
+              "text": "Sleeping area should provide a minimum of 1.5 m2 per child",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212s_floor_cleaned_daily",
+              "number": 3,
+              "text": "The sleeping space is cemented/tiled/sealed earthen floor and cleaned every day",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212s_walls_child_friendly",
+              "number": 4,
+              "text": "Furniture and walls are child-friendly (brightly painted with happy images)",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212s_mattress_bedding_clean",
+              "number": 5,
+              "text": "Furniture includes a mattress (covered with waterproof material), bed covers, bed sheets and storage space/shelves. Bed covers and bed sheets must be clean",
+              "maxScore": 4,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212s_room_lit_ventilated",
+              "number": 6,
+              "text": "The sleeping room is well lit and ventilated. Windows should have curtains that can be opened and closed",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7212o",
+          "title": "7.2.1.2 Outdoor Play Area",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7212o_outside_clean_hazard_free",
+              "number": 1,
+              "text": "The outside play area is clean and free from hazards",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_2m2_per_child_outdoor",
+              "number": 2,
+              "text": "There is at least 2 m2 space per child for outdoor play",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_outdoor_equipment_provided",
+              "number": 3,
+              "text": "Safe outdoor play equipment and materials for motor skills and holistic development is provided: seesaw, slides, swings, merry-go-round, sandbox, set of tyres etc.",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_ecd_playground_separate",
+              "number": 4,
+              "text": "In the case of a school-based facility the playground is separate from recreational spaces intended for older children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_variety_surfaces",
+              "number": 5,
+              "text": "The playground has a variety of surfaces: earth, grass or sand",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_playground_adapted_sen",
+              "number": 6,
+              "text": "The playground and materials are adapted for children with special needs",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_space_mobility_aids",
+              "number": 7,
+              "text": "There is space between items of play equipment so that users of mobility aids can move between them freely and safely",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_step_free_maintained",
+              "number": 8,
+              "text": "The space is step-free and well-maintained to ensure children with visual or physical impairments move as independently as possible and without hindrance",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_fenced_separate_running",
+              "number": 9,
+              "text": "A fenced playground is available and play equipment is installed to allow a separate running space",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212o_play_always_supervised",
+              "number": 10,
+              "text": "Indoor and outdoor play are always supervised by adult(s)",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7212pe",
+          "title": "7.2.1.2 Play Equipment",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7212pe_fixed_slides_swings",
+              "number": 1,
+              "text": "There is fixed, child-friendly equipment including low slides and logs to walk on, rubber swing, ladders, tunnels, slides etc.",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212pe_plastic_wood_no_metal",
+              "number": 2,
+              "text": "The outdoor play materials are made of plastic or wood - metal equipment should be avoided if possible",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212pe_movable_ropes_balls",
+              "number": 3,
+              "text": "There are movable play materials including ropes, balls, tyres, hoops etc.",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212pe_sandpit_recycled_scoops",
+              "number": 4,
+              "text": "There is a sandpit with recycled scoops and containers",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212pe_water_play_area",
+              "number": 5,
+              "text": "There is a water play area with recycled containers, hoses and other world discovery tools",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212pe_play_accessible_disabilities",
+              "number": 6,
+              "text": "Play equipment is accessible by children with disabilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7212pe_locally_made_toys",
+              "number": 7,
+              "text": "Besides manufactured materials, locally made play and learning materials and toys are available",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7213h",
+          "title": "7.2.1.3 Health",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7213h_registration_forms",
+              "number": 1,
+              "text": "Children's registration forms including identification, health status, immunizations, contact information and any parent's concerns, are available",
+              "maxScore": 3,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_immunization_cards_verified",
+              "number": 2,
+              "text": "Immunization cards are verified at the time of registration",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_chw_contact_available",
+              "number": 3,
+              "text": "The facility has a CHW's contact for health-related issues",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_screening_3_5_chw",
+              "number": 4,
+              "text": "Children aged 3-5 are screened for developmental delay/disability by CHWs, parents or other health professionals",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_referral_to_specialist",
+              "number": 5,
+              "text": "After screening, the ECD facility refers children with suspected developmental disability to specialized services",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_medicine_prescribed_only",
+              "number": 6,
+              "text": "Any medicine brought to the facility for children by the family must be prescribed by an authorized healthcare provider",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_medicine_child_name_dosage",
+              "number": 7,
+              "text": "The name of the child is written on the medicine container as well as the prescribed dosage",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_safe_drinking_water_cups",
+              "number": 8,
+              "text": "Containers with safe drinking water and clean cups for each child are available",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_emergency_escort_parents",
+              "number": 9,
+              "text": "In case of emergency, a caregiver escorts the child to the nearest health post and parents are informed as soon as possible",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_immunization_vitamin_deworming",
+              "number": 10,
+              "text": "Parents/caregivers are encouraged to ensure that their children are immunized on schedule and receive vitamin A and deworming twice a year",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_medical_insurance_info",
+              "number": 11,
+              "text": "The facility has information about children with/without medical insurance",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_disease_handwash_posters",
+              "number": 12,
+              "text": "Guidelines with child-friendly pictures are posted on how to manage communicable disease outbreaks and to promote good practices such as handwashing",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_contagious_stay_home",
+              "number": 13,
+              "text": "A child or caregiver who contracts or is suspected to have contracted a contagious disease will stay at home until cleared by a healthcare provider",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_outbreak_temporary_closure",
+              "number": 14,
+              "text": "Health officials may order the temporary closure of an ECD facility when there is a threat of, or presence of, an infectious disease outbreak at the facility",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_hiv_inclusive_stigma_free",
+              "number": 15,
+              "text": "ECD service providers adopt appropriate behaviours regarding prevention and care of children living with HIV/AIDS to promote an inclusive, stigma-free environment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213h_izu_local_leaders_collab",
+              "number": 16,
+              "text": "The ECD facility works closely with IZU and local leaders to promote safety at household and facility level",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7213n",
+          "title": "7.2.1.3 Food and Nutrition",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7213n_balanced_diet_miycn",
+              "number": 1,
+              "text": "Children are provided with healthy, balanced diets as per National Maternal, infant and young child feeding counselling package",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213n_food_handlers_trained",
+              "number": 2,
+              "text": "Food handlers, including cooks and food suppliers, are trained on food hygiene and safety",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213n_cook_hygiene_hands_hair",
+              "number": 3,
+              "text": "Cooks and food suppliers maintain proper personal hygiene: washing hands and covering their hair",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213n_cook_basic_training",
+              "number": 4,
+              "text": "Cooks and food suppliers have basic training in hygienic food preparation",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213n_meal_supervised_adult",
+              "number": 5,
+              "text": "During mealtimes, children are always supervised by an adult to ensure that all children are eating, to prevent choking and teach good table manners",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213n_kitchen_garden_fruit_veg",
+              "number": 6,
+              "text": "The ECD facility has a kitchen garden with fruit and vegetables to be used in as part of a balanced diet",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7213n_feeding_difficulties_support",
+              "number": 7,
+              "text": "Caregivers of children with identified feeding difficulties receive support to provide adequate nutrition",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7214",
+          "title": "7.2.1.4 Child Protection and Safety",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7214_children_accompanied",
+              "number": 1,
+              "text": "Children are accompanied to and from the ECD facility by an adult",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_drop_pick_recorded",
+              "number": 2,
+              "text": "Details of the person dropping and picking a child are communicated and well recorded",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_staff_health_safety_training",
+              "number": 3,
+              "text": "All staff receive regular training on relevant health and safety issues",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_fire_first_aid_training",
+              "number": 4,
+              "text": "Staff training includes fire safety precautions and basic first aid for children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_outdoor_equipment_maintained",
+              "number": 5,
+              "text": "Outdoor play equipment is maintained regularly to ensure that it is in good condition and safe for children to use",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_fire_accident_precautions",
+              "number": 6,
+              "text": "All reasonable precautions are taken to protect children and caregivers from the risk of fire and accidents",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_sockets_covered",
+              "number": 7,
+              "text": "Where the facility has electricity, covered sockets are used to protect children from electric shock",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_no_loose_cables",
+              "number": 8,
+              "text": "No electric cables are left loose",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_play_away_cooking",
+              "number": 9,
+              "text": "The play area is away from the cooking area",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_playground_levelled",
+              "number": 10,
+              "text": "The playground is levelled to avoid unnecessary falls",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_fire_extinguisher_trained",
+              "number": 11,
+              "text": "ECD facilities have a fire extinguisher or a sand bucket and caregivers are trained how to use them",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_first_aid_out_of_reach",
+              "number": 12,
+              "text": "First aid kits and any medicines are stored out of children's reach",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_first_aid_checked_replaced",
+              "number": 13,
+              "text": "Contents of the first aid box are checked regularly and replaced when necessary",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_first_aid_usage_training",
+              "number": 14,
+              "text": "All service providers are trained how to use the contents of the first aid box and how to deal with accidents",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_lightning_conductor",
+              "number": 15,
+              "text": "A lightning conductor is installed on the roof",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_emergency_guidelines_posted",
+              "number": 16,
+              "text": "Guidelines to prevent accidents and how to deal with emergencies are posted with child-friendly pictures",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_health_centre_phone",
+              "number": 17,
+              "text": "Health centre telephone numbers are available to call in case of emergency",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_children_supervised_outdoor",
+              "number": 18,
+              "text": "Children are supervised by an adult when playing outside",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_risky_games_discouraged",
+              "number": 19,
+              "text": "Hazardous/risky play games are discouraged",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_no_intruders_signpost",
+              "number": 20,
+              "text": "There is a signpost prohibiting intruders inside the ECD facility at the entry point",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_corporal_punishment_prevented",
+              "number": 21,
+              "text": "Measures preventing corporal punishment and abuse are established and communicated to school staff and parents",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_hazardous_materials_safe",
+              "number": 22,
+              "text": "Hazardous materials and sharp objects are kept out of children's reach. Toys and learning materials are inspected by caregivers before use. Damaged toys are replaced promptly",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_toys_nontoxic_oversized",
+              "number": 23,
+              "text": "All toys intended for younger children are non-toxic, oversized pieces so that children cannot swallow or choke on them, or put them in their ears",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_equipment_clean_safe",
+              "number": 24,
+              "text": "The equipment is clean and safe for young children; learning materials and toys are cleaned using a non-harmful cleaning substance and dried regularly",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_play_surfaces_smooth",
+              "number": 25,
+              "text": "All surfaces of play materials are smooth and undamaged, with no sharp edges or protruding surfaces",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_soft_ground_jumping",
+              "number": 26,
+              "text": "Jumping, climbing and sliding areas are covered with soft ground, sand or grass",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_safe_space_children_rights",
+              "number": 27,
+              "text": "ECD facilities create a safe space for children to know their rights and responsibilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_compound_fully_fenced",
+              "number": 28,
+              "text": "The compound is fully fenced and has a lockable gate",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_compost_pit_fenced",
+              "number": 29,
+              "text": "A fenced compost pit is located at the farthest corner of the compound",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_transport_safety_belts",
+              "number": 30,
+              "text": "Where transport is provided, the vehicle has adequate and comfortable seats fitted with child-appropriate safety belts",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7214_vehicle_safe_closed",
+              "number": 31,
+              "text": "The vehicle to transport children is safe, closed and with windows fixed above child level",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7215",
+          "title": "7.2.1.5 Water, Sanitation and Hygiene (WASH)",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7215_safe_drinking_water",
+              "number": 1,
+              "text": "Safe drinking water is always available for caregivers and children to drink and for washing hands",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_water_storage_cleaned",
+              "number": 2,
+              "text": "There are adequate water storage containers for drinking water which are cleaned regularly",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_water_1000ml_1200ml",
+              "number": 3,
+              "text": "Children aged 3 are recommended 1,000 ml of water per day while children aged 4-6 years should take 1,200 ml per day",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_food_cooked_clean_water",
+              "number": 4,
+              "text": "Food is cooked using clean water",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_running_water_500m",
+              "number": 5,
+              "text": "There is running water at the premises or a public water point no further than 500 m away",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_hygiene_staff_in_charge",
+              "number": 6,
+              "text": "There is a staff member in charge of hygiene and sanitation within the premises",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_compound_cleaned_daily",
+              "number": 7,
+              "text": "The entire compound and equipment including classrooms, toilets, kitchen and playground are cleaned every day",
+              "maxScore": 4,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_rubbish_bin_per_classroom",
+              "number": 8,
+              "text": "Classrooms are clean and have at least one rubbish bin per classroom",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_age_appropriate_toilets",
+              "number": 9,
+              "text": "The facilities are age-appropriate and have user-friendly toilets for children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_children_clean_uniform",
+              "number": 10,
+              "text": "Children are clean and wear uniform for easy identification",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_soap_water_all_areas",
+              "number": 11,
+              "text": "A water container with clean water and soap is available for use in the classroom, toilets, kitchen, and any other places where washing may be necessary",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_drinking_water_containers",
+              "number": 12,
+              "text": "Water containers and clean water for drinking are available",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_rainwater_harvesting",
+              "number": 13,
+              "text": "There are rainwater harvesting facilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_toilet_hygienic_materials",
+              "number": 14,
+              "text": "Hygienic materials are available near the toilet: toilet paper, water containers, water and soap for mobile hand washing stations (kandagira ukarabe)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_handwash_stations_inclusive",
+              "number": 15,
+              "text": "Mobile hand washing stations (kandagira ukarabe) and/or a multi-tap handwashing stand are available and inclusive. Caregivers always wash their hands before and after helping children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_waste_disposal_enclosed",
+              "number": 16,
+              "text": "Adequate facilities for the disposal of waste are available, enclosed and regularly collected",
+              "maxScore": 3,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_bushes_pools_cleared",
+              "number": 17,
+              "text": "Bushes and pools of water around the ECD facility are cleared to avoid the possibility of harbouring snakes or breeding mosquitoes",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_handwash_posters_visual",
+              "number": 18,
+              "text": "There are visual health education posters teaching children how to wash their hands properly",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_handwash_before_eating",
+              "number": 19,
+              "text": "Caregivers ensure that children wash their hands before eating and after using the toilet",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7215_wash_accessible_disabilities",
+              "number": 20,
+              "text": "All WASH facilities are accessible by children with disabilities",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7217a",
+          "title": "7.2.1.7 Teaching and Learning Approaches",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7217a_thematic_integrated_cbc",
+              "number": 1,
+              "text": "Caregivers apply thematic, integrated, holistic and contextualized approaches: daily and weekly plans are based on themes integrating all learning areas of the competence-based curriculum (CBC)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217a_trained_cbc_parenting",
+              "number": 2,
+              "text": "Caregivers are trained how to use the pre-primary CBC, the national parenting curriculum and early learning and development standards",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217a_curricula_guides_available",
+              "number": 3,
+              "text": "Curricula and related guides are available and in use",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217a_play_based_learning",
+              "number": 4,
+              "text": "Caregivers apply a play-based learning approach: indoor, outdoor, structured, child-centred free play, with gross and fine motor activities rotated in a daily schedule",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217a_multi_sensory_approach",
+              "number": 5,
+              "text": "Caregivers use a multi-sensory approach: activities engage children's senses (sight, hearing, touch, smell and taste)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217a_storytelling_weekly_themes",
+              "number": 6,
+              "text": "Caregivers tell/read stories to children reflecting the themes of the week",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217a_songs_rhymes_poems",
+              "number": 7,
+              "text": "Caregivers use songs/rhymes/poems to develop different skills connected to themes",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217a_print_letters_writing",
+              "number": 8,
+              "text": "Caregivers use print letters to write for children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217a_inclusive_teaching_materials",
+              "number": 9,
+              "text": "The ECD facility has plenty of inclusive teaching and learning materials",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7217o",
+          "title": "7.2.1.7 Organizing Teaching, Learning and Play Activities",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7217o_six_learning_areas",
+              "number": 1,
+              "text": "Children aged 3-5 years have access to activities that promote: literacy, numeracy/pre-mathematics, social-emotional growth, creativity and culture, discovery of the world, physical development and health skills",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_critical_thinking_wh",
+              "number": 2,
+              "text": "Children are encouraged to become critical thinkers by guiding them how to ask and answer WH-questions (what, when, where, who, whom, which, whose, why and how)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_expression_verbal_nonverbal",
+              "number": 3,
+              "text": "Children are given opportunities to express themselves using all forms of communication (verbal and non-verbal) and be listened to",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_print_rich_environment",
+              "number": 4,
+              "text": "Children have access to a print-rich environment (indoor and outdoor)",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_fine_motor_prewriting",
+              "number": 5,
+              "text": "Children have access to activities that develop fine motor and pre-writing skills. These include mark-making, writing, painting, drawing etc.",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_competences_six_areas",
+              "number": 6,
+              "text": "Children develop competences in the following learning areas through daily play and experiences: discovery of the world, numeracy, physical development and health, creative art and culture, language and literacy, social and emotional development",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_daily_schedule_min_4h",
+              "number": 7,
+              "text": "The daily schedule is a minimum of 4 hours",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_visual_schedule_eye_level",
+              "number": 8,
+              "text": "A user-friendly daily schedule with visuals is posted at children's eye level",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_sensory_impairment_materials",
+              "number": 9,
+              "text": "Children with sensory impairments have access to materials that maximize their capabilities (large-print, high contrast, auditory and/or tactile materials)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_balanced_schedule_variety",
+              "number": 10,
+              "text": "The daily schedule balances and alternates activities - quiet-noisy, indoor-outdoor, active-passive, large group-small group and free-structured",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_gross_motor_weekly",
+              "number": 11,
+              "text": "The weekly scheme of work indicates time for outdoor activities to develop gross motor skills through football, jumping, running, climbing, dancing, throwing etc.",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_fine_motor_weekly",
+              "number": 12,
+              "text": "The weekly scheme of work indicates activities to develop fine motor skills through writing, painting, decorating, drawing, shading, threading, cutting, pasting, clay work, puzzles and construction",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_classroom_stimulating_play",
+              "number": 13,
+              "text": "The classroom encourages children to play and there are various materials, including those locally available, to stimulate children's analytical thinking and exploration",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_displays_updated_print_rich",
+              "number": 14,
+              "text": "Caregivers are creative and keep the displays in print-rich classrooms updated",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_children_work_displayed",
+              "number": 15,
+              "text": "Children's original drawings, writing and other work are displayed on the walls at their eye level",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_communication_support_sign",
+              "number": 16,
+              "text": "Children with communication needs receive support to use different communication method(s): sign language, gesture, pictures, objects and tactile communication systems, or a combination of these",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_outdoor_play_supervised",
+              "number": 17,
+              "text": "An adult/caregiver supervises the sharing of outdoor play equipment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_delay_disability_support",
+              "number": 18,
+              "text": "Children identified as being at risk of/experiencing developmental delay or disability receive additional support to meet their individual learning needs",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_individual_education_plan",
+              "number": 19,
+              "text": "Each child with disability and special needs has an individual education plan",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_udl_inclusive_principles",
+              "number": 20,
+              "text": "Routines, teaching and learning strategies, the learning environment, equipment and play/learning materials are inclusive to accommodate children with disabilities and special needs by applying universal design for learning (UDL) principles",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_assessment_adapted_sen",
+              "number": 21,
+              "text": "Assessment tools and materials are adapted to cater for children with special needs and disabilities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217o_severe_needs_provision",
+              "number": 22,
+              "text": "For children diagnosed with the most severe/profound learning needs by competent professionals, special educational provision is advised",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7217r",
+          "title": "7.2.1.7 Teaching, Learning and Play Resources",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7217r_play_materials_adapted",
+              "number": 1,
+              "text": "Play materials are adapted to be suitable for all children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_learning_materials_all_areas",
+              "number": 2,
+              "text": "Appropriate learning materials for all learning areas are available: numeracy, language and literacy, creative art and culture, discovery of the world, social and emotional development, physical development and health",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_materials_accessible_shelves",
+              "number": 3,
+              "text": "Learning and play materials are accessible to all children in all six learning areas of the curriculum. These materials are kept in open shelves and other containers",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_ict_lesson_preparation",
+              "number": 4,
+              "text": "Learning promotes the use of Information and Communication Technology (ICT) in activities such as lesson preparation, making materials, research etc.",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_rwandan_picture_books",
+              "number": 5,
+              "text": "The facility has a variety of Rwandan picture books with culturally and age-appropriate stories",
+              "maxScore": 5,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_prewriting_pencils_crayons",
+              "number": 6,
+              "text": "Children's pre-writing materials (pencils, chalk, crayons, paper and drawing notebooks) are available",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_materials_locally_available",
+              "number": 7,
+              "text": "Materials are mostly locally available; culturally acceptable; age appropriate; inclusive; durable; safe and clean; attractive; multipurpose; gender sensitive and stimulating children's minds and senses; in good condition",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_play_community_context",
+              "number": 8,
+              "text": "Play materials are appropriate to the community context and imitate the games children play at home",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_materials_stored_safely",
+              "number": 9,
+              "text": "Learning materials used are maintained and stored correctly to ensure their safety after use",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_cbc_copy_each_caregiver",
+              "number": 10,
+              "text": "The facility has one copy of the national pre-primary curriculum for each caregiver",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_cbc_guides_schemes",
+              "number": 11,
+              "text": "The facility has and uses CBC guides, schemes of work, training modules, the national parenting curriculum, early learning and development standards and other relevant documents",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_improvised_local_materials",
+              "number": 12,
+              "text": "Play materials can be bought or improvised from locally available materials",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217r_manila_paper_display",
+              "number": 13,
+              "text": "Manila paper sacks and other locally available materials for display are available",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7217f",
+          "title": "7.2.1.7 Field and Study Visits",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7217f_weekly_community_visits",
+              "number": 1,
+              "text": "Children leave the ECD facility compound to explore themes within their community every week",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217f_one_caregiver_per_10",
+              "number": 2,
+              "text": "One caregiver or parent supervises a group of up to 10 children and has a list of those children with parents' contacts",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217f_parents_consent_form",
+              "number": 3,
+              "text": "Parents sign a consent form for visits",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217f_first_aid_kit_carried",
+              "number": 4,
+              "text": "The lead caregiver carries the first aid kit during the study visit",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7217f_risk_assessment_done",
+              "number": 5,
+              "text": "The facility carries out a risk assessment and adopts related coping mechanisms to ensure the security and safety of the trip beforehand",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7218",
+          "title": "7.2.1.8 Establishment and Registration",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7218_application_procedures",
+              "number": 1,
+              "text": "To set up an ECD facility, the service provider follows defined application procedures",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7218_services_registered",
+              "number": 2,
+              "text": "Model ECD and School Based ECD must register their services to competent authority",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7218_inspected_accredited",
+              "number": 3,
+              "text": "The competent authority reviews applications, inspects prospective ECD facility. If satisfactory, it can provide an accreditation",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s7219",
+          "title": "7.2.1.9 Effective Partnership and Networking with Families and Communities",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s7219_parents_involved_setup",
+              "number": 1,
+              "text": "The service provider involves parents/guardians in setting up ECD services and programmes",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7219_assembly_monthly",
+              "number": 2,
+              "text": "All parents/guardians meet in a general assembly at least once a month",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7219_parents_advisors",
+              "number": 3,
+              "text": "Parents/guardians/caregivers are advisors/counsellors in supporting children's holistic development and well-being",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7219_parent_committee",
+              "number": 4,
+              "text": "An ECD facility has a parent committee composed of: Two parent representatives (male and female), ECD coordinator, Caregiver, Village leader",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7219_delay_disability_enrolled",
+              "number": 5,
+              "text": "The service provider allows children at risk of developmental delay or disability to be enrolled",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7219_feedback_mechanisms",
+              "number": 6,
+              "text": "There are communication and feedback mechanisms between parents and the facility management (notebook, journal, WhatsApp group, phone calls, SMS etc.)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7219_local_authority_collab",
+              "number": 7,
+              "text": "The facility collaborates with the local authorities; collaboration is evidenced by monthly reports, meetings and supervision",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s7219_parenting_sessions_records",
+              "number": 8,
+              "text": "The facility organizes and keeps records of monthly parenting sessions",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s72110",
+          "title": "7.2.1.10 Assessment of Children's Development and Learning Progress",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s72110_observation_checklist",
+              "number": 1,
+              "text": "ECD caregivers use observation checklist for formative assessment",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_progressive_records",
+              "number": 2,
+              "text": "Progressive records are used",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_interview_checklist",
+              "number": 3,
+              "text": "Interview checklist is used (interviews with a child are recorded in the child's file)",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_midterm_progress_reports",
+              "number": 4,
+              "text": "Mid-term progress reports of each child are available",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_children_portfolios",
+              "number": 5,
+              "text": "Children's portfolios are available",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_progress_shared_parents",
+              "number": 6,
+              "text": "Progress reports are shared and discussed with individual parents and/or groups of parents",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_progress_analysed_adjusted",
+              "number": 7,
+              "text": "ECD caregivers analyse children's progress and adjust their processes, tools and practices accordingly",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_cops_weekly_reflection",
+              "number": 8,
+              "text": "ECD caregivers meet every week in communities of practice (COPs) to reflect on the effectiveness of their processes, tools and practices",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_reports_detailed_learning",
+              "number": 9,
+              "text": "Children's progress reports contain detailed developmental and learning information",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_colour_coded_rating",
+              "number": 10,
+              "text": "Colour-coded rating is used to share children's progress with parents: GREEN, BLUE, YELLOW, RED",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72110_camis_recorded",
+              "number": 11,
+              "text": "Assessment results in ECD facilities recorded in MINEDUC's comprehensive assessment management information system (CAMIS)",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        },
+        {
+          "id": "grp_ecd_s72111",
+          "title": "7.2.1.11 Qualifications, Training and Incentives for Caregivers and Cooks",
+          "subtotalMax": null,
+          "items": [
+            {
+              "id": "ecd_s72111_recruitment_national",
+              "number": 1,
+              "text": "The recruitment of caregivers follows national procedures governing teacher recruitment in Rwanda or caregiver management guidelines",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_caregiver_and_assistant",
+              "number": 2,
+              "text": "Each room in an ECD facility has a caregiver and an assistant",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_one_cook_one_guard",
+              "number": 3,
+              "text": "Each facility has at least one cook and one guard",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_caregiver_age_18",
+              "number": 4,
+              "text": "ECD caregiver is at least 18 years old",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_staff_s6_qualification",
+              "number": 5,
+              "text": "The minimum qualification for the staff is secondary certificate (S6) from TTC in Early Childhood Education, ECLPE, and General Education with training on ECD services delivery",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_positive_values_respect",
+              "number": 6,
+              "text": "Caregivers demonstrate positive values and respect for children in their respective communities",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_decent_dress_role_model",
+              "number": 7,
+              "text": "Caregivers dress decently, are good role models to young children and respect the role of parents in bringing up children",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_make_toys_locally",
+              "number": 8,
+              "text": "Caregivers are able to make toys from locally available materials",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_no_corporal_punishment",
+              "number": 9,
+              "text": "Caregivers never use any form of corporal punishment or psychological abuse",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_identify_handle_disabilities",
+              "number": 10,
+              "text": "Caregivers have the basic knowledge and skills to identify and handle children with disabilities and special needs",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_caregiver_child_ratio",
+              "number": 11,
+              "text": "Caregiver-child ratio is observed: Grade 1: 1:15, Grade 2: 1:25, Grade 3: 1:30",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_cpd_continuous_mentored",
+              "number": 12,
+              "text": "Caregivers and support staff are continuously trained and mentored as needed",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_cpd_organized_linked",
+              "number": 13,
+              "text": "CPD is organized by the facility's administration or by linking with other institutions",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_cpd_weekly_cop",
+              "number": 14,
+              "text": "Internal CPD is conducted at least once a week through COP/mentors",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_inclusive_training_ongoing",
+              "number": 15,
+              "text": "All ECD providers receive initial and ongoing training on inclusive ECD care and learning for children at risk of/with developmental delay or disability",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_training_validated_reb_ncda",
+              "number": 16,
+              "text": "The validation of training content in the ECD programme is done jointly by the Rwanda Basic Education Board (REB) and NCDA",
+              "maxScore": 1,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_salary_fringe_benefits",
+              "number": 17,
+              "text": "Caregivers and support staff are entitled to salary or fringe benefits/incentives",
+              "maxScore": 2,
+              "indicators": []
+            },
+            {
+              "id": "ecd_s72111_materials_provided_empowered",
+              "number": 18,
+              "text": "Caregivers are capacitated and provided with teaching/learning materials and empowered to creatively develop them",
+              "maxScore": 1,
+              "indicators": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

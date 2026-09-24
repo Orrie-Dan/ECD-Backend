@@ -1,4 +1,4 @@
-import { ChildStatus, DeviceStatus, NutritionStatus, asDomainEnum } from '../../common/domain';
+import { ChildStatus, DeviceStatus, asDomainEnum } from '../../common/domain';
 import {
   BadRequestException,
   ForbiddenException,
@@ -9,6 +9,7 @@ import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { assertCenterAccess } from '../../common/auth/scope.util';
+import { assertCenterAccessibleById } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from '../sync/sync-access.service';
@@ -27,8 +28,10 @@ import {
   decimalToNumber,
   deriveRequiresReferral,
   nutritionMapper,
+  parseOptionalNutritionStatus,
 } from './mappers/nutrition.mapper';
 import { NotificationEventsService } from '../notifications/notification-events.service';
+import { collectWhoConcerns } from './who/concern';
 
 /** Active children with no screening within this window are overdue. */
 const OVERDUE_SCREENING_DAYS = 30;
@@ -55,7 +58,11 @@ export class NutritionService {
     const child = await this.getAccessibleChild(user, childId);
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
     const now = new Date();
-    const requiresReferral = deriveRequiresReferral(dto.nutritionStatus, dto.requiresReferral);
+    // Manual referral only — no automatic WHO or legacy-MUAC referral rule.
+    const requiresReferral = deriveRequiresReferral(dto.requiresReferral);
+    // Do not persist new legacy absolute-MUAC status. Older clients may still send it;
+    // we ignore it so WHO indicators remain the sole nutrition assessment.
+    const nutritionStatus: string | null = null;
 
     const created = await this.prisma.$transaction(async (tx) => {
       const mealQuality = dto.mealQuality?.trim() ?? null;
@@ -69,7 +76,7 @@ export class NutritionService {
           heightCm: dto.heightCm != null ? new Prisma.Decimal(dto.heightCm) : null,
           headCircumferenceCm:
             dto.headCircumferenceCm != null ? new Prisma.Decimal(dto.headCircumferenceCm) : null,
-          nutritionStatus: dto.nutritionStatus,
+          nutritionStatus,
           requiresReferral,
           mealQuality,
           feedingConcern: dto.feedingConcern ?? false,
@@ -97,9 +104,18 @@ export class NutritionService {
       return row;
     });
 
+    const concerns = collectWhoConcerns({
+      dateOfBirth: child.dateOfBirth,
+      gender: child.gender,
+      screeningDate: dto.screeningDate,
+      weightKg: dto.weightKg,
+      heightCm: dto.heightCm,
+      muacCm: dto.muacCm,
+    });
+
     void this.notificationEvents.onNutritionScreeningCreated({
       screeningId: created.id,
-      nutritionStatus: dto.nutritionStatus,
+      whoConcerns: concerns,
       requiresReferral,
       centerId: child.centerId,
       districtId: child.center.districtId,
@@ -155,7 +171,7 @@ export class NutritionService {
       if (!center) {
         throw new NotFoundException('Center not found');
       }
-      assertCenterAccess(user, center.id, center.districtId);
+      await assertCenterAccessibleById(this.prisma, user, center.id);
     }
 
     const fromDate = query.from ? this.toDateOnly(query.from) : undefined;
@@ -242,7 +258,7 @@ export class NutritionService {
       if (!center) {
         throw new NotFoundException('Center not found');
       }
-      assertCenterAccess(user, center.id, center.districtId);
+      await assertCenterAccessibleById(this.prisma, user, center.id);
     }
 
     const centerFilter =
@@ -264,10 +280,13 @@ export class NutritionService {
     const alerts: NutritionAlertDto[] = [];
 
     const includeReferral = !query.status || query.status === 'requires_referral';
-    const includeSevere = !query.status || query.status === 'severe_nutrition';
+    const includeWhoConcern =
+      !query.status ||
+      query.status === 'who_growth_concern' ||
+      query.status === 'severe_nutrition';
     const includeOverdue = !query.status || query.status === 'overdue_screening';
 
-    if (includeReferral || includeSevere) {
+    if (includeReferral || includeWhoConcern) {
       const screeningWhere: Prisma.ChildNutritionScreeningWhereInput = {
         deletedAt: null,
         child: {
@@ -277,10 +296,7 @@ export class NutritionService {
         },
         ...(query.date ? { screeningDate: { lte: asOfDate } } : {}),
         ...(query.nutritionStatus ? { nutritionStatus: query.nutritionStatus } : {}),
-        OR: [
-          ...(includeReferral ? [{ requiresReferral: true }] : []),
-          ...(includeSevere ? [{ nutritionStatus: NutritionStatus.severe }] : []),
-        ],
+        ...(includeReferral && !includeWhoConcern ? { requiresReferral: true } : {}),
       };
 
       const flagged = await this.prisma.childNutritionScreening.findMany({
@@ -292,6 +308,8 @@ export class NutritionService {
               firstName: true,
               middleName: true,
               lastName: true,
+              dateOfBirth: true,
+              gender: true,
               centerId: true,
               center: { select: { id: true, name: true } },
             },
@@ -303,30 +321,44 @@ export class NutritionService {
       });
 
       const seenReferral = new Set<string>();
-      const seenSevere = new Set<string>();
+      const seenWhoConcern = new Set<string>();
 
       for (const row of flagged) {
         const fullName = [row.child.firstName, row.child.middleName, row.child.lastName]
           .filter((p): p is string => !!p?.trim())
           .join(' ');
 
-        if (
-          includeSevere &&
-          row.nutritionStatus === NutritionStatus.severe &&
-          !seenSevere.has(row.childId)
-        ) {
-          seenSevere.add(row.childId);
+        const weightKg = decimalToNumber(row.weightKg);
+        const muacCm = decimalToNumber(row.muacCm);
+        const heightCm = decimalToNumber(row.heightCm);
+        const concerns =
+          weightKg != null && muacCm != null
+            ? collectWhoConcerns({
+                dateOfBirth: row.child.dateOfBirth,
+                gender: row.child.gender,
+                screeningDate: row.screeningDate,
+                weightKg,
+                heightCm,
+                muacCm,
+              })
+            : [];
+
+        if (includeWhoConcern && concerns.length > 0 && !seenWhoConcern.has(row.childId)) {
+          seenWhoConcern.add(row.childId);
+          const primary = concerns[0];
           alerts.push({
-            type: 'severe_nutrition',
+            type: 'who_growth_concern',
             childId: row.childId,
             childFullName: fullName,
             centerId: row.child.centerId,
             centerName: row.child.center.name,
             screeningId: row.id,
             screeningDate: row.screeningDate,
-            nutritionStatus: asDomainEnum<NutritionStatus>(row.nutritionStatus),
+            nutritionStatus: parseOptionalNutritionStatus(row.nutritionStatus),
+            whoIndicator: primary.indicator,
+            whoZone: primary.zone,
             requiresReferral: row.requiresReferral,
-            message: 'Child has a severe nutrition screening',
+            message: `WHO growth concern: ${primary.label}`,
           });
         }
 
@@ -340,7 +372,9 @@ export class NutritionService {
             centerName: row.child.center.name,
             screeningId: row.id,
             screeningDate: row.screeningDate,
-            nutritionStatus: asDomainEnum<NutritionStatus>(row.nutritionStatus),
+            nutritionStatus: parseOptionalNutritionStatus(row.nutritionStatus),
+            whoIndicator: null,
+            whoZone: null,
             requiresReferral: true,
             message: 'Child requires nutrition referral',
           });
@@ -398,9 +432,9 @@ export class NutritionService {
           centerName: child.center.name,
           screeningId: latest?.id ?? null,
           screeningDate: latest?.screeningDate ?? null,
-          nutritionStatus: latest?.nutritionStatus
-            ? asDomainEnum<NutritionStatus>(latest.nutritionStatus)
-            : null,
+          nutritionStatus: parseOptionalNutritionStatus(latest?.nutritionStatus),
+          whoIndicator: null,
+          whoZone: null,
           requiresReferral: latest?.requiresReferral ?? null,
           message: latest
             ? `No nutrition screening within the last ${OVERDUE_SCREENING_DAYS} days`
@@ -422,6 +456,8 @@ export class NutritionService {
         id: true,
         centerId: true,
         status: true,
+        dateOfBirth: true,
+        gender: true,
         center: { select: { id: true, districtId: true } },
       },
     });
@@ -430,7 +466,7 @@ export class NutritionService {
       throw new NotFoundException('Child not found');
     }
 
-    assertCenterAccess(user, child.centerId, child.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, child.centerId);
     return child;
   }
 
@@ -466,7 +502,7 @@ export class NutritionService {
     muacCm: Prisma.Decimal | number;
     heightCm: Prisma.Decimal | number | null;
     headCircumferenceCm: Prisma.Decimal | number | null;
-    nutritionStatus: string;
+    nutritionStatus: string | null;
     requiresReferral: boolean;
     recordedById: string;
     version: number;
@@ -504,7 +540,7 @@ export class NutritionService {
       muacCm,
       heightCm: decimalToNumber(row.heightCm),
       headCircumferenceCm: decimalToNumber(row.headCircumferenceCm),
-      nutritionStatus: asDomainEnum<NutritionStatus>(row.nutritionStatus),
+      nutritionStatus: parseOptionalNutritionStatus(row.nutritionStatus),
       requiresReferral: row.requiresReferral,
       recordedById: row.recordedById,
       version: row.version,

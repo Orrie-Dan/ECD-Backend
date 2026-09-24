@@ -45,7 +45,7 @@ export class FollowUpAlertDto {
   })
   priority: FollowUpAlertPriority;
 
-  @ApiProperty({ example: 'NUTRITION_SEVERE' })
+  @ApiProperty({ example: 'NUTRITION_WHO_BELOW_MINUS_3' })
   code: string;
 
   @ApiProperty({ example: 'Severe malnutrition detected' })

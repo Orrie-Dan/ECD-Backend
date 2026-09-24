@@ -27,7 +27,7 @@ import {
 @ApiTags('caregiver-work-experiences')
 @ApiBearerAuth()
 @Controller('users/:userId/work-experiences')
-@Roles(UserRole.ecd_director, UserRole.district_focal_person, UserRole.ncda_admin)
+@Roles(UserRole.ecd_director, UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
 export class CaregiverWorkExperiencesController {
   constructor(private readonly service: CaregiverWorkExperiencesService) {}
 

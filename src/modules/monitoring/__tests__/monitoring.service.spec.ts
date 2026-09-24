@@ -35,6 +35,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }
@@ -105,6 +106,27 @@ function stubPrisma() {
       },
     },
     childNutritionScreening: {
+      findMany: async () => {
+        callCounts.nutritionGroupBy += 1;
+        const child = { centerId: 'c1', dateOfBirth: new Date('2022-01-01'), gender: 'male' };
+        const date = new Date('2024-01-01');
+        return [
+          ...Array.from({ length: 2 }, () => ({
+            weightKg: 5,
+            heightCm: 70,
+            muacCm: 10,
+            screeningDate: date,
+            child,
+          })),
+          ...Array.from({ length: 8 }, () => ({
+            weightKg: 12,
+            heightCm: 86,
+            muacCm: 15,
+            screeningDate: date,
+            child,
+          })),
+        ];
+      },
       groupBy: async () => {
         callCounts.nutritionGroupBy += 1;
         return [
@@ -364,8 +386,9 @@ async function main() {
     if (prisma.callCounts.referralGroupBy < 1) {
       throw new Error('expected referral groupBy');
     }
-    if (prisma.callCounts.nutritionQueryRaw < 1) {
-      throw new Error('expected nutrition $queryRaw aggregation');
+    // WHO zone aggregation loads screenings once (findMany), not per-center SQL.
+    if (prisma.callCounts.nutritionGroupBy < 1) {
+      throw new Error('expected nutrition findMany for WHO aggregation');
     }
   });
 

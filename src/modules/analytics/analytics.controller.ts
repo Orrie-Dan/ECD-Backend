@@ -21,6 +21,7 @@ import { DistrictRiskResponseDto } from './dto/district-risk-response.dto';
   UserRole.caregiver,
   UserRole.ecd_director,
   UserRole.district_focal_person,
+  UserRole.sector_focal_person,
   UserRole.ncda_admin,
 )
 export class AnalyticsController {
@@ -60,7 +61,7 @@ export class AnalyticsController {
   }
 
   @Get('district-risk')
-  @Roles(UserRole.ncda_admin, UserRole.district_focal_person)
+  @Roles(UserRole.ncda_admin, UserRole.district_focal_person, UserRole.sector_focal_person)
   @ApiOperation({
     summary: 'District risk snapshot',
     description:

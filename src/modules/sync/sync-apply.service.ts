@@ -20,7 +20,6 @@ import {
   resolveAbsentReasonFromPayload,
   resolveAttendanceStatusFromPayload,
 } from '../attendance/mappers/attendance.mapper';
-import { deriveRequiresReferral } from '../nutrition/mappers/nutrition.mapper';
 import {
   canTransitionReferralStatus,
   resolveReferralRecordedByIdFromPayload,
@@ -1513,11 +1512,10 @@ export class SyncApplyService {
       }
       case 'child_nutrition_screening': {
         // Append-only CREATE: no CAS
-        const nutritionStatus = payload.nutritionStatus as never;
-        const requiresReferral = deriveRequiresReferral(
-          nutritionStatus,
-          payload.requiresReferral != null ? Boolean(payload.requiresReferral) : undefined,
-        );
+        // Manual referral only — ignore legacy absolute-MUAC nutritionStatus for referral.
+        // Store null so WHO indicators remain the assessment truth; old clients may still
+        // send nutritionStatus (accepted without crash, not persisted as new truth).
+        const requiresReferral = Boolean(payload.requiresReferral);
         const mealQuality = (payload.mealQuality as string) ?? null;
 
         await db.childNutritionScreening.create({
@@ -1533,7 +1531,7 @@ export class SyncApplyService {
               payload.headCircumferenceCm != null
                 ? new Prisma.Decimal(String(payload.headCircumferenceCm))
                 : null,
-            nutritionStatus,
+            nutritionStatus: null,
             requiresReferral,
             mealQuality,
             feedingConcern: Boolean(payload.feedingConcern ?? false),

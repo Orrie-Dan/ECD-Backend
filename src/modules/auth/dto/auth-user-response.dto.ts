@@ -24,6 +24,13 @@ export class AuthUserResponseDto {
   @ApiProperty({ format: 'uuid', nullable: true })
   districtId: string | null;
 
+  @ApiProperty({
+    format: 'uuid',
+    nullable: true,
+    description: 'Assigned sector (AdministrativeUnit) for sector_focal_person',
+  })
+  sectorId: string | null;
+
   @ApiProperty({ format: 'uuid', nullable: true })
   centerId: string | null;
 

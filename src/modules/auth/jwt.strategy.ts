@@ -34,6 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         role: true,
         centerId: true,
         districtId: true,
+        sectorId: true,
         status: true,
         lockedUntil: true,
       },
@@ -55,6 +56,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       role: asDomainEnum<UserRole>(user.role),
       centerId: user.centerId,
       districtId: user.districtId,
+      sectorId: user.sectorId,
       status: user.status,
     };
   }

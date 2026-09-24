@@ -15,6 +15,7 @@ export enum EcdCenterStatus {
 export enum UserRole {
   caregiver = 'caregiver',
   district_focal_person = 'district_focal_person',
+  sector_focal_person = 'sector_focal_person',
   ncda_admin = 'ncda_admin',
   ecd_director = 'ecd_director',
 }

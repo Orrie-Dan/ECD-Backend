@@ -38,6 +38,7 @@ function adminUser(): AuthUser {
     role: UserRole.ncda_admin,
     centerId: null,
     districtId: null,
+    sectorId: null,
     status: 'active',
   };
 }

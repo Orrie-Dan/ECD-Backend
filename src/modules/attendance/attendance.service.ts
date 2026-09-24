@@ -8,8 +8,9 @@ import {
 import { Prisma, RecordSyncStatus, SyncOperationStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson, toPrismaAuditAction } from '../../common/audit';
-import { assertCenterAccess, canAccessCenter } from '../../common/auth/scope.util';
+import { canAccessCenter } from '../../common/auth/scope.util';
 import { assertCasApplied, classifyCasMiss } from '../../common/concurrency/cas.util';
+import { assertCenterAccessibleById } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncAccessService } from '../sync/sync-access.service';
@@ -311,7 +312,7 @@ export class AttendanceService {
       if (!center) {
         throw new NotFoundException('Center not found');
       }
-      assertCenterAccess(user, center.id, center.districtId);
+      await assertCenterAccessibleById(this.prisma, user, center.id);
     }
 
     const startDate = query.startDate ?? query.from;
@@ -368,7 +369,7 @@ export class AttendanceService {
       throw new NotFoundException('Attendance record not found');
     }
 
-    assertCenterAccess(user, existing.centerId, existing.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, existing.centerId);
 
     const resolvedDeviceId = await this.resolveDeviceId(user, deviceId);
     const now = new Date();

@@ -2,7 +2,11 @@ import { UserRole } from '../../common/domain';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, RecordSyncStatus } from '@prisma/client';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
-import { assertCenterAccess, isCenterStaffRole } from '../../common/auth/scope.util';
+import {
+  assertCenterAccessibleById,
+  centerOwnedListFilter,
+} from '../../common/scope/district-query.scope';
+import { isCenterStaffRole } from '../../common/auth/scope.util';
 import { assertCasApplied } from '../../common/concurrency/cas.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
@@ -28,7 +32,7 @@ export class WashService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
-    const where = this.buildListWhere(user, query);
+    const where = await this.buildListWhere(user, query);
 
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.washIndicator.findMany({
@@ -64,7 +68,7 @@ export class WashService {
       throw new NotFoundException('WASH indicator not found');
     }
 
-    assertCenterAccess(user, indicator.centerId, indicator.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, indicator.centerId);
 
     return this.toDto(indicator);
   }
@@ -82,7 +86,7 @@ export class WashService {
       throw new NotFoundException('Center not found');
     }
 
-    assertCenterAccess(user, center.id, center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, center.id);
 
     const now = new Date();
     const recordedDate = new Date(dto.recordedDate);
@@ -153,7 +157,7 @@ export class WashService {
       throw new NotFoundException('WASH indicator not found');
     }
 
-    assertCenterAccess(user, existing.centerId, existing.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, existing.centerId);
 
     const now = new Date();
     const oldValues = toAuditJson({
@@ -245,31 +249,24 @@ export class WashService {
     return this.toDto(result);
   }
 
-  private buildListWhere(
+  private async buildListWhere(
     user: AuthUser,
     query: ListWashIndicatorsQueryDto,
-  ): Prisma.WashIndicatorWhereInput {
+  ): Promise<Prisma.WashIndicatorWhereInput> {
     const where: Prisma.WashIndicatorWhereInput = {
       deletedAt: null,
     };
 
-    if (isCenterStaffRole(user.role)) {
-      if (!user.centerId) {
-        throw new ForbiddenException('Center scope is required for this role');
-      }
-      where.centerId = user.centerId;
-    } else if (user.role === UserRole.district_focal_person) {
-      if (!user.districtId) {
-        throw new ForbiddenException('District scope is required for district focal persons');
-      }
-      if (query.districtId && query.districtId !== user.districtId) {
-        throw new ForbiddenException('Access to other districts is denied');
-      }
-      where.center = { districtId: user.districtId };
-    } else if (user.role === UserRole.ncda_admin) {
-      if (query.districtId) {
-        where.center = { districtId: query.districtId };
-      }
+    const scoped = await centerOwnedListFilter(this.prisma, user, {
+      districtId: query.districtId,
+      centerId: query.centerId,
+    });
+    if (typeof scoped.centerId === 'string') {
+      where.centerId = scoped.centerId;
+    } else if (scoped.centerId) {
+      where.centerId = scoped.centerId;
+    } else if (scoped.center) {
+      where.center = { districtId: scoped.center.districtId, deletedAt: null };
     }
 
     if (query.centerId) {

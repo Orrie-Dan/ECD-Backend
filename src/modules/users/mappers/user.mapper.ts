@@ -27,6 +27,7 @@ export type UserCreateMapped = {
   educationLevel: EducationLevel | null;
   role: UserRole;
   districtId: string | null;
+  sectorId: string | null;
   centerId: string | null;
 };
 
@@ -61,6 +62,7 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
       role: asDomainEnum<UserRole>(entity.role),
       status: this.toApiStatus(asDomainEnum<UserAccountStatus>(entity.status)),
       district: entity.district ? { id: entity.district.id, name: entity.district.name } : null,
+      sectorId: entity.sectorId ?? null,
       center: entity.center
         ? {
             id: entity.center.id,
@@ -102,6 +104,7 @@ export class UserMapper implements Mapper<UserWithRelations, UserResponseDto> {
       educationLevel: dto.educationLevel ?? null,
       role: dto.role,
       districtId: dto.districtId ?? null,
+      sectorId: dto.sectorId ?? null,
       centerId: dto.centerId ?? null,
     };
   }

@@ -36,6 +36,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }
@@ -97,13 +98,17 @@ async function main() {
                 id: 'child-severe',
                 firstName: 'Ada',
                 lastName: 'L',
+                dateOfBirth: new Date('2022-01-01'),
+                gender: 'male',
                 centerId: 'c1',
                 center: { name: 'Center 1' },
                 nutritionScreenings: [
                   {
                     id: 'scr-1',
-                    screeningDate: new Date(),
-                    nutritionStatus: 'severe',
+                    screeningDate: new Date('2024-01-01'),
+                    weightKg: 5,
+                    heightCm: 70,
+                    muacCm: 10,
                     requiresReferral: true,
                   },
                 ],
@@ -112,13 +117,17 @@ async function main() {
                 id: 'child-overdue',
                 firstName: 'Bob',
                 lastName: 'M',
+                dateOfBirth: new Date('2022-01-01'),
+                gender: 'male',
                 centerId: 'c1',
                 center: { name: 'Center 1' },
                 nutritionScreenings: [
                   {
                     id: 'scr-2',
                     screeningDate: oldDate,
-                    nutritionStatus: 'normal',
+                    weightKg: 12,
+                    heightCm: 85,
+                    muacCm: 15,
                     requiresReferral: false,
                   },
                 ],
@@ -172,7 +181,7 @@ async function main() {
     );
 
     const codes = new Set(result.items.map((i) => i.code));
-    eq(codes.has('NUTRITION_SEVERE'), true);
+    eq(codes.has('NUTRITION_WHO_BELOW_MINUS_3'), true);
     eq(codes.has('NUTRITION_REQUIRES_REFERRAL'), true);
     eq(codes.has('NUTRITION_OVERDUE'), true);
     eq(codes.has('ATTENDANCE_ABSENCE_RISK'), true);
@@ -200,13 +209,17 @@ async function main() {
             id: 'child-1',
             firstName: 'Eve',
             lastName: 'P',
+            dateOfBirth: new Date('2022-01-01'),
+            gender: 'male',
             centerId: 'c1',
             center: { name: 'C' },
             nutritionScreenings: [
               {
                 id: 's1',
-                screeningDate: new Date(),
-                nutritionStatus: 'severe',
+                screeningDate: new Date('2024-01-01'),
+                weightKg: 5,
+                heightCm: 70,
+                muacCm: 10,
                 requiresReferral: false,
               },
             ],

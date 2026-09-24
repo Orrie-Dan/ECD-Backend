@@ -6,8 +6,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { assertCenterAccess, canAccessCenter } from '../../common/auth/scope.util';
+import { canAccessCenter } from '../../common/auth/scope.util';
 import { OptimisticLockConflictException } from '../../common/concurrency/optimistic-lock.exception';
+import { assertCenterAccessibleById } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { NotificationEventsService } from '../notifications/notification-events.service';
@@ -52,7 +53,7 @@ export class TransfersService {
       throw new BadRequestException('Cannot transfer an archived child');
     }
 
-    assertCenterAccess(user, child.centerId, child.center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, child.centerId);
 
     const toCenter = await this.prisma.ecdCenter.findFirst({
       where: { id: dto.toCenterId, deletedAt: null },
@@ -110,7 +111,7 @@ export class TransfersService {
       throw new NotFoundException('Destination center not found');
     }
 
-    assertCenterAccess(user, transfer.toCenterId, toCenter.districtId);
+    await assertCenterAccessibleById(this.prisma, user, transfer.toCenterId);
 
     const child = await this.prisma.child.findFirst({
       where: { id: transfer.childId, deletedAt: null },
@@ -157,7 +158,7 @@ export class TransfersService {
       throw new NotFoundException('Source center not found');
     }
 
-    assertCenterAccess(user, transfer.fromCenterId, fromCenter.districtId);
+    await assertCenterAccessibleById(this.prisma, user, transfer.fromCenterId);
 
     const child = await this.prisma.child.findFirst({
       where: { id: transfer.childId, deletedAt: null },
@@ -344,7 +345,7 @@ export class TransfersService {
       throw new NotFoundException('Center not found');
     }
 
-    assertCenterAccess(user, center.id, center.districtId);
+    await assertCenterAccessibleById(this.prisma, user, center.id);
 
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 50;

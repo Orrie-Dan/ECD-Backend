@@ -1,15 +1,22 @@
-import { AttendanceStatus, ChildStatus, NutritionStatus } from '../../common/domain';
+import { AttendanceStatus, ChildStatus } from '../../common/domain';
 import { Injectable } from '@nestjs/common';
 import { Prisma, ReferralStatus } from '@prisma/client';
 import {
   centerIdWhere,
   childCenterWhere,
+  ecdCenterWhere,
   paginateParams,
   resolveDistrictQueryScope,
   resolveInclusiveDateRange,
 } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
+import { decimalToNumber } from '../nutrition/mappers/nutrition.mapper';
+import {
+  aggregateWhoScreenings,
+  emptyWhoZoneCounts,
+  screeningCompatBand,
+} from '../nutrition/who/concern';
 import { MonitoringQueryDto } from './dto/monitoring-query.dto';
 
 const OVERDUE_SCREENING_DAYS = 30;
@@ -152,29 +159,44 @@ export class MonitoringService {
       },
     });
 
-    const grouped = await this.prisma.childNutritionScreening.groupBy({
-      by: ['nutritionStatus'],
+    // WHO indicators are the nutrition source of truth (not legacy nutritionStatus).
+    // Bound national scans — monitoring is a signal sample, not a full dump.
+    const screeningRows = await this.prisma.childNutritionScreening.findMany({
       where: {
         deletedAt: null,
         screeningDate: { gte: from, lte: to },
         child: { deletedAt: null, ...childWhere },
       },
-      _count: { _all: true },
+      select: {
+        weightKg: true,
+        heightCm: true,
+        muacCm: true,
+        screeningDate: true,
+        child: {
+          select: {
+            centerId: true,
+            dateOfBirth: true,
+            gender: true,
+          },
+        },
+      },
+      take: 10000,
     });
 
-    const counts: Record<string, number> = {
-      [NutritionStatus.normal]: 0,
-      [NutritionStatus.at_risk]: 0,
-      [NutritionStatus.moderate]: 0,
-      [NutritionStatus.severe]: 0,
-    };
-    let screenings = 0;
-    for (const g of grouped) {
-      counts[g.nutritionStatus] = g._count._all;
-      screenings += g._count._all;
-    }
+    const whoInputs = screeningRows.map((row) => ({
+      dateOfBirth: row.child.dateOfBirth,
+      gender: row.child.gender,
+      screeningDate: row.screeningDate,
+      weightKg: decimalToNumber(row.weightKg),
+      heightCm: decimalToNumber(row.heightCm),
+      muacCm: decimalToNumber(row.muacCm),
+      centerId: row.child.centerId,
+    }));
 
-    const [requiresReferral, overdue, neverScreened, centers, byCenterStatus] = await Promise.all([
+    const whoAgg = aggregateWhoScreenings(whoInputs);
+    const screenings = whoAgg.screenings;
+
+    const [requiresReferral, overdue, neverScreened, centers] = await Promise.all([
       this.prisma.childNutritionScreening.count({
         where: {
           deletedAt: null,
@@ -186,20 +208,25 @@ export class MonitoringService {
       this.countOverdueScreenings(scope),
       this.countNeverScreened(scope),
       this.loadCenters(scope),
-      this.nutritionStatusByCenter(scope, from, to),
     ]);
 
-    const statusByCenter = new Map<string, Record<string, number> & { total: number }>();
-    for (const row of byCenterStatus) {
+    const statusByCenter = new Map<
+      string,
+      { severe: number; moderate: number; atRisk: number; normal: number; total: number }
+    >();
+    for (const row of whoInputs) {
+      const band = screeningCompatBand(row);
       const cur = statusByCenter.get(row.centerId) ?? {
-        normal: 0,
-        at_risk: 0,
-        moderate: 0,
         severe: 0,
+        moderate: 0,
+        atRisk: 0,
+        normal: 0,
         total: 0,
       };
-      cur[row.nutritionStatus] = row.cnt;
-      cur.total += row.cnt;
+      cur.total += 1;
+      if (band === 'severe') cur.severe += 1;
+      else if (band === 'moderate') cur.moderate += 1;
+      else if (band === 'normal') cur.normal += 1;
       statusByCenter.set(row.centerId, cur);
     }
 
@@ -211,7 +238,7 @@ export class MonitoringService {
         screenings: local?.total ?? 0,
         severe: local?.severe ?? 0,
         moderate: local?.moderate ?? 0,
-        atRisk: local?.at_risk ?? 0,
+        atRisk: local?.atRisk ?? 0,
         normal: local?.normal ?? 0,
       };
     });
@@ -227,10 +254,14 @@ export class MonitoringService {
       summary: {
         activeChildren,
         screenings,
-        severe: counts[NutritionStatus.severe],
-        moderate: counts[NutritionStatus.moderate],
-        atRisk: counts[NutritionStatus.at_risk],
-        normal: counts[NutritionStatus.normal],
+        // Compat remap — NOT a combined clinical score (see screeningCompatBand).
+        severe: whoAgg.severe,
+        moderate: whoAgg.moderate,
+        atRisk: whoAgg.atRisk,
+        normal: whoAgg.normal,
+        weightForAgeZones: whoAgg.weightForAgeZones,
+        heightForAgeZones: whoAgg.heightForAgeZones,
+        muacForAgeZones: whoAgg.muacForAgeZones,
         requiresReferral,
         overdueScreenings: overdue,
         neverScreened,
@@ -364,10 +395,7 @@ export class MonitoringService {
     const centersInScope =
       scope.centerIds === 'all'
         ? await this.prisma.ecdCenter.count({
-            where: {
-              deletedAt: null,
-              ...(scope.districtId ? { districtId: scope.districtId } : {}),
-            },
+            where: ecdCenterWhere(scope),
           })
         : scope.centerIds.length;
 
@@ -484,10 +512,7 @@ export class MonitoringService {
     const centersInScope =
       scope.centerIds === 'all'
         ? await this.prisma.ecdCenter.count({
-            where: {
-              deletedAt: null,
-              ...(scope.districtId ? { districtId: scope.districtId } : {}),
-            },
+            where: ecdCenterWhere(scope),
           })
         : scope.centerIds.length;
 
@@ -587,10 +612,7 @@ export class MonitoringService {
     const centersInScope =
       scope.centerIds === 'all'
         ? await this.prisma.ecdCenter.count({
-            where: {
-              deletedAt: null,
-              ...(scope.districtId ? { districtId: scope.districtId } : {}),
-            },
+            where: ecdCenterWhere(scope),
           })
         : scope.centerIds.length;
 
@@ -939,7 +961,7 @@ export class MonitoringService {
   }
 
   private async stedCenterItems(
-    scope: { centerIds: string[] | 'all'; districtId: string | null },
+    scope: Parameters<typeof ecdCenterWhere>[0],
     from: Date,
     to: Date,
     skip: number,
@@ -953,14 +975,7 @@ export class MonitoringService {
     }>;
     total: number;
   }> {
-    const centerWhere = {
-      deletedAt: null,
-      ...(scope.centerIds === 'all'
-        ? scope.districtId
-          ? { districtId: scope.districtId }
-          : {}
-        : { id: { in: scope.centerIds } }),
-    };
+    const centerWhere = ecdCenterWhere(scope);
 
     const [total, pageCenters] = await Promise.all([
       this.prisma.ecdCenter.count({ where: centerWhere }),
@@ -1327,59 +1342,12 @@ export class MonitoringService {
     };
   }
 
-  private async loadCenters(scope: { centerIds: string[] | 'all'; districtId: string | null }) {
+  private async loadCenters(scope: Parameters<typeof ecdCenterWhere>[0]) {
     return this.prisma.ecdCenter.findMany({
-      where: {
-        deletedAt: null,
-        ...(scope.centerIds === 'all'
-          ? scope.districtId
-            ? { districtId: scope.districtId }
-            : {}
-          : { id: { in: scope.centerIds } }),
-      },
+      where: ecdCenterWhere(scope),
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     });
-  }
-
-  /**
-   * Single SQL aggregation for nutrition-by-center (screenings have no centerId).
-   * Replaces per-center groupBy fan-out under large NCDA scopes.
-   */
-  private async nutritionStatusByCenter(
-    scope: { centerIds: string[] | 'all'; districtId: string | null },
-    from: Date,
-    to: Date,
-  ): Promise<Array<{ centerId: string; nutritionStatus: string; cnt: number }>> {
-    const conditions: Prisma.Sql[] = [
-      Prisma.sql`s.deleted_at IS NULL`,
-      Prisma.sql`ch.deleted_at IS NULL`,
-      Prisma.sql`s.screening_date >= ${from}`,
-      Prisma.sql`s.screening_date <= ${to}`,
-    ];
-
-    if (scope.centerIds !== 'all') {
-      if (scope.centerIds.length === 0) return [];
-      conditions.push(Prisma.sql`ch.center_id IN (${Prisma.join(scope.centerIds)})`);
-    } else if (scope.districtId) {
-      conditions.push(
-        Prisma.sql`ch.center_id IN (
-          SELECT id FROM ecd_center
-          WHERE district_id = ${scope.districtId} AND deleted_at IS NULL
-        )`,
-      );
-    }
-
-    return this.prisma.$queryRaw`
-      SELECT
-        ch.center_id AS "centerId",
-        s.nutrition_status::text AS "nutritionStatus",
-        COUNT(*)::int AS cnt
-      FROM child_nutrition_screening s
-      INNER JOIN child ch ON ch.id = s.child_id
-      WHERE ${Prisma.join(conditions, ' AND ')}
-      GROUP BY ch.center_id, s.nutrition_status
-    `;
   }
 
   private async attendanceTrend(scope: { centerIds: string[] | 'all' }, from: Date, to: Date) {
@@ -1519,6 +1487,9 @@ function emptyNutrition(
       moderate: 0,
       atRisk: 0,
       normal: 0,
+      weightForAgeZones: emptyWhoZoneCounts(),
+      heightForAgeZones: emptyWhoZoneCounts(),
+      muacForAgeZones: emptyWhoZoneCounts(),
       requiresReferral: 0,
       overdueScreenings: 0,
       neverScreened: 0,

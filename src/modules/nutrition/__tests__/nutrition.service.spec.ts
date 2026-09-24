@@ -21,6 +21,7 @@ function user(partial: Partial<AuthUser> & Pick<AuthUser, 'role'>): AuthUser {
     role: partial.role,
     centerId: partial.centerId ?? null,
     districtId: partial.districtId ?? null,
+    sectorId: partial.sectorId ?? null,
     status: 'active',
   };
 }
@@ -112,6 +113,8 @@ async function run() {
           id: 'child-1',
           centerId: 'center-a',
           status: ChildStatus.active,
+          dateOfBirth: new Date('2022-01-01'),
+          gender: 'male',
           center: { id: 'center-a', districtId: 'd1' },
         }),
       },
@@ -140,15 +143,83 @@ async function run() {
     eq(createdRows.length, 1);
     eq(result.weightKg, 10.5);
     eq(result.heightCm, 72);
-    eq(result.nutritionStatus, NutritionStatus.normal);
+    eq(result.nutritionStatus, null);
+    eq((createdRows[0] as { nutritionStatus: unknown }).nutritionStatus, null);
     eq(result.requiresReferral, false);
   });
 
-  await assert('referral flag forced for severe', async () => {
+  await assert('create screening without height succeeds (SF-04)', async () => {
+    const createdRows: Record<string, unknown>[] = [];
+    const screeningApi = {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        createdRows.push(data);
+        return {
+          id: data.id,
+          childId: data.childId,
+          screeningDate: data.screeningDate,
+          weightKg: data.weightKg,
+          muacCm: data.muacCm,
+          heightCm: data.heightCm ?? null,
+          headCircumferenceCm: data.headCircumferenceCm ?? null,
+          nutritionStatus: data.nutritionStatus,
+          requiresReferral: data.requiresReferral,
+          mealQuality: data.mealQuality ?? null,
+          feedingConcern: data.feedingConcern ?? false,
+          dietNotes: data.dietNotes ?? null,
+          recordedById: data.recordedById,
+          createdAt: new Date(),
+          deletedAt: null,
+          version: 1,
+          syncStatus: 'synced',
+          lastModifiedByDeviceId: data.lastModifiedByDeviceId ?? null,
+          lastModifiedAt: new Date(),
+        };
+      },
+    };
+    const prisma = {
+      child: {
+        findFirst: async () => ({
+          id: 'child-1',
+          centerId: 'center-a',
+          status: ChildStatus.active,
+          dateOfBirth: new Date('2022-01-01'),
+          gender: 'male',
+          center: { id: 'center-a', districtId: 'd1' },
+        }),
+      },
+      childNutritionScreening: screeningApi,
+      device: { findUnique: async () => null },
+      $transaction: async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({ childNutritionScreening: screeningApi }),
+    };
+
+    const svc = createService(prisma);
+    const result = await svc.createScreening(
+      user({ role: UserRole.caregiver, centerId: 'center-a', districtId: 'd1' }),
+      'child-1',
+      {
+        screeningDate: '2026-08-02',
+        weightKg: 10.2,
+        muacCm: 13.5,
+        nutritionStatus: NutritionStatus.normal,
+      },
+    );
+
+    eq(createdRows.length, 1);
+    eq(createdRows[0].heightCm, null);
+    eq(result.heightCm, null);
+    eq(result.weightKg, 10.2);
+    eq(result.muacCm, 13.5);
+    eq(result.nutritionStatus, null);
+  });
+
+  await assert('severe status does not auto-force referral; status stored null', async () => {
     let storedRequires: boolean | null = null;
+    let storedStatus: unknown = 'unset';
     const screeningApi = {
       create: async ({ data }: { data: Record<string, unknown> }) => {
         storedRequires = data.requiresReferral as boolean;
+        storedStatus = data.nutritionStatus;
         return {
           ...data,
           heightCm: null,
@@ -171,6 +242,8 @@ async function run() {
           id: 'child-1',
           centerId: 'center-a',
           status: ChildStatus.active,
+          dateOfBirth: new Date('2022-01-01'),
+          gender: 'male',
           center: { id: 'center-a', districtId: 'd1' },
         }),
       },
@@ -193,8 +266,9 @@ async function run() {
       },
     );
 
-    eq(storedRequires, true);
-    eq(deriveRequiresReferral(NutritionStatus.severe, false), true);
+    eq(storedRequires, false);
+    eq(storedStatus, null);
+    eq(deriveRequiresReferral(false), false);
   });
 
   await assert('history newest first', async () => {
@@ -367,7 +441,7 @@ async function run() {
     eq(denied, true);
   });
 
-  await assert('alerts include severe and overdue', async () => {
+  await assert('alerts include WHO growth concern, referral, and overdue', async () => {
     const prisma = {
       ecdCenter: { findFirst: async () => null },
       childNutritionScreening: {
@@ -375,14 +449,19 @@ async function run() {
           {
             id: 's1',
             childId: 'child-1',
-            screeningDate: new Date('2026-08-01'),
-            nutritionStatus: NutritionStatus.severe,
+            screeningDate: new Date('2024-01-01'),
+            weightKg: 5,
+            heightCm: 70,
+            muacCm: 10,
+            nutritionStatus: null,
             requiresReferral: true,
             child: {
               id: 'child-1',
               firstName: 'Jean',
               middleName: null,
               lastName: 'Habimana',
+              dateOfBirth: new Date('2022-01-01'),
+              gender: 'male',
               centerId: 'center-a',
               center: { id: 'center-a', name: 'Center A' },
             },
@@ -407,7 +486,7 @@ async function run() {
     const alerts = await createService(prisma).getAlerts(user({ role: UserRole.ncda_admin }), {});
 
     eq(
-      alerts.items.some((a) => a.type === 'severe_nutrition'),
+      alerts.items.some((a) => a.type === 'who_growth_concern'),
       true,
     );
     eq(

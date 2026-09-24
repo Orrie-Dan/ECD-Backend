@@ -1,5 +1,11 @@
 export { UserContext } from './interfaces/user-context.interface';
 export {
+  CENTER_AND_PORTAL_READ_ROLES,
+  DISTRICT_PORTAL_AND_NCDA_ROLES,
+  DISTRICT_PORTAL_ROLES,
+  type DistrictPortalRole,
+} from './auth/role-groups';
+export {
   assertCenterAccess,
   assertCenterAdminAccess,
   assertDistrictAccess,
@@ -8,8 +14,20 @@ export {
   canAdministerCenter,
   isCenterAdminRole,
   isCenterStaffRole,
+  isDistrictPortalRole,
   type ScopeUser,
 } from './auth/scope.util';
+export {
+  applyAuthenticatedGeographicQuery,
+  centerOwnedListFilter,
+  assertCenterAccessible,
+  assertCenterAccessibleById,
+  collectVillageIdsUnder,
+  resolveDistrictQueryScope,
+  resolveSectorIdForCenter,
+  type DistrictQueryScope,
+  type ScopeQuery,
+} from './scope/district-query.scope';
 export type { BidirectionalMapper, Mapper } from './mappers/base.mapper';
 export {
   assertCasApplied,
