@@ -2,7 +2,10 @@ import { UserRole } from '../../common/domain';
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { AuditAction } from '@prisma/client';
 import { isCenterStaffRole, isDistrictPortalRole } from '../../common/auth/scope.util';
-import { resolveDistrictQueryScope } from '../../common/scope/district-query.scope';
+import {
+  collectVillageIdsUnder,
+  resolveDistrictQueryScope,
+} from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { SyncableEntityType } from './sync.constants';
@@ -138,7 +141,24 @@ export class SyncAccessService {
     }
 
     if (entityType === 'ecd_center') {
-      return this.authorizeEcdCenterWrite(scope, entityId, operation, payload);
+      const result = await this.authorizeEcdCenterWrite(scope, entityId, operation, payload);
+      // A create permanently consumes one of the village's 99 NCDA numbers, so
+      // sector focal persons may only register in villages under their sector
+      // (same rule as POST /centers). Update/delete keep the existing district scope.
+      if (
+        result.allowed &&
+        operation === AuditAction.create &&
+        user.role === UserRole.sector_focal_person
+      ) {
+        const villageId = typeof payload.villageId === 'string' ? payload.villageId : null;
+        const villages = user.sectorId
+          ? await collectVillageIdsUnder(this.prisma, user.sectorId).catch(() => [] as string[])
+          : [];
+        if (!villageId || !villages.includes(villageId)) {
+          return { allowed: false, reason: 'center out of scope' };
+        }
+      }
+      return result;
     }
 
     if (entityType === 'child_transfer') {

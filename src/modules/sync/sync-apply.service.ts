@@ -2,6 +2,7 @@ import {
   AbsentReason,
   AssessmentStatus,
   ChildStatus,
+  EcdCenterStatus,
   TransferStatus,
   asDomainEnum,
 } from '../../common/domain';
@@ -36,6 +37,13 @@ import {
   resolveChildNationalIdFromPayload,
 } from '../children/mappers/child.mapper';
 import { ClassroomsService } from '../classrooms/classrooms.service';
+import {
+  NCDA_TYPE_CODES,
+  NCDA_TYPE_TO_FACILITY_TYPE,
+  NcdaTypeCode,
+  isValidStartYear,
+  resolveTypeUpdate,
+} from '../centers/ecd-code';
 import { CHILD_SCOPED_ENTITY_TYPES, SyncableEntityType } from './sync.constants';
 import { SyncNotificationBridgeService } from './sync-notification-bridge.service';
 
@@ -1033,7 +1041,34 @@ export class SyncApplyService {
         ).count;
         break;
       }
-      case 'ecd_center':
+      case 'ecd_center': {
+        // `code` is never updatable (DB trigger enforces it too). Validate the
+        // type pair and year up front so a constraint error cannot abort the tx.
+        const current = await db.ecdCenter.findUnique({
+          where: { id: context.entityId },
+          select: { ncdaTypeCode: true, facilityType: true },
+        });
+        const ncdaTypeCode =
+          payload.ncdaTypeCode === undefined ? undefined : (payload.ncdaTypeCode as unknown);
+        if (
+          ncdaTypeCode !== undefined &&
+          (typeof ncdaTypeCode !== 'string' ||
+            !(NCDA_TYPE_CODES as readonly string[]).includes(ncdaTypeCode))
+        ) {
+          throw new Error('ecd_center ncdaTypeCode must be A, B, C, D or E');
+        }
+        if (payload.startYear !== undefined && !isValidStartYear(Number(payload.startYear))) {
+          throw new Error('ecd_center startYear must be between 1950 and the current year');
+        }
+        const typeUpdate = current
+          ? resolveTypeUpdate(current, {
+              ncdaTypeCode: ncdaTypeCode as NcdaTypeCode | undefined,
+              facilityType:
+                payload.facilityType === undefined
+                  ? undefined
+                  : ((payload.facilityType as string) ?? null),
+            })
+          : {};
         count = (
           await db.ecdCenter.updateMany({
             where,
@@ -1046,14 +1081,14 @@ export class SyncApplyService {
                 capacity: payload.capacity != null ? Number(payload.capacity) : null,
               }),
               ...(payload.status != null && { status: payload.status as never }),
-              ...(payload.facilityType !== undefined && {
-                facilityType: (payload.facilityType as string) ?? null,
-              }),
+              ...typeUpdate,
+              ...(payload.startYear !== undefined && { startYear: Number(payload.startYear) }),
               ...meta,
             },
           })
         ).count;
         break;
+      }
       case 'compliance_assessment':
         count = (
           await db.complianceAssessment.updateMany({
@@ -1399,6 +1434,102 @@ export class SyncApplyService {
     return classroom.id;
   }
 
+  /**
+   * Pre-validate every field of an offline ecd_center create. Once
+   * issue_ecd_code has run, a failing insert would leave a registry row with no
+   * center and the apply transaction could not commit (deferred FK), so nothing
+   * after the issue call may throw on bad input. Throws plain Errors (permanent
+   * failures). The village must belong to the payload district that sync-access authorized.
+   */
+  private async validateEcdCenterCreate(
+    db: Prisma.TransactionClient | PrismaService,
+    payload: Record<string, unknown>,
+  ): Promise<{
+    districtId: string;
+    villageId: string;
+    ncdaTypeCode: NcdaTypeCode;
+    startYear: number;
+    name: string;
+    phone: string | null;
+    capacity: number | null;
+    latitude: number | null;
+    longitude: number | null;
+    status: EcdCenterStatus | undefined;
+  }> {
+    if (typeof payload.name !== 'string' || !payload.name.trim()) {
+      throw new Error('ecd_center requires name');
+    }
+    if (payload.phone != null && typeof payload.phone !== 'string') {
+      throw new Error('ecd_center phone must be a string');
+    }
+    const optionalNumber = (field: string, integer: boolean): number | null => {
+      const raw = payload[field];
+      if (raw == null) return null;
+      const n = Number(raw);
+      if (!Number.isFinite(n) || (integer && (!Number.isInteger(n) || n < 0))) {
+        throw new Error(
+          `ecd_center ${field} must be ${integer ? 'a non-negative integer' : 'a number'}`,
+        );
+      }
+      return n;
+    };
+    const capacity = optionalNumber('capacity', true);
+    const latitude = optionalNumber('latitude', false);
+    const longitude = optionalNumber('longitude', false);
+    if (
+      payload.status != null &&
+      !(Object.values(EcdCenterStatus) as string[]).includes(String(payload.status))
+    ) {
+      throw new Error('ecd_center status must be active or inactive');
+    }
+    const ncdaTypeCode = payload.ncdaTypeCode;
+    if (
+      typeof ncdaTypeCode !== 'string' ||
+      !(NCDA_TYPE_CODES as readonly string[]).includes(ncdaTypeCode)
+    ) {
+      throw new Error('ecd_center requires ncdaTypeCode (A, B, C, D or E)');
+    }
+    const startYear = Number(payload.startYear);
+    if (!isValidStartYear(startYear)) {
+      throw new Error('ecd_center requires a valid startYear (1950 to the current year)');
+    }
+    const villageId = typeof payload.villageId === 'string' ? payload.villageId : null;
+    const village = villageId
+      ? await db.administrativeUnit.findFirst({
+          where: { id: villageId, level: 'village' },
+          select: { id: true, districtId: true, minalocCode: true },
+        })
+      : null;
+    if (!village || !village.districtId) {
+      throw new Error('ecd_center villageId does not reference a village');
+    }
+    if (village.districtId !== payload.districtId) {
+      throw new Error('ecd_center villageId is not in districtId');
+    }
+    if (!village.minalocCode) {
+      throw new Error('ecd_center village has no MINALOC code');
+    }
+    const sequence = await db.ecdCodeSequence.findUnique({
+      where: { villageId: village.id },
+      select: { lastSeq: true },
+    });
+    if (sequence && sequence.lastSeq >= 99) {
+      throw new Error('ecd_center village has used all 99 facility numbers');
+    }
+    return {
+      districtId: village.districtId,
+      villageId: village.id,
+      ncdaTypeCode: ncdaTypeCode as NcdaTypeCode,
+      startYear,
+      name: payload.name.trim(),
+      phone: (payload.phone as string | null | undefined) ?? null,
+      capacity,
+      latitude,
+      longitude,
+      status: (payload.status as EcdCenterStatus | null | undefined) ?? undefined,
+    };
+  }
+
   private async createRecord(context: ApplyContext): Promise<void> {
     const id = context.entityId || randomUUID();
     const payload = context.payload;
@@ -1589,22 +1720,28 @@ export class SyncApplyService {
         break;
       }
       case 'ecd_center': {
-        const centerStatus = (payload.status as never) ?? undefined;
+        const input = await this.validateEcdCenterCreate(db, payload);
+        // Client-supplied `code` is ignored: the NCDA code is issued server-side
+        // and reaches the device on the next pull. All inputs are validated above
+        // so issue_ecd_code does not abort the apply transaction.
+        const [{ code }] = await db.$queryRaw<Array<{ code: string }>>`
+          SELECT survey.issue_ecd_code(${id}, ${input.villageId}, ${input.ncdaTypeCode}, ${input.startYear}::int, ${null}) AS code`;
         await db.ecdCenter.create({
           data: {
             id,
-            districtId: String(payload.districtId),
-            villageId: String(payload.villageId),
-            code: String(payload.code),
-            name: String(payload.name),
-            phone: (payload.phone as string) ?? null,
-            capacity: payload.capacity != null ? Number(payload.capacity) : null,
-            latitude: payload.latitude != null ? Number(payload.latitude) : null,
-            longitude: payload.longitude != null ? Number(payload.longitude) : null,
-            ...(centerStatus != null ? { status: centerStatus } : {}),
-            ...(payload.facilityType !== undefined
-              ? { facilityType: (payload.facilityType as string) ?? null }
-              : {}),
+            districtId: input.districtId,
+            villageId: input.villageId,
+            code,
+            name: input.name,
+            phone: input.phone,
+            capacity: input.capacity,
+            latitude: input.latitude,
+            longitude: input.longitude,
+            ...(input.status != null ? { status: input.status } : {}),
+            facilityType: NCDA_TYPE_TO_FACILITY_TYPE[input.ncdaTypeCode],
+            ncdaTypeCode: input.ncdaTypeCode,
+            startYear: input.startYear,
+            codeIssuedAt: new Date(),
             ...meta,
           },
         });

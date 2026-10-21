@@ -271,6 +271,64 @@ async function run() {
     eq(result.allowed, true);
   });
 
+  // NCDA coding: a create consumes a village number, so sector users are limited
+  // to villages under their own sector (district match alone is not enough).
+  const sectorTree = {
+    ...emptyPrisma,
+    administrativeUnit: {
+      findFirst: async () => null,
+      findUnique: async () => ({ id: 'sector-1', level: 'sector' }),
+      findMany: async (args: { where: { parentId: { in: string[] } } }) =>
+        args.where.parentId.in.includes('sector-1')
+          ? [{ id: 'cell-1', level: 'cell' }]
+          : args.where.parentId.in.includes('cell-1')
+            ? [{ id: 'village-in', level: 'village' }]
+            : [],
+    },
+  };
+  const sectorUser = user({
+    role: UserRole.sector_focal_person,
+    districtId: 'd1',
+    sectorId: 'sector-1',
+  });
+
+  await assert('sector ecd_center CREATE in own sector → allow', async () => {
+    const result = await createService(sectorTree).authorizeSyncWrite({
+      user: sectorUser,
+      scope: { centerIds: [], districtId: 'd1' },
+      entityType: 'ecd_center',
+      entityId: 'new-center',
+      operation: AuditAction.create,
+      payload: { districtId: 'd1', villageId: 'village-in' },
+    });
+    eq(result.allowed, true);
+  });
+
+  await assert('sector ecd_center CREATE in another sector of same district → reject', async () => {
+    const result = await createService(sectorTree).authorizeSyncWrite({
+      user: sectorUser,
+      scope: { centerIds: [], districtId: 'd1' },
+      entityType: 'ecd_center',
+      entityId: 'new-center',
+      operation: AuditAction.create,
+      payload: { districtId: 'd1', villageId: 'village-elsewhere' },
+    });
+    eq(result.allowed, false);
+    if (!result.allowed) eq(result.reason, 'center out of scope');
+  });
+
+  await assert('district focal ecd_center CREATE anywhere in district → allow', async () => {
+    const result = await createService(sectorTree).authorizeSyncWrite({
+      user: user({ role: UserRole.district_focal_person, districtId: 'd1' }),
+      scope: { centerIds: [], districtId: 'd1' },
+      entityType: 'ecd_center',
+      entityId: 'new-center',
+      operation: AuditAction.create,
+      payload: { districtId: 'd1', villageId: 'village-elsewhere' },
+    });
+    eq(result.allowed, true);
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
 }

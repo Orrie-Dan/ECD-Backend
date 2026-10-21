@@ -10,3 +10,5 @@ coverage
 openapi.generated.json
 openapi.generated.validation.json
 openapi.analysis.txt
+minaloc-import-report.json
+ecd-recode-report.csv

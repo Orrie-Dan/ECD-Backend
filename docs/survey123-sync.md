@@ -8,14 +8,16 @@ WASH indicators are **not** synced (capture later in the app).
 
 1. Prisma migrations applied: `npm run prisma:migrate:deploy`
 2. Survey import user: `npm run seed:admin`
-3. Add field **`ecd_code`** (text, unique) to the Survey123 form / `ecd_mapping_form` layer
+3. MINALOC codes loaded: `npm run import:minaloc-codes -- --apply` (see `data/minaloc/README.md`).
+   New facilities can only be coded in villages that carry a MINALOC code.
 
 ## Bridge columns (on `sde.ecd_mapping_form`)
 
 | Column | Purpose |
 |---|---|
-| `ecd_code` | Business key → `ecd_center.code` (required on submit) |
-| `center_id` | Set by trigger → `ecd_center.id` (text, same as backend PK) |
+| `ecd_code` | Optional. Used only to find an existing center (by `code`, then `legacy_code`) when the row has no `center_id` yet |
+| `center_id` | Set by trigger → `ecd_center.id` (text, same as backend PK). Primary match key once set |
+| `ncda_code` | Written by the backend: the center's NCDA code (`PPDDSSCCVV/T/YYYY/NN`). Never typed by surveyors |
 | `sync_status` | `pending` / `applied` / `failed` |
 | `sync_error` | Last error message |
 | `synced_at` | Last sync attempt |
@@ -24,23 +26,39 @@ WASH indicators are **not** synced (capture later in the app).
 
 | Survey field | Backend |
 |---|---|
-| `ecd_code` | `ecd_center.code` |
+| `ecd_code` | `ecd_center.legacy_code` on a new center, when it is not NCDA-format and unused |
+| `start_year_ecd` | `ecd_center.start_year` (year part; required for a new center) |
 | `name_ecd_sercive` | `ecd_center.name` |
 | `province_name` … `village_name` | `district_id`, `village_id` (auto upsert admin units) |
 | `active_not_active` | `ecd_center.status` |
 | `phone_supervisor` | `ecd_center.phone` (cast from integer) |
 | `shape` | `latitude` / `longitude` via `sde.st_x` / `sde.st_y` |
-| `settings_types` | `ecd_center.facility_type` (deterministic map only; unknown → leave null) |
+| `settings_types` | `ecd_center.ncda_type_code` + `facility_type` (deterministic map only; unknown → leave unchanged) |
 
 **`settings_types` → `facility_type` (ALIGN-05A):**
 
-| Survey value | Canonical |
-|---|---|
-| `Home based ECD`, `Home Based ECD` | `home_based` |
-| `Community based ECD centre`, `Community Based ECD` | `community_based` |
-| `School based ECD Centre`, `School Based ECD`, `Model ECD centre`, `Model ECD` | `ecd_3_5` |
+| Survey value | NCDA letter | Canonical |
+|---|---|---|
+| `Home based ECD`, `Home Based ECD` | B | `home_based` |
+| `Community based ECD centre`, `Community Based ECD` | C | `community_based` |
+| `School based ECD Centre`, `School Based ECD` | D | `ecd_3_5` |
+| `Model ECD centre`, `Model ECD` | E | `ecd_3_5` |
 
-Unmapped (left null): `Centre Based`, `Faith-based`, `Market based`, `Mobile crèches`, `ECD in emergency settings`, `Cross-border ECD`, `ECD in prison`, blank.
+Unmapped: `Centre Based`, `Faith-based`, `Market based`, `Mobile crèches`, `ECD in emergency settings`, `Cross-border ECD`, `ECD in prison`, blank. No survey value maps to A (daycare).
+
+## NCDA facility codes
+
+Codes follow the NCDA guideline (24.9.2024): `PPDDSSCCVV/T/YYYY/NN` — village MINALOC code,
+type letter, start year, and a per-village number that is never reused. They are issued only by
+`survey.issue_ecd_code`, shared by this trigger, `POST /api/v1/centers` and offline sync.
+
+- **New facility** (no matching center): needs a mapped `settings_types`, `start_year_ecd`, and a
+  village with a MINALOC code. Otherwise the row is marked `failed` with the reason and **no center
+  is created** — fix the row and retry.
+- **Existing facility**: matched by `center_id`, then `ecd_code` against `code`, then `legacy_code`.
+  Edits never change the code (a database trigger rejects code changes).
+- Re-coding existing centers: `npm run recode:ecd-centers` (dry run → review CSV → `-- --apply`).
+- Corrections to an issued code: NCDA admin only, `POST /api/v1/centers/:id/code-override`.
 
 Extended survey fields (accreditation, services, etc.) remain on `ecd_mapping_form` only until a future schema extension.
 
@@ -64,22 +82,25 @@ SELECT survey.sync_ecd_mapping_form_row(<objectid>);
 
 Or edit a mapped field on the row to re-fire the update trigger.
 
-## Manual backfill (existing rows without ecd_code)
+## Manual backfill
 
 ```sql
--- Set ecd_code on existing survey rows, then:
 SELECT survey.sync_ecd_mapping_form_row(objectid)
 FROM sde.ecd_mapping_form
-WHERE sync_status IN ('pending', 'failed') AND ecd_code IS NOT NULL;
+WHERE sync_status IN ('pending', 'failed');
 ```
 
 ## SQL objects
 
 - Schema: `survey`
 - Function: `survey.sync_ecd_mapping_form_row(objectid)`
-- Triggers: `trg_ecd_mapping_form_sync_insert`, `trg_ecd_mapping_form_sync_update`
+- Coding: `survey.issue_ecd_code`, `survey.recode_ecd_center`, `survey.override_ecd_code`
+- Triggers: `trg_ecd_mapping_form_sync_insert`, `trg_ecd_mapping_form_sync_update`,
+  `trg_ecd_center_code_insert` / `trg_ecd_center_code_update` (code immutability),
+  `trg_ecd_center_code_to_mapping_form` (keeps `ncda_code` current)
 
-Migration: `prisma/migrations/20260831130000_survey123_ecd_mapping_sync/migration.sql` (+ follow-up fixes for EGDB text UUID columns)
+Migrations: `20260831130000_survey123_ecd_mapping_sync` (+ follow-up fixes for EGDB text UUID columns),
+`20261021120000_minaloc_codes`, `20261021130000_ecd_facility_coding`, `20261021140000_survey_ecd_code_generation`.
 
 ## EGDB note
 

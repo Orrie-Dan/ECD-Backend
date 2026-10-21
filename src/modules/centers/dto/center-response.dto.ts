@@ -6,8 +6,20 @@ export class CenterResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;
 
-  @ApiProperty({ example: 'ECD-001' })
+  @ApiProperty({
+    example: '0101010101/C/2020/07',
+    description: 'NCDA facility code; legacy-format until the center is re-coded',
+  })
   code: string;
+
+  @ApiProperty({ example: '11010101/2020/07', nullable: true, description: 'Pre-NCDA code' })
+  legacyCode: string | null;
+
+  @ApiProperty({ enum: ['A', 'B', 'C', 'D', 'E'], nullable: true })
+  ncdaTypeCode: string | null;
+
+  @ApiProperty({ example: 2020, nullable: true })
+  startYear: number | null;
 
   @ApiProperty({ example: 'Kigali ECD Center' })
   name: string;

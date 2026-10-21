@@ -1,12 +1,19 @@
 import {
   AttendanceStatus,
   ChildStatus,
+  ClassroomGrade,
   DeviceStatus,
   UserAccountStatus,
   UserRole,
 } from '../../common/domain';
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, RecordSyncStatus, ReferralStatus } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { AuditAction, AuditService, toAuditJson } from '../../common/audit';
 import { isCenterStaffRole } from '../../common/auth/scope.util';
 import {
@@ -22,8 +29,17 @@ import {
   CenterResponseDto,
   PaginatedCentersResponseDto,
 } from './dto/center-response.dto';
+import { NotificationEventsService } from '../notifications/notification-events.service';
+import { CreateCenterDto } from './dto/create-center.dto';
 import { ListCentersQueryDto } from './dto/list-centers-query.dto';
+import { OverrideCenterCodeDto } from './dto/override-center-code.dto';
 import { UpdateCenterDto } from './dto/update-center.dto';
+import {
+  NCDA_TYPE_TO_FACILITY_TYPE,
+  isValidStartYear,
+  mapEcdCodeDbError,
+  resolveTypeUpdate,
+} from './ecd-code';
 import { CenterDetailRow, CenterListRow, centerMapper } from './mappers/center.mapper';
 
 @Injectable()
@@ -31,6 +47,7 @@ export class CentersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly notificationEvents: NotificationEventsService,
   ) {}
 
   async findAll(user: AuthUser, query: ListCentersQueryDto): Promise<PaginatedCentersResponseDto> {
@@ -171,6 +188,14 @@ export class CentersService {
       }
     }
 
+    if (dto.startYear !== undefined && !isValidStartYear(dto.startYear)) {
+      throw new BadRequestException('startYear cannot be in the future');
+    }
+    const typeUpdate = resolveTypeUpdate(existing, {
+      ncdaTypeCode: dto.ncdaTypeCode,
+      facilityType: dto.facilityType,
+    });
+
     const deviceId = await this.resolveDeviceId(user, dto.deviceId);
     const now = new Date();
 
@@ -182,6 +207,8 @@ export class CentersService {
       longitude: existing.longitude,
       status: existing.status,
       facilityType: existing.facilityType,
+      ncdaTypeCode: existing.ncdaTypeCode,
+      startYear: existing.startYear,
       villageId: existing.villageId,
       version: existing.version,
     });
@@ -206,7 +233,8 @@ export class CentersService {
             longitude: dto.longitude == null ? null : dto.longitude,
           }),
           ...(dto.status != null && { status: dto.status }),
-          ...(dto.facilityType !== undefined && { facilityType: dto.facilityType }),
+          ...typeUpdate,
+          ...(dto.startYear !== undefined && { startYear: dto.startYear }),
           ...(dto.villageId != null && { villageId: dto.villageId }),
           updatedAt: now,
           updatedById: user.id,
@@ -247,12 +275,171 @@ export class CentersService {
           longitude: updated.longitude,
           status: updated.status,
           facilityType: updated.facilityType,
+          ncdaTypeCode: updated.ncdaTypeCode,
+          startYear: updated.startYear,
           villageId: updated.villageId,
           version: updated.version,
         }),
         metadata: { source: 'rest' },
       });
     });
+
+    return this.findOne(user, id);
+  }
+
+  /**
+   * Register a facility and issue its NCDA code (survey.issue_ecd_code) in the
+   * same transaction, so a failed insert never consumes a registry entry.
+   */
+  async create(user: AuthUser, dto: CreateCenterDto): Promise<CenterDetailResponseDto> {
+    if (isCenterStaffRole(user.role)) {
+      throw new ForbiddenException('Center staff cannot register centers');
+    }
+    if (!isValidStartYear(dto.startYear)) {
+      throw new BadRequestException('startYear cannot be in the future');
+    }
+
+    const village = await this.prisma.administrativeUnit.findFirst({
+      where: { id: dto.villageId, level: 'village' },
+      select: { id: true, districtId: true, minalocCode: true },
+    });
+    if (!village) {
+      throw new NotFoundException('Village not found');
+    }
+    if (!village.districtId) {
+      throw new BadRequestException('Village is not linked to a district');
+    }
+    if (!village.minalocCode) {
+      throw new BadRequestException(
+        'Village has no MINALOC code; it must be in the national register before a facility can be coded',
+      );
+    }
+
+    const id = randomUUID();
+    await assertCenterAccessible(this.prisma, user, {
+      id,
+      districtId: village.districtId,
+      villageId: village.id,
+    });
+
+    const facilityType = NCDA_TYPE_TO_FACILITY_TYPE[dto.ncdaTypeCode];
+    const now = new Date();
+
+    const created = await this.prisma
+      .$transaction(async (tx) => {
+        const [{ code }] = await tx.$queryRaw<Array<{ code: string }>>`
+          SELECT survey.issue_ecd_code(${id}, ${village.id}, ${dto.ncdaTypeCode}, ${dto.startYear}::int, ${user.id}) AS code`;
+
+        const center = await tx.ecdCenter.create({
+          data: {
+            id,
+            districtId: village.districtId!,
+            villageId: village.id,
+            code,
+            name: dto.name.trim(),
+            phone: dto.phone?.trim() || null,
+            capacity: dto.capacity ?? null,
+            latitude: dto.latitude ?? null,
+            longitude: dto.longitude ?? null,
+            ...(dto.status != null && { status: dto.status }),
+            facilityType,
+            ncdaTypeCode: dto.ncdaTypeCode,
+            startYear: dto.startYear,
+            codeIssuedAt: now,
+            createdById: user.id,
+            updatedById: user.id,
+            syncStatus: RecordSyncStatus.synced,
+            lastModifiedAt: now,
+          },
+        });
+
+        await tx.classroom.createMany({
+          data: Object.values(ClassroomGrade).map((grade) => ({ centerId: id, grade })),
+          skipDuplicates: true,
+        });
+
+        await this.audit.log({
+          tx,
+          entityType: 'ecd_center',
+          entityId: id,
+          action: AuditAction.CREATE,
+          userId: user.id,
+          newValues: toAuditJson({
+            code: center.code,
+            name: center.name,
+            villageId: center.villageId,
+            districtId: center.districtId,
+            ncdaTypeCode: center.ncdaTypeCode,
+            facilityType: center.facilityType,
+            startYear: center.startYear,
+            status: center.status,
+            version: center.version,
+          }),
+          metadata: { source: 'rest' },
+        });
+
+        return center;
+      })
+      .catch((error: unknown) => {
+        throw mapEcdCodeDbError(error) ?? error;
+      });
+
+    const district = await this.prisma.district.findUnique({
+      where: { id: created.districtId },
+      select: { name: true },
+    });
+    await this.notificationEvents.onCenterCreated({
+      centerId: created.id,
+      centerName: created.name,
+      districtId: created.districtId,
+      districtName: district?.name ?? null,
+    });
+
+    return this.findOne(user, id);
+  }
+
+  /** NCDA-only replacement of an issued code. The old code is retired, never reused. */
+  async overrideCode(
+    user: AuthUser,
+    id: string,
+    dto: OverrideCenterCodeDto,
+  ): Promise<CenterDetailResponseDto> {
+    if (user.role !== UserRole.ncda_admin) {
+      throw new ForbiddenException('Only NCDA administrators can override facility codes');
+    }
+
+    const existing = await this.prisma.ecdCenter.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true, code: true, legacyCode: true, version: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Center not found');
+    }
+
+    await this.prisma
+      .$transaction(async (tx) => {
+        await tx.$queryRaw`
+          SELECT survey.override_ecd_code(${id}, ${dto.code}, ${dto.reason.trim()}, ${user.id})`;
+
+        const updated = await tx.ecdCenter.findUniqueOrThrow({
+          where: { id },
+          select: { code: true, legacyCode: true, version: true },
+        });
+
+        await this.audit.log({
+          tx,
+          entityType: 'ecd_center',
+          entityId: id,
+          action: AuditAction.UPDATE,
+          userId: user.id,
+          oldValues: toAuditJson(existing),
+          newValues: toAuditJson({ id, ...updated }),
+          metadata: { source: 'rest', operation: 'ecd_code_override', reason: dto.reason.trim() },
+        });
+      })
+      .catch((error: unknown) => {
+        throw mapEcdCodeDbError(error) ?? error;
+      });
 
     return this.findOne(user, id);
   }
@@ -299,6 +486,7 @@ export class CentersService {
       where.OR = [
         { name: { contains: q, mode: 'insensitive' } },
         { code: { contains: q, mode: 'insensitive' } },
+        { legacyCode: { contains: q, mode: 'insensitive' } },
         { phone: { contains: q, mode: 'insensitive' } },
       ];
     }

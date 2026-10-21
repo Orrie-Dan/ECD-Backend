@@ -37,6 +37,9 @@ export const centerMapper = {
     return {
       id: row.id,
       code: row.code,
+      legacyCode: row.legacyCode,
+      ncdaTypeCode: row.ncdaTypeCode,
+      startYear: row.startYear,
       name: row.name,
       phone: row.phone,
       capacity: row.capacity,

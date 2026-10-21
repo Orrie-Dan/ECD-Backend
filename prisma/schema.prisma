@@ -79,6 +79,8 @@ model AdministrativeUnit {
   districtId String?             @map("district_id")
   name       String
   code       String
+  /// Official MINALOC code (province 2, sector 6, cell 8, village 10 digits). Null when not in the national register.
+  minalocCode String?            @map("minaloc_code")
   latitude   Float?
   longitude  Float?
   createdAt  DateTime            @default(now()) @map("created_at")
@@ -91,8 +93,10 @@ model AdministrativeUnit {
   villageCenters      EcdCenter[] @relation("EcdCenterVillage")
   homeVillageChildren Child[]     @relation("ChildHomeVillage")
   sectorUserAccounts  UserAccount[] @relation("UserAccountSector")
+  ecdCodeSequence     EcdCodeSequence?
 
   @@unique([level, code])
+  @@unique([level, minalocCode])
   @@index([parentId])
   @@index([districtId])
   @@map("administrative_unit")
@@ -103,6 +107,8 @@ model District {
   id         String   @id @default(uuid())
   provinceId String   @map("province_id")
   code       String   @unique
+  /// Official MINALOC district code (4 digits, e.g. 0101).
+  minalocCode String? @unique @map("minaloc_code")
   name       String
   isActive   Boolean  @default(true) @map("is_active")
   createdAt  DateTime @default(now()) @map("created_at")
@@ -137,6 +143,13 @@ model EcdCenter {
   status                      String           @default("active")
   /// Canonical facility type (daycare | home_based | community_based | ecd_3_5). Nullable until classified.
   facilityType                String?                   @map("facility_type")
+  /// NCDA coding type letter A–E (A daycare, B home-based, C community-based, D school-based, E model).
+  ncdaTypeCode                String?                   @map("ncda_type_code")
+  /// Year the facility started providing services (code segment YYYY).
+  startYear                   Int?                      @map("start_year")
+  /// Pre-NCDA-format code kept for lookup after re-coding.
+  legacyCode                  String?                   @unique @map("legacy_code")
+  codeIssuedAt                DateTime?                 @map("code_issued_at")
   currentComplianceLevel      String? @map("current_compliance_level")
   currentComplianceAssessedAt DateTime?                 @map("current_compliance_assessed_at") @db.Date
   createdAt                   DateTime                  @default(now()) @map("created_at")
@@ -172,6 +185,7 @@ model EcdCenter {
   feedingMonthSummaries CenterFeedingMonthSummary[]
   stedAssessments       StedAssessment[]
   referrals             Referral[]
+  ecdCodes              EcdCodeRegistry[]
 
   @@index([districtId])
   @@index([status])
@@ -182,6 +196,40 @@ model EcdCenter {
   @@index([lastModifiedAt])
   @@index([lastModifiedByDeviceId])
   @@map("ecd_center")
+  @@schema("sde")
+}
+
+//////////////////////////////////////////////
+// NCDA ECD FACILITY CODING
+// Codes are issued only by survey.issue_ecd_code (see migration
+// 20261021130000_ecd_facility_coding); never write these tables directly.
+//////////////////////////////////////////////
+
+/// Per-village counter for the NN code segment. Only ever increments.
+model EcdCodeSequence {
+  villageId String   @id @map("village_id")
+  lastSeq   Int      @default(0) @map("last_seq")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  village AdministrativeUnit @relation(fields: [villageId], references: [id])
+
+  @@map("ecd_code_sequence")
+  @@schema("sde")
+}
+
+/// Every NCDA code ever issued. The primary key guarantees a code is never reused.
+model EcdCodeRegistry {
+  code          String    @id
+  centerId      String    @map("center_id")
+  issuedAt      DateTime  @default(now()) @map("issued_at")
+  issuedById    String?   @map("issued_by")
+  retiredAt     DateTime? @map("retired_at")
+  retiredReason String?   @map("retired_reason")
+
+  center EcdCenter @relation(fields: [centerId], references: [id])
+
+  @@index([centerId])
+  @@map("ecd_code_registry")
   @@schema("sde")
 }
 

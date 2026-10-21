@@ -1,6 +1,12 @@
 /**
  * Step 2: ecd_center import
  *
+ * SUPERSEDED (NCDA coding, migration 20261021130000): inserting a center with a
+ * CSV-supplied code is rejected by trg_ecd_center_code_insert (ECD_CODE_NOT_ISSUED);
+ * updates of existing rows still work. Register new facilities through Survey123,
+ * POST /api/v1/centers or offline sync, which issue codes via survey.issue_ecd_code,
+ * and re-code legacy rows with scripts/recode-ecd-centers.ts. Do not bypass the trigger.
+ *
  * Reads the same survey CSV plus resolved-locations.json (produced by
  * location-resolver.ts) and upserts one row per center into `ecd_center`.
  *

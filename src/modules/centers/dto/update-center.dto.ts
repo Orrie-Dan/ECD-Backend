@@ -3,16 +3,19 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
   Min,
   MinLength,
   ValidateIf,
 } from 'class-validator';
+import { MIN_START_YEAR, NCDA_TYPE_CODES, NcdaTypeCode } from '../ecd-code';
 
 export class UpdateCenterDto {
   /** Required for optimistic locking (CAS). */
@@ -84,6 +87,27 @@ export class UpdateCenterDto {
   @ValidateIf((_, v) => v !== null && v !== undefined)
   @IsEnum(EcdFacilityType)
   facilityType?: EcdFacilityType | null;
+
+  /** NCDA type letter; also sets facilityType. Does not change the issued code. */
+  @ApiPropertyOptional({
+    enum: NCDA_TYPE_CODES,
+    description: 'NCDA type letter (A–E). Sets facilityType; the issued code is never changed.',
+  })
+  @IsOptional()
+  @IsIn(NCDA_TYPE_CODES as unknown as string[])
+  ncdaTypeCode?: NcdaTypeCode;
+
+  @ApiPropertyOptional({
+    example: 2020,
+    minimum: MIN_START_YEAR,
+    description: 'Year the facility started providing services. The issued code is never changed.',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(MIN_START_YEAR)
+  @Max(2100)
+  startYear?: number;
 
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()

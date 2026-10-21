@@ -109,7 +109,7 @@ async function main() {
       },
     };
     const audit = { log: async () => undefined };
-    const service = new CentersService(prisma as never, audit as never);
+    const service = new CentersService(prisma as never, audit as never, {} as never);
 
     const result = await service.findAll(
       user({
@@ -136,7 +136,11 @@ async function main() {
         count: async () => 1,
       },
     };
-    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
+    const service = new CentersService(
+      prisma as never,
+      { log: async () => undefined } as never,
+      {} as never,
+    );
 
     await service.findAll(user({ role: UserRole.caregiver, centerId: 'center-a' }), {});
     eq((captured.where as { id: string }).id, 'center-a');
@@ -154,7 +158,11 @@ async function main() {
         count: async () => 0,
       },
     };
-    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
+    const service = new CentersService(
+      prisma as never,
+      { log: async () => undefined } as never,
+      {} as never,
+    );
 
     await service.findAll(user({ role: UserRole.ncda_admin }), {
       search: 'gasabo',
@@ -183,7 +191,11 @@ async function main() {
           }),
       },
     };
-    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
+    const service = new CentersService(
+      prisma as never,
+      { log: async () => undefined } as never,
+      {} as never,
+    );
 
     let threw = false;
     try {
@@ -240,6 +252,7 @@ async function main() {
           auditLogs.push(args);
         },
       } as never,
+      {} as never,
     );
 
     let err: unknown;
@@ -265,7 +278,11 @@ async function main() {
     const prisma = {
       ecdCenter: { findFirst: async () => null },
     };
-    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
+    const service = new CentersService(
+      prisma as never,
+      { log: async () => undefined } as never,
+      {} as never,
+    );
     let threw = false;
     try {
       await service.update(user({ role: UserRole.ncda_admin }), 'missing', {
@@ -302,7 +319,11 @@ async function main() {
         findMany: async () => [{ id: 'village-1', level: 'village' }],
       },
     };
-    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
+    const service = new CentersService(
+      prisma as never,
+      { log: async () => undefined } as never,
+      {} as never,
+    );
 
     const result = await service.findAll(user({ role: UserRole.ncda_admin }), {
       districtId: 'district-1',
@@ -347,7 +368,11 @@ async function main() {
         findMany: async () => [{ id: 'village-1', level: 'village' }],
       },
     };
-    const service = new CentersService(prisma as never, { log: async () => undefined } as never);
+    const service = new CentersService(
+      prisma as never,
+      { log: async () => undefined } as never,
+      {} as never,
+    );
 
     const result = await service.findAll(user({ role: UserRole.ncda_admin }), {
       districtId: 'district-1',
