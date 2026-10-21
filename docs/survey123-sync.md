@@ -43,8 +43,11 @@ WASH indicators are **not** synced (capture later in the app).
 | `Community based ECD centre`, `Community Based ECD` | C | `community_based` |
 | `School based ECD Centre`, `School Based ECD` | D | `ecd_3_5` |
 | `Model ECD centre`, `Model ECD` | E | `ecd_3_5` |
+| `Centre Based`, `ECD in emergency settings`, `Cross-border ECD`, `ECD in prison` | C | `community_based` |
+| `Faith-based` | D | `ecd_3_5` |
+| `Market based`, `Mobile crèches` | A | `daycare` |
 
-Unmapped: `Centre Based`, `Faith-based`, `Market based`, `Mobile crèches`, `ECD in emergency settings`, `Cross-border ECD`, `ECD in prison`, blank. No survey value maps to A (daycare).
+The last three rows are NCDA's rule for setting categories (2026-10-21). Unmapped: blank and any other value.
 
 ## NCDA facility codes
 

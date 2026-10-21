@@ -414,7 +414,7 @@ async function main() {
       );
       const before = Number((await q(`SELECT count(*) AS n FROM sde.ecd_center`))[0].n);
       for (const [fields, text] of [
-        [{ settings_types: 'Faith-based' }, 'no NCDA type letter'],
+        [{ settings_types: 'Other' }, 'no NCDA type letter'],
         [{ start_year_ecd: null }, 'start_year_ecd is required'],
         [{ village_name: 'Not In Register' }, 'ECD_CODE_VILLAGE_NOT_CODED'],
       ] as Array<[Record<string, unknown>, string]>) {
