@@ -21,7 +21,7 @@ The sheet's latitude/longitude are rounded to one decimal and are not used.
 
 Order of operations:
 
-1. `npx prisma migrate deploy` (NCDA coding migrations 20261021120000–140000)
+1. `npx prisma migrate deploy` (NCDA coding migrations 20261021120000–150000)
 2. `npm run import:minaloc-codes -- --apply`
 3. `npm run apply:ecd-sheet` (dry run, writes `ecd-sheet-report.csv`), review, then
    `npm run apply:ecd-sheet -- --apply`

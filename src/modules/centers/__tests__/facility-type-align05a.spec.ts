@@ -39,14 +39,7 @@ assert('mapping: every deterministic settings_types value', () => {
 });
 
 assert('mapping: unknown never falls back to daycare', () => {
-  for (const value of [
-    'Centre Based',
-    'Faith-based',
-    'Market based',
-    'Mobile crèches',
-    'ECD in emergency settings',
-    'Daycare',
-  ]) {
+  for (const value of ['Daycare', 'Crèche', 'Other', 'Faith-Based']) {
     const result = mapSettingsTypesToFacilityType(value);
     eq(result.facilityType, null);
     if (result.mapped) throw new Error('expected unmapped');

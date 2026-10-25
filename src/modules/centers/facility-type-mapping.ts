@@ -24,9 +24,10 @@ export type EcdFacilityTypeId = (typeof ECD_FACILITY_TYPE_IDS)[number];
  *   C Community-Based ECD         → community_based
  *   D School-Based and Model ECD  → ecd_3_5
  *
- * Intentionally unmapped (ambiguous / no official tool binding):
- *   Centre Based, Faith-based, Market based, Mobile crèches,
- *   ECD in emergency settings, Cross-border ECD, ECD in prison
+ * Setting categories follow NCDA's type rule (2026-10-21), mirroring
+ * survey.map_settings_types_to_ncda_type:
+ *   Centre Based, ECD in emergency settings, Cross-border ECD, ECD in prison → C
+ *   Faith-based → D;  Market based, Mobile crèches → A
  */
 export const SETTINGS_TYPES_TO_FACILITY_TYPE: Readonly<
   Record<string, EcdFacilityTypeId>
@@ -39,6 +40,13 @@ export const SETTINGS_TYPES_TO_FACILITY_TYPE: Readonly<
   'School Based ECD': 'ecd_3_5',
   'Model ECD centre': 'ecd_3_5',
   'Model ECD': 'ecd_3_5',
+  'Centre Based': 'community_based',
+  'ECD in emergency settings': 'community_based',
+  'Cross-border ECD': 'community_based',
+  'ECD in prison': 'community_based',
+  'Faith-based': 'ecd_3_5',
+  'Market based': 'daycare',
+  'Mobile crèches': 'daycare',
 });
 
 export type MapSettingsTypesResult =

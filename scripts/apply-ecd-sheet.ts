@@ -6,10 +6,11 @@
  *   match   : ECD code = ecd_center.code → = ecd_center.legacy_code (re-runs) →
  *             unique district/sector/cell/village + name among unclaimed centers
  *   type    : "12. Type of Settings", else settings_types_temp, compared case-insensitively
- *             against the spellings of survey.map_settings_types_to_ncda_type
- *   year    : year of "5. Start Year …" (1950 … current year)
+ *             against the spellings of survey.map_settings_types_to_ncda_type; a setting
+ *             category (Faith-Based, Centre Based, …) yields to a temp column naming the type
+ *   year    : year of "5. Start Year …" (1950 … current year); blank → 2025 (noted)
  *   skipped : Data Check = Remove (left untouched)
- * Rows without a usable type or year, or whose village has no MINALOC code, are
+ * Rows without a usable type, with an out-of-range year, or whose village has no MINALOC code, are
  * exceptions: reported, never guessed, and keep their legacy code.
  *
  * Duplicates: a live center not in the sheet with the same village + name as a
@@ -24,7 +25,7 @@
  * in the same order as scripts/recode-ecd-centers.ts.
  *
  * Dry-run by default: writes a CSV report and changes nothing. Run against a
- * copy/staging first. Requires migrations 20261021120000–140000 and
+ * copy/staging first. Requires migrations 20261021120000–150000 and
  * `npm run import:minaloc-codes -- --apply`.
  *
  * Usage:
@@ -67,6 +68,8 @@ function dbUrl(): string {
 
 const NCDA_CODE = /^\d{10}\/[A-E]\/\d{4}\/\d{2}$/;
 const MIN_YEAR = 1950;
+/** NCDA decision (2026-10-21): sheet rows with no start year are coded with this year. */
+const DEFAULT_START_YEAR = 2025;
 
 const LETTER_TO_FACILITY: Record<string, string> = {
   A: 'daycare',
@@ -81,7 +84,7 @@ const LETTER_TO_FACILITY: Record<string, string> = {
  * capitalisations ("Community Based ECD Centre"), so they are compared
  * case-insensitively here; checkLetterMapping() proves this table matches the DB.
  */
-export const DB_SETTINGS_SPELLINGS: Readonly<Record<string, string>> = Object.freeze({
+const DIRECT_SPELLINGS: Readonly<Record<string, string>> = {
   'Home based ECD': 'B',
   'Home Based ECD': 'B',
   'Community based ECD centre': 'C',
@@ -90,12 +93,29 @@ export const DB_SETTINGS_SPELLINGS: Readonly<Record<string, string>> = Object.fr
   'School Based ECD': 'D',
   'Model ECD centre': 'E',
   'Model ECD': 'E',
+};
+
+/** Setting categories that are not an NCDA type themselves, typed by NCDA's rule. */
+const CATEGORY_SPELLINGS: Readonly<Record<string, string>> = {
+  'Market based': 'A',
+  'Mobile crèches': 'A',
+  'Centre Based': 'C',
+  'ECD in emergency settings': 'C',
+  'Cross-border ECD': 'C',
+  'ECD in prison': 'C',
+  'Faith-based': 'D',
+};
+
+export const DB_SETTINGS_SPELLINGS: Readonly<Record<string, string>> = Object.freeze({
+  ...DIRECT_SPELLINGS,
+  ...CATEGORY_SPELLINGS,
 });
 
 const norm = (s: string | null | undefined) =>
   (s ?? '').normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
 
 const LETTER_BY_NORM = new Map(Object.entries(DB_SETTINGS_SPELLINGS).map(([k, v]) => [norm(k), v]));
+const CATEGORY_NORMS = new Set(Object.keys(CATEGORY_SPELLINGS).map(norm));
 
 export function letterFor(raw: string | null | undefined): string | null {
   return LETTER_BY_NORM.get(norm(raw)) ?? null;
@@ -163,6 +183,13 @@ export function sheetType(row: SheetRow): {
   const main = letterFor(row.settings_types);
   const temp = letterFor(row.settings_types_temp);
   if (main && temp && main !== temp) {
+    // A category (e.g. Faith-Based) yields to a temp column that names the type itself.
+    if (
+      CATEGORY_NORMS.has(norm(row.settings_types)) &&
+      !CATEGORY_NORMS.has(norm(row.settings_types_temp))
+    ) {
+      return { letter: temp, source: 'settings_types_temp' };
+    }
     return {
       letter: null,
       source: '',
@@ -181,9 +208,9 @@ export function sheetType(row: SheetRow): {
 export function sheetYear(
   row: SheetRow,
   currentYear: number,
-): { year: number | null; problem?: string } {
+): { year: number | null; problem?: string; defaulted?: boolean } {
   const m = /^(\d{4})-\d{2}-\d{2}/.exec(row.start_date.trim());
-  if (!m) return { year: null, problem: 'no start year' };
+  if (!m) return { year: DEFAULT_START_YEAR, defaulted: true };
   const year = Number(m[1]);
   if (year < MIN_YEAR || year > currentYear) {
     return { year: null, problem: `start year ${year} outside ${MIN_YEAR}–${currentYear}` };
@@ -282,7 +309,10 @@ export function planSheet(rows: SheetRow[], centers: DbCenter[], currentYear: nu
 
     if (NCDA_CODE.test(center.code)) {
       const [, letter, year] = center.code.split('/');
-      if ((p.letter && letter !== p.letter) || (p.year && Number(year) !== p.year)) {
+      if (
+        (p.letter && letter !== p.letter) ||
+        (p.year && !y.defaulted && Number(year) !== p.year)
+      ) {
         p.notes.push(
           `code ${center.code} disagrees with sheet type ${p.letter ?? '-'} / year ${p.year ?? '-'}`,
         );
@@ -292,12 +322,13 @@ export function planSheet(rows: SheetRow[], centers: DbCenter[], currentYear: nu
 
     if (t.problem) p.problems.push(t.problem);
     if (y.problem) p.problems.push(y.problem);
+    if (y.defaulted) p.notes.push(`no start year in sheet, ${DEFAULT_START_YEAR} used`);
     if (!center.village_code) p.problems.push('village has no MINALOC code');
     if (p.letter && center.facility_type && LETTER_TO_FACILITY[p.letter] !== center.facility_type) {
       p.notes.push(`facility_type ${center.facility_type} → ${LETTER_TO_FACILITY[p.letter]}`);
     }
     const legacy = LEGACY_CODE.exec(center.code);
-    if (legacy && p.year && Number(legacy[1]) !== p.year) {
+    if (legacy && p.year && !y.defaulted && Number(legacy[1]) !== p.year) {
       p.notes.push(`legacy code year ${legacy[1]} differs from sheet ${p.year}`);
     }
     if (p.problems.length) continue;

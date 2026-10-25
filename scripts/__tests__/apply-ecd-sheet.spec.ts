@@ -78,7 +78,20 @@ assert('settings types map case-insensitively, unknown types do not', () => {
   eq(letterFor(' model ECD CENTRE '), 'E');
   eq(letterFor('School Based ECD Centre'), 'D');
   eq(letterFor('Home Based ECD '), 'B');
-  for (const v of ['Centre Based', 'Faith-Based', 'Market Based', '']) eq(letterFor(v), null, v);
+  for (const v of ['Daycare', 'Other', '']) eq(letterFor(v), null, v);
+});
+
+assert('setting categories get the NCDA rule type (sheet spellings included)', () => {
+  const expected: Array<[string, string]> = [
+    ['Centre Based', 'C'],
+    ['ECD in Emergency Settings', 'C'],
+    ['Cross-border ECD', 'C'],
+    ['ECD In Prison', 'C'],
+    ['Faith-Based', 'D'],
+    ['Market Based', 'A'],
+    ['Mobile Crèches', 'A'],
+  ];
+  for (const [v, letter] of expected) eq(letterFor(v), letter, v);
 });
 
 assert('type falls back to settings_types_temp; conflicting columns are an exception', () => {
@@ -93,12 +106,30 @@ assert('type falls back to settings_types_temp; conflicting columns are an excep
   );
   eq(conflict.letter, null);
   eq(conflict.problem!.includes('contradicts'), true);
-  eq(sheetType(sheet({ settings_types: 'Centre Based', settings_types_temp: '' })).letter, null);
+  eq(sheetType(sheet({ settings_types: 'Other', settings_types_temp: '' })).letter, null);
 });
 
-assert('start year from date; missing / out of range rejected', () => {
+assert('a setting category yields to a temp column naming the type; alone it uses the rule', () => {
+  eq(
+    sheetType(
+      sheet({ settings_types: 'Faith-Based', settings_types_temp: 'Community based ECD centre' }),
+    ),
+    { letter: 'C', source: 'settings_types_temp' },
+  );
+  eq(sheetType(sheet({ settings_types: 'Faith-Based', settings_types_temp: '' })), {
+    letter: 'D',
+    source: 'settings_types',
+  });
+  const directVsCategory = sheetType(
+    sheet({ settings_types: 'Home Based ECD', settings_types_temp: 'Faith-based' }),
+  );
+  eq(directVsCategory.letter, null);
+  eq(directVsCategory.problem!.includes('contradicts'), true);
+});
+
+assert('start year from date; missing → 2025; out of range rejected', () => {
   eq(sheetYear(sheet(), YEAR).year, 2019);
-  eq(sheetYear(sheet({ start_date: '' }), YEAR).year, null);
+  eq(sheetYear(sheet({ start_date: '' }), YEAR), { year: 2025, defaulted: true });
   eq(sheetYear(sheet({ start_date: '1943-01-01' }), YEAR).year, null);
   eq(sheetYear(sheet({ start_date: '2027-01-01' }), YEAR).year, null);
 });
@@ -131,17 +162,23 @@ assert('name/location fallback only when unique on both sides', () => {
   eq(sheetStatus(none[0]), 'not_in_db');
 });
 
-assert('Remove rows, missing type/year and uncoded villages are not recoded', () => {
+assert('no start year is coded as 2025 and noted', () => {
+  const [p] = planSheet([sheet({ start_date: '' })], [center()], YEAR);
+  eq([sheetStatus(p), p.plan!.proposed], ['recode', '0101010101/B/2025/01']);
+  eq(p.notes, ['no start year in sheet, 2025 used']);
+});
+
+assert('Remove rows, missing type, bad year and uncoded villages are not recoded', () => {
   const statuses = planSheet(
     [
       sheet({ objectid: '1', ecd_code: 'a', data_check: 'Remove' }),
       sheet({
         objectid: '2',
         ecd_code: 'b',
-        settings_types: 'Centre Based',
+        settings_types: '',
         settings_types_temp: '',
       }),
-      sheet({ objectid: '3', ecd_code: 'c', start_date: '' }),
+      sheet({ objectid: '3', ecd_code: 'c', start_date: '1943-01-01' }),
       sheet({ objectid: '4', ecd_code: 'd' }),
     ],
     [
