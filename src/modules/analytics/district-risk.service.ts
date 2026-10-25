@@ -199,7 +199,7 @@ export class DistrictRiskService {
       INNER JOIN ecd_center c ON c.id = ch.center_id AND c.deleted_at IS NULL
       INNER JOIN district d ON d.id = c.district_id
       WHERE ch.deleted_at IS NULL
-        AND ch.status = CAST(${'active'} AS child_status)
+        AND ch.status = ${'active'}
         AND ${this.districtIdFilter(districtIds)}
       GROUP BY c.district_id
     `;
@@ -216,8 +216,8 @@ export class DistrictRiskService {
     >`
       SELECT
         c.district_id AS "districtId",
-        SUM(CASE WHEN ar.status = CAST(${'present'} AS attendance_status) THEN 1 ELSE 0 END)::int AS present,
-        SUM(CASE WHEN ar.status = CAST(${'absent'} AS attendance_status) THEN 1 ELSE 0 END)::int AS absent
+        SUM(CASE WHEN ar.status = ${'present'} THEN 1 ELSE 0 END)::int AS present,
+        SUM(CASE WHEN ar.status = ${'absent'} THEN 1 ELSE 0 END)::int AS absent
       FROM attendance_record ar
       INNER JOIN ecd_center c ON c.id = ar.center_id AND c.deleted_at IS NULL
       INNER JOIN district d ON d.id = c.district_id

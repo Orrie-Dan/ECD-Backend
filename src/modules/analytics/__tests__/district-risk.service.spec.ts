@@ -118,7 +118,7 @@ function createPrisma(options: {
           cnt: options.centers?.[d.id] ?? 0,
         }));
       }
-      if (sql.includes('ch.status = CAST')) {
+      if (sql.includes('ch.status = ?')) {
         return Object.entries(options.activeChildren ?? {}).map(([districtId, cnt]) => ({
           districtId,
           cnt,
