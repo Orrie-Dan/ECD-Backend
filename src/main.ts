@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import compression from 'compression';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -9,6 +10,9 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   const port = config.get<number>('PORT', 3000);
+
+  // gzip JSON responses — national GIS center metrics alone is several MB uncompressed.
+  app.use(compression());
 
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(

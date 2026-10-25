@@ -1,13 +1,40 @@
+import { UserRole } from '../../common/domain';
 import { All, BadRequestException, Controller, Get, Query, Req, Res } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { ApiStandardClientErrors } from '../../common/swagger';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
+import { CenterMetricsQueryDto } from './center-metrics/center-metrics-query.dto';
+import { CenterMetricsResponseDto } from './center-metrics/center-metrics-response.dto';
+import { CenterMetricsService } from './center-metrics/center-metrics.service';
 import { GisService } from './gis.service';
 
 @ApiTags('gis')
 @Controller('gis')
 export class GisController {
-  constructor(private readonly gisService: GisService) {}
+  constructor(
+    private readonly gisService: GisService,
+    private readonly centerMetricsService: CenterMetricsService,
+  ) {}
+
+  @Get('center-metrics')
+  @ApiBearerAuth()
+  @Roles(UserRole.district_focal_person, UserRole.sector_focal_person, UserRole.ncda_admin)
+  @ApiOperation({
+    summary: 'Per-center map metrics',
+    description:
+      'Enrollment, attendance rate, latest self-evaluation and stunting rate for every mapped ' +
+      'center in scope (NCDA: national, province, district or narrower; district/sector users ' +
+      'are pinned to their assignment). Aggregates only — no child-level data.',
+  })
+  @ApiOkResponse({ type: CenterMetricsResponseDto })
+  @ApiStandardClientErrors()
+  centerMetrics(@CurrentUser() user: AuthUser, @Query() query: CenterMetricsQueryDto) {
+    return this.centerMetricsService.centerMetrics(user, query);
+  }
 
   @Public()
   @Get('token')
