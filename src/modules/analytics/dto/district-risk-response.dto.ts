@@ -83,6 +83,20 @@ export class DistrictRiskItemDto {
   stedPendingFollowUps: number;
 
   @ApiProperty({
+    example: 72.4,
+    nullable: true,
+    description:
+      'Mean overall % of each center’s latest submitted/verified self-evaluation (ECD Standards), not range-limited — same "latest" rule as the GIS center metrics. Null when no center has one.',
+  })
+  selfEvalPercent: number | null;
+
+  @ApiProperty({
+    example: 18,
+    description: 'Centers whose latest self-evaluation has an overall % (denominator of selfEvalPercent)',
+  })
+  selfEvalCentersEvaluated: number;
+
+  @ApiProperty({
     enum: ['normal', 'watch', 'concern', 'critical'],
   })
   severity: 'normal' | 'watch' | 'concern' | 'critical';

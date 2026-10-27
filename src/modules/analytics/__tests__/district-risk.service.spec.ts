@@ -55,6 +55,7 @@ function createPrisma(options: {
   pendingReferrals?: Record<string, number>;
   sted?: Record<string, { assessmentsCompleted: number; childrenAssessed: number }>;
   stedFollowUps?: Record<string, number>;
+  selfEval?: Record<string, { avgPercent: number | null; cnt: number }>;
 }) {
   const stats = {
     districtFindMany: 0,
@@ -142,6 +143,13 @@ function createPrisma(options: {
         return Object.entries(options.pendingReferrals ?? {}).map(([districtId, cnt]) => ({
           districtId,
           cnt,
+        }));
+      }
+      if (sql.includes('FROM compliance_assessment a')) {
+        return Object.entries(options.selfEval ?? {}).map(([districtId, e]) => ({
+          districtId,
+          avgPercent: e.avgPercent,
+          cnt: e.cnt,
         }));
       }
       if (sql.includes('FROM sted_assessment s') && sql.includes('follow_up_in_6_months')) {
@@ -334,8 +342,27 @@ async function main() {
     const service = new DistrictRiskService(prisma as never);
     await service.getDistrictRisk(user({ role: UserRole.ncda_admin }), {});
     eq(prisma.stats.districtFindMany, 1);
-    // 6 SQL aggregates + 1 nutrition findMany (WHO) — no N+1 per district
-    eq(prisma.stats.queryRaw, 6);
+    // 7 SQL aggregates + 1 nutrition findMany (WHO) — no N+1 per district
+    eq(prisma.stats.queryRaw, 7);
+  });
+
+  await assert('self-eval: mean of latest center % rounded, null without evaluations', async () => {
+    const service = new DistrictRiskService(
+      createPrisma({
+        districts: [
+          { id: 'd1', name: 'Alpha', code: 'A', isActive: true },
+          { id: 'd2', name: 'Beta', code: 'B', isActive: true },
+        ],
+        selfEval: { d1: { avgPercent: 72.4567, cnt: 3 } },
+      }) as never,
+    );
+    const result = await service.getDistrictRisk(user({ role: UserRole.ncda_admin }), {});
+    const alpha = result.items.find((i) => i.districtId === 'd1');
+    const beta = result.items.find((i) => i.districtId === 'd2');
+    eq(alpha?.selfEvalPercent, 72.5);
+    eq(alpha?.selfEvalCentersEvaluated, 3);
+    eq(beta?.selfEvalPercent, null);
+    eq(beta?.selfEvalCentersEvaluated, 0);
   });
 
   await assert('riskScore is null in Phase 1', async () => {
