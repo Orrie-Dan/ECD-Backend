@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import { assertDistrictAccess } from '../../common/auth/scope.util';
 import { resolveInclusiveDateRange } from '../../common/scope/district-query.scope';
 import { PrismaService } from '../../prisma/prisma.service';
+import { centerAreaCte } from './center-area.sql';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import {
   CONDITION_MIN_DENOMINATOR,
@@ -28,8 +29,6 @@ import { ChildrenConditionsResponseDto } from './dto/children-conditions-respons
 const DEFAULT_RANGE_DAYS = 89;
 const MAX_RANGE_DAYS = 366;
 const DAY_MS = 24 * 60 * 60 * 1000;
-/** Village → cell → sector is two hops; the cap only guards against a cyclic hierarchy. */
-const MAX_HIERARCHY_HOPS = 6;
 
 type Numeric = Prisma.Decimal | number | string | null;
 const toNumber = (value: Numeric) => (value == null ? null : Number(value));
@@ -58,7 +57,7 @@ export class ChildrenConditionsService {
       throw new BadRequestException(`Date range cannot exceed ${MAX_RANGE_DAYS} days`);
     }
 
-    const cte = this.centerAreaCte(level, districtId);
+    const cte = centerAreaCte(level, districtId);
     const [listedAreas, children, screenings, heights] = await Promise.all([
       this.loadAreas(level, districtId),
       this.childrenByArea(cte),
@@ -166,41 +165,6 @@ export class ChildrenConditionsService {
         districtName,
       })),
     ];
-  }
-
-  /**
-   * `center_area(center_id, area_id)` for non-deleted centers in scope. Sector level
-   * walks each center village up to its sector-level ancestor.
-   */
-  private centerAreaCte(level: ChildrenConditionLevel, districtId: string | null): Prisma.Sql {
-    const districtSql = districtId ? Prisma.sql`c.district_id = ${districtId}` : Prisma.sql`TRUE`;
-    if (level === 'district') {
-      return Prisma.sql`
-        WITH center_area AS (
-          SELECT c.id AS center_id, c.district_id AS area_id
-          FROM ecd_center c
-          WHERE c.deleted_at IS NULL AND ${districtSql}
-        )`;
-    }
-    return Prisma.sql`
-      WITH RECURSIVE up AS (
-        SELECT v.id AS village_id, v.id AS unit_id, v.parent_id, v.level, 0 AS hops
-        FROM administrative_unit v
-        WHERE v.id IN (
-          SELECT c.village_id FROM ecd_center c WHERE c.deleted_at IS NULL AND ${districtSql}
-        )
-        UNION ALL
-        SELECT up.village_id, p.id, p.parent_id, p.level, up.hops + 1
-        FROM up
-        INNER JOIN administrative_unit p ON p.id = up.parent_id
-        WHERE up.level <> ${AdministrativeLevel.sector} AND up.hops < ${MAX_HIERARCHY_HOPS}
-      ),
-      center_area AS (
-        SELECT c.id AS center_id, up.unit_id AS area_id
-        FROM ecd_center c
-        INNER JOIN up ON up.village_id = c.village_id AND up.level = ${AdministrativeLevel.sector}
-        WHERE c.deleted_at IS NULL AND ${districtSql}
-      )`;
   }
 
   private async childrenByArea(cte: Prisma.Sql): Promise<AreaChildrenRow[]> {

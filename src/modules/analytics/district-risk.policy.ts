@@ -36,6 +36,12 @@ export function roundRate(numerator: number, denominator: number): number | null
   return Math.round((numerator / denominator) * 1000) / 10;
 }
 
+/** A 0–100 value (e.g. a mean of percentages) to one decimal; null stays null. */
+export function roundPercent(value: number | null): number | null {
+  if (value == null || !Number.isFinite(value)) return null;
+  return Math.round(value * 10) / 10;
+}
+
 /**
  * Backend-authoritative STED coverage (matches MonitoringService.sted summary):
  * distinct children assessed in range / active children in scope × 100.

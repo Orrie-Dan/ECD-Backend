@@ -6,8 +6,11 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { AnalyticsService } from './analytics.service';
+import { AreaIndicatorsService } from './area-indicators.service';
 import { ChildrenConditionsService } from './children-conditions.service';
 import { DistrictRiskService } from './district-risk.service';
+import { AreaIndicatorsQueryDto } from './dto/area-indicators-query.dto';
+import { AreaIndicatorsResponseDto } from './dto/area-indicators-response.dto';
 import { ChildrenConditionsQueryDto } from './dto/children-conditions-query.dto';
 import { ChildrenConditionsResponseDto } from './dto/children-conditions-response.dto';
 import { ChildrenDemographicsQueryDto } from './dto/children-demographics-query.dto';
@@ -32,6 +35,7 @@ export class AnalyticsController {
     private readonly analyticsService: AnalyticsService,
     private readonly districtRiskService: DistrictRiskService,
     private readonly childrenConditionsService: ChildrenConditionsService,
+    private readonly areaIndicatorsService: AreaIndicatorsService,
   ) {}
 
   @Get('dashboard')
@@ -93,5 +97,21 @@ export class AnalyticsController {
   @ApiStandardClientErrors()
   getDistrictRisk(@CurrentUser() user: AuthUser, @Query() query: DistrictRiskQueryDto) {
     return this.districtRiskService.getDistrictRisk(user, query);
+  }
+
+  @Get('area-indicators')
+  @Roles(UserRole.ncda_admin, UserRole.district_focal_person)
+  @ApiOperation({
+    summary: 'Monitoring indicators per sector or ECD center',
+    description:
+      'District-risk indicators (attendance, severe nutrition, open referrals, STED coverage) ' +
+      'below district grain, attributed to the area of each ECD center. `level=center` adds ' +
+      'center coordinates; `sectorId` narrows to the centers of one sector. Only areas with at ' +
+      'least one center in scope are returned.',
+  })
+  @ApiOkResponse({ type: AreaIndicatorsResponseDto })
+  @ApiStandardClientErrors()
+  getAreaIndicators(@CurrentUser() user: AuthUser, @Query() query: AreaIndicatorsQueryDto) {
+    return this.areaIndicatorsService.getAreaIndicators(user, query);
   }
 }

@@ -12,6 +12,7 @@ import {
   computeStedCoveragePct,
   DISTRICT_RISK_METHODOLOGY_VERSION,
   interpretDistrictRisk,
+  roundPercent,
   roundRate,
 } from './district-risk.policy';
 import { DistrictRiskQueryDto } from './dto/district-risk-query.dto';
@@ -54,6 +55,7 @@ export class DistrictRiskService {
       pendingReferralsByDistrict,
       stedByDistrict,
       stedFollowUpsByDistrict,
+      selfEvalByDistrict,
     ] = await Promise.all([
       this.aggregateCentersByDistrict(districtIds),
       this.aggregateActiveChildrenByDistrict(districtIds),
@@ -62,6 +64,7 @@ export class DistrictRiskService {
       this.aggregatePendingReferralsByDistrict(districtIds),
       this.aggregateStedByDistrict(districtIds, from, to),
       this.aggregateStedPendingFollowUpsByDistrict(districtIds, to),
+      this.aggregateSelfEvalByDistrict(districtIds),
     ]);
 
     const items: DistrictRiskItemDto[] = districts.map((district) => {
@@ -83,6 +86,7 @@ export class DistrictRiskService {
       };
       const stedPendingFollowUps = stedFollowUpsByDistrict.get(district.id) ?? 0;
       const stedCoverage = computeStedCoveragePct(sted.childrenAssessed, activeChildren);
+      const selfEval = selfEvalByDistrict.get(district.id) ?? { percent: null, evaluated: 0 };
 
       const interpretation = interpretDistrictRisk({
         isActive: district.isActive,
@@ -113,6 +117,8 @@ export class DistrictRiskService {
         stedChildrenAssessed: sted.childrenAssessed,
         stedCoverage,
         stedPendingFollowUps,
+        selfEvalPercent: selfEval.percent,
+        selfEvalCentersEvaluated: selfEval.evaluated,
         severity: interpretation.severity,
         riskScore: interpretation.riskScore,
         primaryIssueCode: interpretation.primaryIssueCode,
@@ -357,5 +363,44 @@ export class DistrictRiskService {
       GROUP BY c.district_id
     `;
     return new Map(rows.map((r) => [r.districtId, r.cnt]));
+  }
+
+  /**
+   * Mean of each center's latest submitted/verified self-evaluation %, not range-limited
+   * (same "latest" rule as the GIS center metrics map).
+   */
+  private async aggregateSelfEvalByDistrict(
+    districtIds: string[],
+  ): Promise<Map<string, { percent: number | null; evaluated: number }>> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{ districtId: string; avgPercent: Prisma.Decimal | number | string | null; cnt: number }>
+    >`
+      SELECT
+        c.district_id AS "districtId",
+        AVG(l.overall_percent)::float8 AS "avgPercent",
+        COUNT(l.overall_percent)::int AS cnt
+      FROM (
+        SELECT DISTINCT ON (a.center_id) a.center_id, a.overall_percent
+        FROM compliance_assessment a
+        INNER JOIN ecd_center c ON c.id = a.center_id AND c.deleted_at IS NULL
+        INNER JOIN district d ON d.id = c.district_id
+        WHERE a.deleted_at IS NULL
+          AND a.assessment_type = 'self_assessment'
+          AND a.status IN ('submitted', 'verified')
+          AND ${this.districtIdFilter(districtIds)}
+        ORDER BY a.center_id, a.assessment_date DESC, a.created_at DESC
+      ) l
+      INNER JOIN ecd_center c ON c.id = l.center_id
+      GROUP BY c.district_id
+    `;
+    return new Map(
+      rows.map((r) => [
+        r.districtId,
+        {
+          percent: roundPercent(r.avgPercent == null ? null : Number(r.avgPercent)),
+          evaluated: r.cnt,
+        },
+      ]),
+    );
   }
 }
