@@ -6,7 +6,10 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
 import { AnalyticsService } from './analytics.service';
+import { ChildrenConditionsService } from './children-conditions.service';
 import { DistrictRiskService } from './district-risk.service';
+import { ChildrenConditionsQueryDto } from './dto/children-conditions-query.dto';
+import { ChildrenConditionsResponseDto } from './dto/children-conditions-response.dto';
 import { ChildrenDemographicsQueryDto } from './dto/children-demographics-query.dto';
 import { ChildrenDemographicsResponseDto } from './dto/children-demographics-response.dto';
 import { DashboardQueryDto } from './dto/dashboard-query.dto';
@@ -28,6 +31,7 @@ export class AnalyticsController {
   constructor(
     private readonly analyticsService: AnalyticsService,
     private readonly districtRiskService: DistrictRiskService,
+    private readonly childrenConditionsService: ChildrenConditionsService,
   ) {}
 
   @Get('dashboard')
@@ -58,6 +62,22 @@ export class AnalyticsController {
     @Query() query: ChildrenDemographicsQueryDto,
   ) {
     return this.analyticsService.getChildrenDemographics(user, query);
+  }
+
+  @Get('children-conditions')
+  @Roles(UserRole.ncda_admin, UserRole.district_focal_person)
+  @ApiOperation({
+    summary: 'Children by condition per district or sector',
+    description:
+      'Per-area counts and rates for stunting, underweight, low MUAC, any malnutrition (WHO < −2 SD, ' +
+      'latest measurement in range), disability, and not screened in range. Children are attributed ' +
+      'to the area of their ECD center. Aggregate-only; affected counts and rates are withheld ' +
+      'below `minDenominator`. `level=sector` requires a district.',
+  })
+  @ApiOkResponse({ type: ChildrenConditionsResponseDto })
+  @ApiStandardClientErrors()
+  getChildrenConditions(@CurrentUser() user: AuthUser, @Query() query: ChildrenConditionsQueryDto) {
+    return this.childrenConditionsService.getChildrenConditions(user, query);
   }
 
   @Get('district-risk')
