@@ -1,15 +1,15 @@
 import {
+  AdministrativeLevel,
   AttendanceStatus,
   ChildGender,
   ChildStatus,
+  EcdFacilityType,
   EducationLevel,
   UserAccountStatus,
   UserRole,
+  asDomainEnumNullable,
 } from '../../common/domain';
-import {
-  BadRequestException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma, ReferralStatus } from '@prisma/client';
 import {
   centerIdWhere as scopeCenterIdWhere,
@@ -28,6 +28,8 @@ import {
   ChildrenDemographicsResponseDto,
   DemographicSliceDto,
 } from './dto/children-demographics-response.dto';
+import { ChildrenDistributionQueryDto } from './dto/children-distribution-query.dto';
+import { ChildrenDistributionResponseDto } from './dto/children-distribution-response.dto';
 import { DashboardQueryDto } from './dto/dashboard-query.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 
@@ -304,15 +306,16 @@ export class AnalyticsService {
     const staffScopeSql = this.buildStaffCenterScopeSql(scope);
     const districtScopeSql = this.buildDistrictScopeSql(scope);
 
-    const [demoRows, staffRows, certifiedRows, byDistrictRows] = await Promise.all([
-      this.prisma.$queryRaw<
-        Array<{
-          ageBand: string;
-          gender: string;
-          hasDisability: boolean;
-          cnt: number;
-        }>
-      >`
+    const [demoRows, staffRows, certifiedRows, byDistrictRows, byFacilityTypeRows] =
+      await Promise.all([
+        this.prisma.$queryRaw<
+          Array<{
+            ageBand: string;
+            gender: string;
+            hasDisability: boolean;
+            cnt: number;
+          }>
+        >`
         SELECT
           CASE
             WHEN age_years < 3 THEN 'age_0_2'
@@ -338,14 +341,14 @@ export class AnalyticsService {
         ) t
         GROUP BY 1, 2, 3
       `,
-      this.prisma.$queryRaw<
-        Array<{
-          role: string;
-          gender: string | null;
-          educationLevel: string | null;
-          cnt: number;
-        }>
-      >`
+        this.prisma.$queryRaw<
+          Array<{
+            role: string;
+            gender: string | null;
+            educationLevel: string | null;
+            cnt: number;
+          }>
+        >`
         SELECT
           u.role,
           u.gender,
@@ -357,7 +360,7 @@ export class AnalyticsService {
           AND ${staffScopeSql}
         GROUP BY u.role, u.gender, u.education_level
       `,
-      this.prisma.$queryRaw<Array<{ cnt: number }>>`
+        this.prisma.$queryRaw<Array<{ cnt: number }>>`
         SELECT COUNT(DISTINCT u.id)::int AS cnt
         FROM user_account u
         INNER JOIN staff_training st
@@ -368,16 +371,16 @@ export class AnalyticsService {
           AND u.role = ${UserRole.caregiver}
           AND ${staffScopeSql}
       `,
-      this.prisma.$queryRaw<
-        Array<{
-          districtId: string;
-          districtName: string;
-          districtCode: string;
-          boys: number;
-          girls: number;
-          total: number;
-        }>
-      >`
+        this.prisma.$queryRaw<
+          Array<{
+            districtId: string;
+            districtName: string;
+            districtCode: string;
+            boys: number;
+            girls: number;
+            total: number;
+          }>
+        >`
         SELECT
           d.id AS "districtId",
           d.name AS "districtName",
@@ -408,7 +411,28 @@ export class AnalyticsService {
         GROUP BY d.id, d.name, d.code
         ORDER BY d.name ASC
       `,
-    ]);
+        this.prisma.$queryRaw<
+          Array<{
+            facilityType: string | null;
+            boys: number;
+            girls: number;
+            total: number;
+          }>
+        >`
+        SELECT
+          c.facility_type AS "facilityType",
+          COALESCE(SUM(CASE WHEN ch.gender = ${ChildGender.male} THEN 1 ELSE 0 END), 0)::int AS boys,
+          COALESCE(SUM(CASE WHEN ch.gender = ${ChildGender.female} THEN 1 ELSE 0 END), 0)::int AS girls,
+          COUNT(*)::int AS total
+        FROM child ch
+        INNER JOIN ecd_center c ON c.id = ch.center_id AND c.deleted_at IS NULL
+        WHERE ch.deleted_at IS NULL
+          AND ch.status = ${ChildStatus.active}
+          AND ${childScopeSql}
+        GROUP BY c.facility_type
+        ORDER BY total DESC
+      `,
+      ]);
 
     const emptySlice = (): DemographicSliceDto => ({
       boys: 0,
@@ -526,7 +550,104 @@ export class AnalyticsService {
       supportingStaff,
       childrenPerCaregiver,
       byDistrict: byDistrictRows,
+      byFacilityType: byFacilityTypeRows.map((row) => ({
+        ...row,
+        facilityType: asDomainEnumNullable<EcdFacilityType>(row.facilityType),
+      })),
     };
+  }
+
+  /**
+   * Active children per administrative area in scope, from province down to the
+   * ECD center. Sector and cell come from walking each center village up the
+   * hierarchy; children in centers not linked to the requested level are
+   * grouped under a null area so the rows still add up to the scope total.
+   */
+  async getChildrenDistribution(
+    user: AuthUser,
+    query: ChildrenDistributionQueryDto,
+  ): Promise<ChildrenDistributionResponseDto> {
+    const level = query.level ?? 'district';
+    const scope = await this.resolveScope(user, geoFromQuery(query));
+
+    if (scope.centerIds !== 'all' && scope.centerIds.length === 0) {
+      return { level, items: [] };
+    }
+
+    const childScopeSql = this.buildChildCenterScopeSql(scope);
+    const fromSql = Prisma.sql`
+      FROM child ch
+      INNER JOIN ecd_center c ON c.id = ch.center_id AND c.deleted_at IS NULL`;
+    const whereSql = Prisma.sql`
+      ch.deleted_at IS NULL
+      AND ch.status = ${ChildStatus.active}
+      AND ${childScopeSql}`;
+    const countsSql = Prisma.sql`
+      COALESCE(SUM(CASE WHEN ch.gender = ${ChildGender.male} THEN 1 ELSE 0 END), 0)::int AS boys,
+      COALESCE(SUM(CASE WHEN ch.gender = ${ChildGender.female} THEN 1 ELSE 0 END), 0)::int AS girls,
+      COUNT(*)::int AS total`;
+
+    let sql: Prisma.Sql;
+    if (level === 'sector' || level === 'cell') {
+      // Village → cell → sector is normally two hops; the cap only guards against cycles.
+      sql = Prisma.sql`
+        WITH RECURSIVE up AS (
+          SELECT v.id AS village_id, v.id AS unit_id, v.name, v.parent_id, v.level, 0 AS hops
+          FROM administrative_unit v
+          WHERE v.id IN (SELECT c.village_id ${fromSql} WHERE ${whereSql})
+          UNION ALL
+          SELECT up.village_id, p.id, p.name, p.parent_id, p.level, up.hops + 1
+          FROM up
+          INNER JOIN administrative_unit p ON p.id = up.parent_id
+          WHERE up.level <> ${AdministrativeLevel.sector} AND up.hops < 6
+        )
+        SELECT up.unit_id AS "areaId", up.name AS "areaName", ${countsSql}
+        ${fromSql}
+        LEFT JOIN up ON up.village_id = c.village_id AND up.level = ${level}
+        WHERE ${whereSql}
+        GROUP BY up.unit_id, up.name
+        ORDER BY total DESC, up.name ASC`;
+    } else {
+      const area = {
+        province: {
+          join: Prisma.sql`
+            LEFT JOIN district d ON d.id = c.district_id
+            LEFT JOIN administrative_unit a ON a.id = d.province_id`,
+          id: Prisma.sql`a.id`,
+          name: Prisma.sql`a.name`,
+        },
+        district: {
+          join: Prisma.sql`LEFT JOIN district a ON a.id = c.district_id`,
+          id: Prisma.sql`a.id`,
+          name: Prisma.sql`a.name`,
+        },
+        village: {
+          join: Prisma.sql`LEFT JOIN administrative_unit a ON a.id = c.village_id`,
+          id: Prisma.sql`a.id`,
+          name: Prisma.sql`a.name`,
+        },
+        center: { join: Prisma.empty, id: Prisma.sql`c.id`, name: Prisma.sql`c.name` },
+      }[level];
+      sql = Prisma.sql`
+        SELECT ${area.id} AS "areaId", ${area.name} AS "areaName", ${countsSql}
+        ${fromSql}
+        ${area.join}
+        WHERE ${whereSql}
+        GROUP BY ${area.id}, ${area.name}
+        ORDER BY total DESC, ${area.name} ASC`;
+    }
+
+    const items = await this.prisma.$queryRaw<
+      Array<{
+        areaId: string | null;
+        areaName: string | null;
+        boys: number;
+        girls: number;
+        total: number;
+      }>
+    >(sql);
+
+    return { level, items };
   }
 
   private buildChildCenterScopeSql(scope: ResolvedAnalyticsScope): Prisma.Sql {
@@ -589,10 +710,7 @@ export class AnalyticsService {
     return Prisma.sql`TRUE`;
   }
 
-  private async resolveScope(
-    user: AuthUser,
-    query: ScopeQuery,
-  ): Promise<ResolvedAnalyticsScope> {
+  private async resolveScope(user: AuthUser, query: ScopeQuery): Promise<ResolvedAnalyticsScope> {
     return resolveDistrictQueryScope(this.prisma, user, query);
   }
 }
@@ -760,5 +878,6 @@ function emptyChildrenDemographics(
     },
     childrenPerCaregiver: null,
     byDistrict: [],
+    byFacilityType: [],
   };
 }

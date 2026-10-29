@@ -64,6 +64,12 @@ function createPrisma(opts?: {
     girls: number;
     total: number;
   }>;
+  byFacilityType?: Array<{
+    facilityType: string | null;
+    boys: number;
+    girls: number;
+    total: number;
+  }>;
 }) {
   const centers = opts?.centers ?? ['c1', 'c2'];
   let queryCall = 0;
@@ -118,6 +124,15 @@ function createPrisma(opts?: {
       if (call === 2) {
         return [{ cnt: opts?.certifiedCnt ?? 3 }];
       }
+      if (call === 4) {
+        return (
+          opts?.byFacilityType ?? [
+            { facilityType: 'daycare', boys: 10, girls: 15, total: 25 },
+            { facilityType: 'home_based', boys: 6, girls: 5, total: 11 },
+            { facilityType: null, boys: 2, girls: 2, total: 4 },
+          ]
+        );
+      }
       return (
         opts?.byDistrict ?? [
           {
@@ -164,6 +179,14 @@ async function main() {
     eq(result.byDistrict[0].districtName, 'Gasabo');
     eq(result.districtId, 'd1');
     eq(result.centersInScope, 2);
+    eq(
+      result.byFacilityType.map((r) => [r.facilityType, r.total]),
+      [
+        ['daycare', 25],
+        ['home_based', 11],
+        [null, 4],
+      ],
+    );
   });
 
   await assert('empty district returns zeroed demographics', async () => {
@@ -180,6 +203,7 @@ async function main() {
     eq(result.children.total, 0);
     eq(result.childrenPerCaregiver, null);
     eq(result.byDistrict, []);
+    eq(result.byFacilityType, []);
   });
 
   await assert('caregiver cannot query another center', async () => {
