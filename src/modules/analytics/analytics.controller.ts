@@ -15,6 +15,8 @@ import { ChildrenConditionsQueryDto } from './dto/children-conditions-query.dto'
 import { ChildrenConditionsResponseDto } from './dto/children-conditions-response.dto';
 import { ChildrenDemographicsQueryDto } from './dto/children-demographics-query.dto';
 import { ChildrenDemographicsResponseDto } from './dto/children-demographics-response.dto';
+import { ChildrenDistributionQueryDto } from './dto/children-distribution-query.dto';
+import { ChildrenDistributionResponseDto } from './dto/children-distribution-response.dto';
 import { DashboardQueryDto } from './dto/dashboard-query.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { DistrictRiskQueryDto } from './dto/district-risk-query.dto';
@@ -66,6 +68,23 @@ export class AnalyticsController {
     @Query() query: ChildrenDemographicsQueryDto,
   ) {
     return this.analyticsService.getChildrenDemographics(user, query);
+  }
+
+  @Get('children-distribution')
+  @ApiOperation({
+    summary: 'Children per administrative area (province down to ECD center)',
+    description:
+      'Active children boys/girls/total per area at the requested `level` ' +
+      '(province, district, sector, cell, village or center), most children first. ' +
+      'Uses the same geographic scope as /analytics/children-demographics. Aggregate-only.',
+  })
+  @ApiOkResponse({ type: ChildrenDistributionResponseDto })
+  @ApiStandardClientErrors()
+  getChildrenDistribution(
+    @CurrentUser() user: AuthUser,
+    @Query() query: ChildrenDistributionQueryDto,
+  ) {
+    return this.analyticsService.getChildrenDistribution(user, query);
   }
 
   @Get('children-conditions')

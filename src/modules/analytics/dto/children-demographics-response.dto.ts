@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EcdFacilityType } from '../../../common/domain';
 
 /** Gender × disability slice for one age band (or overall). */
 export class DemographicSliceDto {
@@ -111,6 +112,25 @@ export class ChildrenByDistrictDto {
   total: number;
 }
 
+export class ChildrenByFacilityTypeDto {
+  @ApiProperty({
+    enum: EcdFacilityType,
+    enumName: 'EcdFacilityType',
+    nullable: true,
+    description: 'Center facility type; null = centers not yet classified',
+  })
+  facilityType: EcdFacilityType | null;
+
+  @ApiProperty({ example: 120 })
+  boys: number;
+
+  @ApiProperty({ example: 130 })
+  girls: number;
+
+  @ApiProperty({ example: 250 })
+  total: number;
+}
+
 export class ChildrenDemographicsResponseDto {
   @ApiProperty({
     example: '2026-09-03T00:00:00.000Z',
@@ -162,4 +182,13 @@ export class ChildrenDemographicsResponseDto {
       'Active children boys/girls/total per in-scope district (national = all districts; district/center filter = that district only)',
   })
   byDistrict: ChildrenByDistrictDto[];
+
+  @ApiProperty({
+    type: () => ChildrenByFacilityTypeDto,
+    isArray: true,
+    description:
+      'Active children boys/girls/total per ECD center facility type in scope. Only types with children are listed; ' +
+      'children in unclassified centers are grouped under facilityType=null.',
+  })
+  byFacilityType: ChildrenByFacilityTypeDto[];
 }
