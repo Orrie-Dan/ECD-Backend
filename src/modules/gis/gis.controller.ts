@@ -1,6 +1,24 @@
 import { UserRole } from '../../common/domain';
-import { All, BadRequestException, Controller, Get, Query, Req, Res } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  All,
+  BadRequestException,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -15,6 +33,8 @@ import { GisService } from './gis.service';
 @ApiTags('gis')
 @Controller('gis')
 export class GisController {
+  private readonly logger = new Logger(GisController.name);
+
   constructor(
     private readonly gisService: GisService,
     private readonly centerMetricsService: CenterMetricsService,
@@ -34,6 +54,30 @@ export class GisController {
   @ApiStandardClientErrors()
   centerMetrics(@CurrentUser() user: AuthUser, @Query() query: CenterMetricsQueryDto) {
     return this.centerMetricsService.centerMetrics(user, query);
+  }
+
+  @Post('map-unsupported')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Report a browser that cannot draw ArcGIS maps',
+    description:
+      'Sent once per page load when the browser lacks WebGL2. Writes one structured server log ' +
+      'line (user, role, district, browser) so affected users can be counted. Nothing is stored.',
+  })
+  @ApiNoContentResponse()
+  @ApiStandardClientErrors()
+  mapUnsupported(@CurrentUser() user: AuthUser, @Req() req: Request): void {
+    const userAgent = String(req.headers['user-agent'] ?? '').slice(0, 300);
+    this.logger.warn(
+      `map-unsupported ${JSON.stringify({
+        userId: user.id,
+        role: user.role,
+        districtId: user.districtId,
+        sectorId: user.sectorId,
+        userAgent,
+      })}`,
+    );
   }
 
   @Public()

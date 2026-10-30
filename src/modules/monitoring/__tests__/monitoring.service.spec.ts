@@ -286,6 +286,39 @@ async function main() {
     eq(result.page, 1);
   });
 
+  await assert('attendance monitoring sorts centers by rate, no-record centers last', async () => {
+    const sortPrisma = stubPrisma();
+    const at = new Date('2026-08-01');
+    sortPrisma.attendanceRecord.groupBy = async () => [
+      { centerId: 'c1', status: 'present', attendanceDate: at, _count: { _all: 9 } },
+      { centerId: 'c1', status: 'absent', attendanceDate: at, _count: { _all: 1 } },
+      { centerId: 'c2', status: 'present', attendanceDate: at, _count: { _all: 2 } },
+      { centerId: 'c2', status: 'absent', attendanceDate: at, _count: { _all: 8 } },
+    ];
+    const svc = new MonitoringService(sortPrisma as never);
+    const range = {
+      from: new Date('2026-08-01'),
+      to: new Date('2026-08-05'),
+      page: 1,
+      pageSize: 3,
+    };
+
+    const desc = await svc.attendance(actor, range);
+    eq(
+      desc.items.map((i) => i.centerId),
+      ['c1', 'c2', 'c10'],
+      'default desc',
+    );
+
+    const asc = await svc.attendance(actor, { ...range, sort: 'rate_asc' });
+    eq(
+      asc.items.map((i) => i.centerId),
+      ['c2', 'c1', 'c10'],
+      'rate_asc',
+    );
+    eq(asc.items[2].rate, null);
+  });
+
   await assert('nutrition monitoring includes severe counts', async () => {
     const result = await service.nutrition(actor, {});
     eq(result.summary.severe, 2);

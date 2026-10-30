@@ -5,7 +5,7 @@ import { ApiStandardClientErrors } from '../../common/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthUser } from '../auth/interfaces/jwt-payload.interface';
-import { MonitoringQueryDto } from './dto/monitoring-query.dto';
+import { MonitoringAttendanceQueryDto, MonitoringQueryDto } from './dto/monitoring-query.dto';
 import {
   MonitoringAttendanceResponseDto,
   MonitoringFeedingResponseDto,
@@ -38,7 +38,7 @@ export class MonitoringController {
   })
   @ApiOkResponse({ type: MonitoringAttendanceResponseDto })
   @ApiStandardClientErrors()
-  attendance(@CurrentUser() user: AuthUser, @Query() query: MonitoringQueryDto) {
+  attendance(@CurrentUser() user: AuthUser, @Query() query: MonitoringAttendanceQueryDto) {
     return this.monitoring.attendance(user, query);
   }
 
