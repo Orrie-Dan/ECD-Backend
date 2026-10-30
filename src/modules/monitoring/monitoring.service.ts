@@ -17,7 +17,7 @@ import {
   emptyWhoZoneCounts,
   screeningCompatBand,
 } from '../nutrition/who/concern';
-import { MonitoringQueryDto } from './dto/monitoring-query.dto';
+import { MonitoringAttendanceQueryDto, MonitoringQueryDto } from './dto/monitoring-query.dto';
 
 const OVERDUE_SCREENING_DAYS = 30;
 const STALE_REFERRAL_DAYS = 7;
@@ -26,7 +26,7 @@ const STALE_REFERRAL_DAYS = 7;
 export class MonitoringService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async attendance(user: AuthUser, query: MonitoringQueryDto) {
+  async attendance(user: AuthUser, query: MonitoringAttendanceQueryDto) {
     const scope = await resolveDistrictQueryScope(this.prisma, user, query);
     const { from, to } = resolveInclusiveDateRange(query.from, query.to);
     const { page, pageSize, skip } = paginateParams(query.page, query.pageSize);
@@ -113,9 +113,17 @@ export class MonitoringService {
       };
     });
 
-    centerSummaries.sort(
-      (a, b) => (b.rate ?? -1) - (a.rate ?? -1) || a.centerName.localeCompare(b.centerName),
-    );
+    // Centers without records sink to the end in both directions.
+    const direction = query.sort === 'rate_asc' ? 1 : -1;
+    centerSummaries.sort((a, b) => {
+      if (a.rate == null || b.rate == null) {
+        return (
+          Number(a.rate == null) - Number(b.rate == null) ||
+          a.centerName.localeCompare(b.centerName)
+        );
+      }
+      return direction * (a.rate - b.rate) || a.centerName.localeCompare(b.centerName);
+    });
     const total = centerSummaries.length;
     const items = centerSummaries.slice(skip, skip + pageSize);
 

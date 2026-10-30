@@ -1,6 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDate, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsDate, IsIn, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+
+export const ATTENDANCE_SORTS = ['rate_desc', 'rate_asc'] as const;
+export type AttendanceSort = (typeof ATTENDANCE_SORTS)[number];
 
 export class MonitoringQueryDto {
   @ApiPropertyOptional({
@@ -77,4 +80,16 @@ export class MonitoringQueryDto {
   @Min(1)
   @Max(100)
   pageSize?: number = 20;
+}
+
+export class MonitoringAttendanceQueryDto extends MonitoringQueryDto {
+  @ApiPropertyOptional({
+    enum: ATTENDANCE_SORTS,
+    default: 'rate_desc',
+    description:
+      'Order of the per-center rows before pagination. Centers without attendance records are always last.',
+  })
+  @IsOptional()
+  @IsIn(ATTENDANCE_SORTS)
+  sort?: AttendanceSort;
 }
